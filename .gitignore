@@ -1,0 +1,10 @@
+/.vscode
+/.vs
+
+/build
+/data/test_output
+
+/examples/build
+/examples/data/test_output
+
+/out
