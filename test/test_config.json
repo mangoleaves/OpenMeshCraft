@@ -1,0 +1,36 @@
+{
+  "Arrangements": {
+    "TestIfComplexArrangementCrash": {
+      "dir": "./data/arrangements_data/",
+      "filename": "CamelBox.stl",
+      "verbose": true,
+      "record_checked": false
+    }
+  },
+  "Boolean": {
+    "TestIfCrash": {
+      "mesh_path_1": "./data/boolean_data/bunny25k.obj",
+      "mesh_path_2": "./data/boolean_data/cow25k.obj"
+    }
+  },
+  "AABBTreeClosestPoint": {
+    "SetUp": {
+      "model_path": "./data/boolean_data/bunny25k.obj"
+    }
+  },
+  "AABBTreeIntersection": {
+    "SetUp": {
+      "model_path": "./data/boolean_data/bunny25k.obj"
+    }
+  },
+  "AdapOrthTree": {
+    "SetUp": {
+      "filename": "./data/arrangements_data/318844.stl"
+    }
+  },
+  "OrthogonalTree": {
+    "SetUp": {
+      "filename": "./data/arrangements_data/318844.stl"
+    }
+  }
+}

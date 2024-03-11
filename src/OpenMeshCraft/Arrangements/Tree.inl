@@ -1,0 +1,208 @@
+#pragma once
+
+#include "Tree.h"
+
+namespace OMC {
+
+/********************************************************************/
+/* Octree, used in detecting intersections                          */
+/********************************************************************/
+
+template <typename AppTraits>
+void Arr_OcTree_Intersection<AppTraits>::init_from_triangle_soup(
+  const std::vector<GPoint *> &verts, const std::vector<index_t> &tris,
+  NT enlarge_ratio)
+{
+	size_t               num_tris = tris.size() / 3;
+	std::vector<BboxT>   boxes(num_tris);
+	std::vector<index_t> indices(num_tris);
+	tbb::parallel_for((size_t)0, num_tris,
+	                  [&boxes, &indices, &verts, &tris](size_t i)
+	                  {
+		                  BboxT box(AsEP()(*verts[tris[i * 3]]));
+		                  box += AsEP()(*verts[tris[i * 3 + 1]]);
+		                  box += AsEP()(*verts[tris[i * 3 + 2]]);
+		                  boxes[i]   = box;
+		                  indices[i] = i;
+	                  });
+	// insert boxes and indices to tree
+	this->insert_boxes(boxes, indices);
+	// construct the tree
+	this->construct(/*compact*/ true, enlarge_ratio);
+}
+
+template <typename AppTraits>
+void Arr_OcTree_Intersection<AppTraits>::shape_refine(
+  size_t num_intersection_pairs)
+{
+	if (num_intersection_pairs < 1000)
+		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.5);
+	else if (num_intersection_pairs < 10000)
+		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.2);
+	else if (num_intersection_pairs < 100000)
+		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.1);
+	else if (num_intersection_pairs >= 100000)
+		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.05);
+
+	BaseT::shape_refine();
+}
+
+template <typename AppTraits>
+template <typename QPrimT>
+void Arr_OcTree_Intersection<AppTraits>::all_intersections(
+  const QPrimT &query, Indices &results) const
+{
+	BoxTrav box_trav(query);
+	this->traversal(box_trav);
+	results = box_trav.result();
+}
+
+template <typename AppTraits>
+void Arr_OcTree_Intersection<AppTraits>::insert_triangle(const GPoint *v0,
+                                                         const GPoint *v1,
+                                                         const GPoint *v2,
+                                                         index_t       ins_id)
+{
+	BboxT box(AsEP()(*v0));
+	box += AsEP()(*v1);
+	box += AsEP()(*v2);
+	insert_box(box, ins_id);
+}
+
+template <typename AppTraits>
+void Arr_OcTree_Intersection<AppTraits>::insert_box(const BboxT &ins_box,
+                                                    index_t      ins_id)
+{
+	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
+
+	this->m_boxes.emplace_back();
+	this->m_boxes.back().bbox() = ins_box;
+	this->m_boxes.back().id()   = ins_id;
+
+	std::queue<index_t> nodes_to_insert;
+	nodes_to_insert.push(this->root_node_idx());
+
+	while (!nodes_to_insert.empty())
+	{
+		index_t                 nd_idx = nodes_to_insert.front();
+		typename BaseT::NodeRef nd     = this->node(nd_idx);
+		nodes_to_insert.pop();
+
+		if (nd.is_leaf())
+		{
+			nd.boxes().push_back(this->m_boxes.size() - 1);
+			nd.tbox() += ins_box;
+			nd.tbox().min_bound().maximize(nd.box().min_bound());
+			nd.tbox().max_bound().minimize(nd.box().max_bound());
+			nd.size() += 1;
+		}
+		else // nd.is_internal()
+		{
+			for (index_t ch_i = 0; ch_i < nd.children_size(); ch_i++)
+			{
+				typename BaseT::NodeCRef ch_nd = this->node(nd.child(ch_i));
+				if (DoIntersect()(ch_nd.box(), ins_box))
+					nodes_to_insert.push(nd.child(ch_i));
+			}
+		}
+	}
+}
+
+template <typename AppTraits>
+auto Arr_OcTree_Intersection<AppTraits>::locate_point(const GPoint *pp) ->
+  typename BaseT::NodeRef
+{ // in arrangements context, inserted point is always in one leaf node.
+	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
+
+	typename BaseT::NodePtr nd_ptr = &this->root_node();
+	while (nd_ptr->is_internal())
+	{
+		typename BaseT::OrPoint center = this->node_center(*nd_ptr);
+
+		std::array<Sign, 3> cmp_sign = LessThan3D().on_all(*pp, center);
+
+		size_t cmp_res = (static_cast<size_t>(cmp_sign[0] >= Sign::ZERO)) |
+		                 (static_cast<size_t>(cmp_sign[1] >= Sign::ZERO) << 1) |
+		                 (static_cast<size_t>(cmp_sign[2] >= Sign::ZERO) << 2);
+
+		size_t ch_idx = nd_ptr->child_map()[cmp_res];
+
+		nd_ptr = &this->node(nd_ptr->child(ch_idx));
+	}
+	return *nd_ptr;
+}
+
+template <typename AppTraits>
+std::pair<std::atomic<index_t> *, bool>
+Arr_OcTree_Intersection<AppTraits>::insert_point(const GPoint         *pp,
+                                                 std::atomic<index_t> *ip)
+{
+	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
+
+	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
+
+	// reach the target leaf node, insert point to concurrent map.
+	return leaf_nd.attribute().point_map.insert(pp, ip);
+}
+
+template <typename AppTraits>
+template <typename GetIndex>
+std::pair<index_t, bool> Arr_OcTree_Intersection<AppTraits>::insert_point_F(
+  const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx)
+{
+	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
+
+	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
+
+	// reach the target leaf node, insert point to concurrent map.
+	std::pair<std::atomic<index_t> *, bool> ins =
+	  leaf_nd.attribute().point_map.insert(pp, ip);
+
+	if (ins.second) // succeed to insert.
+	{
+		get_idx(pp, ip); // assign a valid index
+		return std::pair<index_t, bool>(ip->load(), true);
+	}
+	else // the point already exists, fail to insert.
+	{
+		int spin_count = 1;
+		// we may get an invalid index in case that the point is just inserted.
+		// spin until the index is valid, the waiting time depends on get_idx.
+		while (ins.first->load(std::memory_order_relaxed) == InvalidIndex)
+		{
+			tbb::detail::machine_pause(spin_count);
+			spin_count = std::min(spin_count * 2, 16);
+		}
+		return std::pair<index_t, bool>(ins.first->load(std::memory_order_relaxed),
+		                                false);
+	}
+}
+
+template <typename AppTraits>
+std::pair<index_t, bool>
+Arr_OcTree_Intersection<AppTraits>::find(const GPoint *pp)
+{
+	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
+	return leaf_nd.attribute().point_map.find(pp);
+}
+
+template <typename AppTraits>
+std::atomic<index_t> &Arr_OcTree_Intersection<AppTraits>::at(const GPoint *pp)
+{
+	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
+	return leaf_nd.attribute().point_map.at(pp);
+}
+
+template <typename AppTraits>
+void Arr_OcTree_Intersection<AppTraits>::clear_points()
+{
+	for (typename BaseT::NodeRef nd : this->m_nodes)
+	{
+		if (nd.is_leaf())
+		{
+			nd.attribute().point_map = AuxPointMap_ConcurrentMap<AppTraits>();
+		}
+	}
+}
+
+} // namespace OMC
