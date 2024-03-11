@@ -1,0 +1,23 @@
+implicitPoint3D(p:px,py,pz,dp)
+implicitPoint3D(q:qx,qy,qz,dq)
+dis
+
+dqx = dp * qx
+dqy = dp * qy
+dqz = dp * qz
+dpx = dq * qx
+dpy = dq * qy
+dpz = dq * qz
+lx = dpx - dqx
+ly = dpy - dqy
+lz = dpz - dqz
+lx2 = lx * lx
+ly2 = ly * ly
+lz2 = lz * lz
+sqrnormxy = lx2 + ly2
+sqrnorm = sqrnormxy + lz2
+dp2 = dp * dp
+dq2 = dq * dq
+d2 = dp2 * dq2
+d2dis = d2 * dis
+diff = sqrnorm - d2dis

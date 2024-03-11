@@ -1,0 +1,11 @@
+explicitPoint3D(p1:p1y,p1z) // Explicit point 1
+explicitPoint3D(p2:p2y,p2z) // Explicit point 2
+explicitPoint3D(p3:p3y,p3z) // Explicit point 3
+
+a11 = p2y - p1y
+a12 = p2z - p1z
+a21 = p3y - p1y
+a22 = p3z - p1z
+d1 = a11 * a22
+d2 = a12 * a21
+d = d1 - d2

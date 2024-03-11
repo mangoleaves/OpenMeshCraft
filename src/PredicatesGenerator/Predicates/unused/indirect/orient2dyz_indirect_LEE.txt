@@ -1,0 +1,16 @@
+implicitPoint3D_LPI(p1:l1x;4;1024;1.221613955826318e-14;12.00000000000002;l1y;4;1024;1.221613955826318e-14;12.00000000000002;l1z;4;1024;1.221613955826318e-14;12.00000000000002;d1;3;192;4.886390771174922e-015;6.000000000000006)
+explicitPoint3D(p2:p2y,p2z) // Explicit point 1
+explicitPoint3D(p3:p3y,p3z) // Explicit point 2
+
+t1y = p2z - p3z
+t1z = p3y - p2y
+e2 = l1y * t1y
+e3 = l1z * t1z
+e = e2 + e3
+pr1 = p2y * p3z
+pr2 = p2z * p3y
+pr = pr1 - pr2
+dpr = d1 * pr
+det = dpr + e
+
+// SIGN d1

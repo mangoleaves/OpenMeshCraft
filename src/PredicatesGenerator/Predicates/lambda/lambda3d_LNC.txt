@@ -1,0 +1,14 @@
+explicitPoint3D(p:px,py,pz)
+explicitPoint3D(q:qx,qy,qz)
+t
+
+vx = px - qx
+vy = py - qy
+vz = pz - qz
+vxt = vx * t
+vyt = vy * t
+vzt = vz * t
+lambda_x = px - vxt
+lambda_y = py - vyt
+lambda_z = pz - vzt
+lambda_d = 1

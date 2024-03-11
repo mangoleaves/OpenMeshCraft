@@ -1,0 +1,27 @@
+explicitPoint3D(a:xa,ya,za)
+explicitPoint3D(b:xb,yb,zb)
+explicitPoint3D(p:xp,yp,zp)
+explicitPoint3D(q:xq,yq,zq)
+
+xba = xb - xa
+yba = yb - ya
+zba = zb - za
+xap = xa - xp
+yap = ya - yp
+yqp = yq - yp
+xqp = xq - xp
+c1 = xap * yqp
+c2 = xqp * yap
+c3 = xba * yqp
+c4 = xqp * yba
+c12 = c1 - c2
+lambda_d = c4 - c3
+xf = xba * c12
+xs = xa * lambda_d
+lambda_x = xf + xs
+yf = yba * c12
+ys = ya * lambda_d
+lambda_y = yf + ys
+zf = zba * c12
+zs = za * lambda_d
+lambda_z = zf + zs

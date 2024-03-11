@@ -1,0 +1,10 @@
+explicitPoint2D(p1:p1x,p1y)
+explicitPoint2D(p2:p2x,p2y)
+explicitPoint2D(p3:p3x,p3y)
+a11 = p2x - p1x
+a12 = p2y - p1y
+a21 = p3x - p1x
+a22 = p3y - p1y
+d1 = a11 * a22
+d2 = a12 * a21
+d = d1 - d2

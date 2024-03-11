@@ -1,0 +1,16 @@
+// Sign of (p-q).dot(r-q)
+implicitPoint2D(p:lpx,lpy,dp)
+implicitPoint2D(r:lrx,lry,dr)
+explicitPoint2D(q:qx,qy)
+
+qxd = qx * dp
+qyd = qy * dp
+lx = lpx - qxd
+ly = lpy - qyd
+qxr = qx * dr
+qyr = qy * dr
+gx = lrx - qxr
+gy = lry - qyr
+dx = lx * gx
+dy = ly * gy
+d = dx + dy

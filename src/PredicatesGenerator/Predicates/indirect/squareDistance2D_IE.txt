@@ -1,0 +1,14 @@
+implicitPoint2D(p:px,py,d)
+explicitPoint2D(q:qx,qy)
+dis
+
+dqx = d * qx
+dqy = d * qy
+lx = px - dqx
+ly = py - dqy
+lx2 = lx * lx
+ly2 = ly * ly
+sqrnorm = lx2 + ly2
+d2 = d * d
+d2dis = d2 * dis
+diff = sqrnorm - d2dis
