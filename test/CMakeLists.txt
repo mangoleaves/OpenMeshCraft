@@ -129,3 +129,38 @@ endif()
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
+
+# ##############################################################################
+# ##############################################################################
+# ##############################################################################
+
+# ##############################################################################
+# Configure an executable to run dataset for arrangements.
+# ##############################################################################
+
+add_executable(OpenMeshCraft-Arrangements paper_arrangements.cpp)
+
+# include directories
+# ##############################################################################
+target_include_directories(OpenMeshCraft-Arrangements
+                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# link libraries
+# ##############################################################################
+target_link_libraries(OpenMeshCraft-Arrangements PUBLIC OpenMeshCraft gtest_main)
+
+# general configuration of current target
+# ##############################################################################
+
+set(OMC_CONFIG_TARGET OpenMeshCraft-Arrangements)
+
+set(OMC_CONFIGDEP_BOOST ON)
+set(OMC_CONFIGDEP_BOOST_COMPONENTS filesystem)
+# finally configure...
+include(OpenMeshCraft_ConfigureDeps)
+
+add_custom_command(
+  TARGET OpenMeshCraft-Arrangements
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component
+          ${PROJECT_NAME} --config $<CONFIG>)

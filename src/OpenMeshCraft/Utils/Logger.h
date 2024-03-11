@@ -45,7 +45,7 @@ public:
 /* Memory ********************************************************************/
 /*****************************************************************************/
 
-inline double getPeakMegabytesUsed();
-inline double getMegabytesUsed();
+double getPeakMegabytesUsed();
+double getMegabytesUsed();
 
 } // namespace OMC

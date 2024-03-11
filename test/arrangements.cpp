@@ -17,13 +17,10 @@ using TriSoupTraits = OMC::TriSoupTraits;
 using Points    = typename TriSoupTraits::Points;
 using Triangles = typename TriSoupTraits::Triangles;
 
-using Arrangements =
-  OMC::MeshArrangements<EIAC, TriSoupTraits>;
+using Arrangements = OMC::MeshArrangements<EIAC, TriSoupTraits>;
 
 int main(int argc, char *argv[])
 {
-	// OMC::Logger::initialize();
-
 	std::string filename;
 	bool        output_stats  = false;
 	bool        output_result = false;
@@ -62,8 +59,8 @@ int main(int argc, char *argv[])
 	Points    input_points, result_points;
 	Triangles input_triangles, result_triangles;
 
-	read_mesh(filename, input_points, input_triangles, io_options,
-	                         false);
+	read_mesh(filename, input_points, input_triangles, io_options);
+#if 0
 	filename = filename.substr(filename.find_last_of("/\\") + 1);
 	std::fstream fout;
 	if (output_stats)
@@ -72,33 +69,32 @@ int main(int argc, char *argv[])
 		fout << filename << ",";
 	}
 
-	OMC::Logger::elapse_reset();
+	auto start = OMC::Logger::elapse_reset();
 
 	Arrangements arrangements(verbose);
 
-	OMC::MeshArrangements_Stats &stats =
-	  arrangements.stats();
+	OMC::MeshArrangements_Stats &stats = arrangements.stats();
 
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
 	arrangements.meshArrangements(false, true);
 
-	double time = OMC::Logger::elapsed().count();
+	double time = OMC::Logger::elapsed(start).count();
 
 	if (output_stats)
 	{
 		fout << stats.pp_elapsed << "," << stats.di_elapsed << ","
 		     << stats.cn_elapsed << "," << stats.ci_elapsed << ","
 		     << stats.tr_elapsed << "," << time << ","
-		     << OMC::getPeakMegabytesUsed() << "," << result_points.size()
-		     << "," << result_triangles.size() << "\n";
+		     << OMC::getPeakMegabytesUsed() << "," << result_points.size() << ","
+		     << result_triangles.size() << "\n";
 		std::cout << filename << ": " << time << "s, "
 		          << OMC::getPeakMegabytesUsed() << " MB\n";
 		fout.close();
 	}
 
 	if (output_result)
-		write_mesh(filename, result_points, result_triangles,
-		                          io_options);
+		write_mesh(filename, result_points, result_triangles, io_options);
+#endif
 	return 0;
 }
