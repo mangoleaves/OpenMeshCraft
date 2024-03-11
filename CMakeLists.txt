@@ -117,5 +117,5 @@ if(OMC_BUILD_TEST)
 endif()
 
 if(OMC_BUILD_EXAMPLE)
-  # add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
