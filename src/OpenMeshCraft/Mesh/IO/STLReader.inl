@@ -4,6 +4,12 @@
 
 #include "OpenMeshCraft/Utils/Macros.h"
 
+#include "OpenMeshCraft/Utils/DisableWarnings.h"
+
+#include "parallel_hashmap/btree.h"
+
+#include "OpenMeshCraft/Utils/EnableWarnings.h"
+
 #include <cfloat>
 #include <map>
 
@@ -205,6 +211,9 @@ inline bool STLReader<Traits>::read_stla(const std::string &filename,
 {
 	std::fstream in(filename.c_str(), std::ios_base::in);
 
+	OMC_THROW_INVALID_ARGUMENT_IF(!in, "[STLReader] : cannot not open file {}",
+	                              filename);
+
 	bool res = read_stla(in, opt);
 
 	if (in)
@@ -214,16 +223,14 @@ inline bool STLReader<Traits>::read_stla(const std::string &filename,
 }
 
 template <typename Traits>
-inline bool STLReader<Traits>::read_stla(std::istream         &_in,
-                                         OMC_UNUSED IOOptions &opt)
+inline bool STLReader<Traits>::read_stla(std::istream &_in, IOOptions &opt)
 {
 	unsigned int i;
 	PointT       v;
 	NormalT      n;
-	Points       unique_points;
-	Triangles    faces_data;
+	Triangle     indices;
 
-	using PointIDMap     = std::map<PointT, std::size_t, CmpVec>;
+	using PointIDMap     = phmap::btree_map<PointT, std::size_t, CmpVec>;
 	using PointIDMapIter = typename PointIDMap::iterator;
 	CmpVec     comp(FLT_MIN);
 	PointIDMap point_to_id(comp);
@@ -231,6 +238,12 @@ inline bool STLReader<Traits>::read_stla(std::istream         &_in,
 	std::string line;
 
 	bool facet_normal(false);
+
+	// reserve memory
+	m_points.reserve(10000);
+	m_triangles.reserve(10000);
+	if (opt.face_has_normal)
+		m_normals.reserve(10000);
 
 	while (_in && !_in.eof())
 	{
@@ -245,29 +258,29 @@ inline bool STLReader<Traits>::read_stla(std::istream         &_in,
 		// Normal found?
 		if (line.find("facet normal") != std::string::npos)
 		{
-			std::stringstream strstream(line);
-			strstream.precision(16);
-
-			std::string garbage;
-
-			// facet
-			strstream >> garbage;
-
-			// normal
-			strstream >> garbage;
-
-			strstream >> n[0];
-			strstream >> n[1];
-			strstream >> n[2];
-
 			facet_normal = true;
+
+			if (opt.face_has_normal)
+			{
+				std::stringstream strstream(line);
+				strstream.precision(16);
+
+				std::string garbage;
+				// "facet"
+				strstream >> garbage;
+				// "normal"
+				strstream >> garbage;
+
+				strstream >> n[0];
+				strstream >> n[1];
+				strstream >> n[2];
+			}
 		}
 
 		// Detected a triangle
 		if ((line.find("outer") != std::string::npos) ||
 		    (line.find("OUTER") != std::string::npos))
 		{
-			Triangle indices;
 
 			for (i = 0; i < 3; ++i)
 			{
@@ -281,45 +294,32 @@ inline bool STLReader<Traits>::read_stla(std::istream         &_in,
 				strstream << line;
 
 				std::string garbage;
+				// "vertex"
 				strstream >> garbage;
 
 				strstream >> v[0];
-
 				strstream >> v[1];
-
 				strstream >> v[2];
 
 				// has vector been referenced before?
 				std::pair<PointIDMapIter, bool> is_insert_successful =
-				  point_to_id.insert(std::make_pair(v, unique_points.size()));
-				std::size_t id = is_insert_successful.first->second;
+				  point_to_id.insert(std::make_pair(v, m_points.size()));
 
-				if (id == unique_points.size())
-					unique_points.push_back(v);
-				/*else
-				{
-				  size_t pos = point_to_id[v];
-				  if (v != unique_points[pos])
-				  {
-				    std::cout.precision(12);
-				    std::cout << v[0] << " " << v[1] << " " << v[2] << std::endl;
-				    std::cout << unique_points[pos][0] << " " << unique_points[pos][1]
-				              << " " << unique_points[pos][2] << std::endl
-				              << std::endl;
-				  }
-				}*/
+				std::size_t id = is_insert_successful.first->second;
+				if (is_insert_successful.second) // a new vertex
+					m_points.push_back(v);
+
 				indices[i] = static_cast<ti_t>(id);
 			}
 
-			if (facet_normal)
-			{
-				m_normals.push_back(n);
-			}
-
 			m_triangles.push_back(indices);
+			if (facet_normal && opt.face_has_normal)
+				m_normals.push_back(n);
 		}
 	}
-	m_points = unique_points;
+
+	if (!facet_normal && opt.face_has_normal)
+		opt.face_has_normal = false;
 
 	return true;
 }
@@ -342,23 +342,19 @@ inline bool STLReader<Traits>::read_stlb(const std::string &filename,
 }
 
 template <typename Traits>
-inline bool STLReader<Traits>::read_stlb(std::istream         &_in,
-                                         OMC_UNUSED IOOptions &opt)
+inline bool STLReader<Traits>::read_stlb(std::istream &_in, IOOptions &opt)
 {
 	char         dummy[100];
 	bool         swapFlag;
 	unsigned int i, nT;
 	PointT       v;
 	NormalT      n;
+	Triangle     indices;
 
-	Points unique_points;
-
-	using PointIDMap = std::map<PointT, std::size_t, CmpVec>;
-	using PointIDMapIter =
-	  typename std::map<PointT, std::size_t, CmpVec>::iterator;
-	CmpVec         comp(FLT_MIN);
-	PointIDMap     point_to_id(comp);
-	PointIDMapIter vMapIt;
+	using PointIDMap     = phmap::btree_map<PointT, std::size_t, CmpVec>;
+	using PointIDMapIter = typename PointIDMap::iterator;
+	CmpVec     comp(FLT_MIN);
+	PointIDMap point_to_id(comp);
 
 	// check size of types
 	static_assert(sizeof(float) == 4 && sizeof(int) == 4);
@@ -372,6 +368,12 @@ inline bool STLReader<Traits>::read_stlb(std::istream         &_in,
 	endian_test.i = 1;
 	swapFlag      = (endian_test.c[3] == 1);
 
+	// reserve memory
+	m_points.reserve(10000);
+	m_triangles.reserve(10000);
+	if (opt.face_has_normal)
+		m_normals.reserve(10000);
+
 	// read number of triangles
 	_in.read(dummy, 80);
 	nT = read_int(_in, swapFlag);
@@ -379,7 +381,6 @@ inline bool STLReader<Traits>::read_stlb(std::istream         &_in,
 	// read triangles
 	while (nT)
 	{
-		Triangle indices;
 		// read triangle normal
 		n[0] = read_float(_in, swapFlag);
 		n[1] = read_float(_in, swapFlag);
@@ -394,35 +395,23 @@ inline bool STLReader<Traits>::read_stlb(std::istream         &_in,
 
 			// has vector been referenced before?
 			std::pair<PointIDMapIter, bool> is_insert_successful =
-			  point_to_id.insert(std::make_pair(v, unique_points.size()));
+			  point_to_id.insert(std::make_pair(v, m_points.size()));
+
 			std::size_t id = is_insert_successful.first->second;
+			if (is_insert_successful.second) // a new vertex
+				m_points.push_back(v);
 
-			if (id == unique_points.size())
-				unique_points.push_back(v);
-			/*else
-			{
-			  size_t pos = point_to_id[v];
-			  if (v != unique_points[pos])
-			  {
-			    std::cout.precision(12);
-			    std::cout << v[0] << " " << v[1] << " " << v[2] << std::endl;
-			    std::cout << unique_points[pos][0] << " " << unique_points[pos][1]
-			              << " " << unique_points[pos][2] << std::endl
-			              << std::endl;
-			  }
-
-			}*/
 			indices[i] = static_cast<ti_t>(id);
 		}
 
 		// Add face only if it is not degenerated
 		m_triangles.push_back(indices);
-		m_normals.push_back(n);
+		if (opt.face_has_normal)
+			m_normals.push_back(n);
 
 		_in.read(dummy, 2);
 		--nT;
 	}
-	m_points = unique_points;
 
 	return true;
 }
