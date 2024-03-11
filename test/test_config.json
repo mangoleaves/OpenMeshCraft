@@ -1,10 +1,14 @@
 {
   "Arrangements": {
-    "TestIfComplexArrangementCrash": {
+    "TestIfCrash": {
       "dir": "./data/arrangements_data/",
       "filename": "CamelBox.stl",
       "verbose": true,
       "record_checked": false
+    },
+    "TestDataSet": {
+      "models_dir": "who-knows",
+      "verbose": false
     }
   },
   "Boolean": {

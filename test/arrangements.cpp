@@ -10,7 +10,6 @@
 
 #include "test_utils.h"
 
-using index_t       = OMC::index_t;
 using EIAC          = OMC::EIAC;
 using TriSoupTraits = OMC::TriSoupTraits;
 
@@ -54,13 +53,13 @@ int main(int argc, char *argv[])
 	// Define IO
 	IOOptions io_options;
 	io_options.vertex_has_point = true;
+	io_options.stl_binary       = true;
 
 	// Define mesh
 	Points    input_points, result_points;
 	Triangles input_triangles, result_triangles;
 
 	read_mesh(filename, input_points, input_triangles, io_options);
-#if 0
 	filename = filename.substr(filename.find_last_of("/\\") + 1);
 	std::fstream fout;
 	if (output_stats)
@@ -95,6 +94,5 @@ int main(int argc, char *argv[])
 
 	if (output_result)
 		write_mesh(filename, result_points, result_triangles, io_options);
-#endif
 	return 0;
 }

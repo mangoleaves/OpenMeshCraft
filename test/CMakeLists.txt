@@ -138,29 +138,32 @@ gtest_discover_tests(${PROJECT_NAME})
 # Configure an executable to run dataset for arrangements.
 # ##############################################################################
 
-add_executable(OpenMeshCraft-Arrangements paper_arrangements.cpp)
+add_executable(OpenMeshCraft-Arrangements arrangements.cpp)
 
-# include directories
-# ##############################################################################
-target_include_directories(OpenMeshCraft-Arrangements
-                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+foreach(_TARGET OpenMeshCraft-Arrangements)
 
-# link libraries
-# ##############################################################################
-target_link_libraries(OpenMeshCraft-Arrangements PUBLIC OpenMeshCraft gtest_main)
+  # include directories
+  # ############################################################################
+  target_include_directories(${_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# general configuration of current target
-# ##############################################################################
+  # link libraries
+  # ############################################################################
+  target_link_libraries(${_TARGET} PUBLIC OpenMeshCraft gtest_main)
 
-set(OMC_CONFIG_TARGET OpenMeshCraft-Arrangements)
+  # general configuration of current target
+  # ############################################################################
 
-set(OMC_CONFIGDEP_BOOST ON)
-set(OMC_CONFIGDEP_BOOST_COMPONENTS filesystem)
-# finally configure...
-include(OpenMeshCraft_ConfigureDeps)
+  set(OMC_CONFIG_TARGET ${_TARGET})
 
-add_custom_command(
-  TARGET OpenMeshCraft-Arrangements
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component
-          ${PROJECT_NAME} --config $<CONFIG>)
+  set(OMC_CONFIGDEP_BOOST ON)
+  set(OMC_CONFIGDEP_BOOST_COMPONENTS filesystem)
+  # finally configure...
+  include(OpenMeshCraft_ConfigureDeps)
+
+  add_custom_command(
+    TARGET ${_TARGET}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component
+            ${PROJECT_NAME} --config $<CONFIG>)
+
+endforeach()
