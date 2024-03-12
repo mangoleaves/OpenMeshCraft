@@ -1,0 +1,2026 @@
+#include "converter.h"
+
+void help_info()
+{
+	std::cout
+	  << "USAGE: converter filename.txt [-a] [-ft] [-it] [-ex] -[et]\n"
+	     "If '-a', all the code is appended to 'indirect_predicates.cpp'\n"
+	     "If '-ft', output filtered function\n"
+	     "If '-it', output interval function\n"
+	     "If '-ex', output expansion function\n"
+	     "If '-et', output exact function\n";
+	exit(1);
+}
+
+void error(const char *s, int line)
+{
+	if (line)
+	{
+		std::cerr << std::format("Line {}: {}\n", line, s);
+		exit(0);
+	}
+	else
+		std::cerr << s << std::endl;
+	exit(1);
+}
+
+void tokenize(const std::string &line, std::vector<std::string> &tokens,
+              char separator)
+{
+	tokens.clear();
+	std::stringstream check(line);
+	std::string       intermediate;
+	while (std::getline(check, intermediate, separator))
+		tokens.push_back(intermediate);
+}
+
+void create_heading_comment(std::string &s)
+{
+	// clang-format off
+	s +=
+	"/****************************************************************************\n"
+	"* Indirect predicates for geometric constructions                           *\n"
+	"*                                                                           *\n"
+	"* Consiglio Nazionale delle Ricerche                                        *\n"
+	"* Istituto di Matematica Applicata e Tecnologie Informatiche                *\n"
+	"* Sezione di Genova                                                         *\n"
+	"* IMATI-GE / CNR                                                            *\n"
+	"*                                                                           *\n"
+	"* Authors: Marco Attene                                                     *\n"
+	"* Copyright(C) 2019: IMATI-GE / CNR                                         *\n"
+	"* All rights reserved.                                                      *\n"
+	"*                                                                           *\n"
+	"* This program is free software; you can redistribute it and/or modify      *\n"
+	"* it under the terms of the GNU Lesser General Public License as published  *\n"
+	"* by the Free Software Foundation; either version 3 of the License, or (at  *\n"
+	"* your option) any later version.                                           *\n"
+	"*                                                                           *\n"
+	"* This program is distributed in the hope that it will be useful, but       *\n"
+	"* WITHOUT ANY WARRANTY; without even the implied warranty of                *\n"
+	"* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser  *\n"
+	"* General Public License for more details.                                  *\n"
+	"*                                                                           *\n"
+	"* You should have received a copy of the GNU Lesser General Public License  *\n"
+	"* along with this program.  If not, see http://www.gnu.org/licenses/.       *\n"
+	"*                                                                           *\n"
+	"****************************************************************************/\n"
+	"\n/****************************************************************************\n"
+	"*                                                                           *\n"
+	"* Modified by Guo Jia-Peng.                                                 *\n"
+	"*                                                                           *\n"
+	"****************************************************************************/\n"
+	"\n/* This code was generated automatically.                                  */\n"
+	"/* Do not edit unless you exactly know what you are doing!                 */\n\n";
+	// clang-format on
+}
+
+fpnumber ulp(fpnumber d)
+{
+	int exp;
+#ifdef USE_FLOATS
+	frexpf(d, &exp);
+	fpnumber u = ldexpf(0.5, exp - 23);
+#else
+	frexp(d, &exp);
+	fpnumber u = ldexp(0.5, exp - 52);
+#endif
+	// Comment this out to ignore INTEL's x387 extended precision
+	// u += (u / (1 << 11));
+	return u;
+}
+
+LambdaVariable::LambdaVariable(std::string &n)
+  : point_type(n)
+{
+	if (point_type == "implicitPoint2D")
+	{
+		dim = 2;
+	}
+	else if (point_type == "implicitPoint3D")
+	{
+		dim = 3;
+	}
+	else
+	{
+		error("unrecognized implicit point type", -1);
+	}
+}
+
+std::string LambdaVariable::get_type_string()
+{
+	auto pointXD = [this](int x)
+	{ return std::format("GenericPoint{}T<{}, {}>", x, IT, ET); };
+
+	if (dim == 2)
+		return pointXD(2);
+	else if (dim == 3)
+		return pointXD(3);
+	else
+	{
+		error("Undefined dimension.", 0);
+		return "";
+	}
+}
+
+std::string LambdaVariable::print_filtered()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : output_pars)
+	{
+		variables << ((first) ? ("") : (", ")) << v->name;
+		first = false;
+	}
+	return std::format("{}.getFilteredLambda({}, max_var)", point_name,
+	                   variables.str());
+}
+
+std::string LambdaVariable::print_interval()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : output_pars)
+	{
+		variables << ((first) ? ("") : (", ")) << v->name;
+		first = false;
+	}
+	return std::format("{}.getIntervalLambda({})", point_name, variables.str());
+}
+
+std::string LambdaVariable::print_expansion()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : output_pars)
+	{
+		variables << ((first) ? ("&") : (", &")) << v->name << ", " << v->name
+		          << "_len";
+		first = false;
+	}
+	return std::format("{}.getExpansionLambda({})", point_name, variables.str());
+}
+
+std::string LambdaVariable::print_exact()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : output_pars)
+	{
+		variables << ((first) ? ("") : (", ")) << v->name;
+		first = false;
+	}
+	return std::format("{}.getExactLambda({})", point_name, variables.str());
+}
+
+ExplicitVariable::ExplicitVariable(std::string &n)
+  : point_type(n)
+{
+	if (point_type == "explicitPoint3D")
+		dim = 3;
+	else if (point_type == "explicitPoint2D")
+		dim = 2;
+}
+
+std::string ExplicitVariable::get_type_string()
+{
+	auto pointXD = [this](int x)
+	{ return std::format("GenericPoint{}T<{}, {}>", x, IT, ET); };
+
+	return pointXD(dim);
+}
+
+std::string ExplicitVariable::get_vars()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : coords)
+	{
+		variables << ((first) ? ("") : (", ")) << v->name;
+		first = false;
+	}
+	return variables.str();
+}
+
+std::string ExplicitVariable::get_methods()
+{
+	std::stringstream variables;
+	bool              first = true;
+	for (Variable *v : coords)
+	{
+		std::string var_name = v->name;
+		size_t      pos      = var_name.find_last_of("xyz");
+		var_name = var_name.substr(0, pos) + "." + var_name.substr(pos, 1) + "()";
+		variables << ((first) ? ("") : (", ")) << var_name;
+		first = false;
+	}
+	return variables.str();
+}
+
+void ErrorDefinition::parseOneErrorDef(ErrorDef &e, std::string &allvarstuff)
+{
+	std::vector<std::string> tokens;
+	tokenize(allvarstuff, tokens, ';');
+	e.error_degree = atoi(tokens[1].c_str());
+	e.size         = atoi(tokens[2].c_str());
+	e.error_bound  = atof(tokens[3].c_str());
+	e.value_bound  = atof(tokens[4].c_str());
+}
+
+// Plain declaration
+Variable::Variable(const std::string &s)
+  : name(s)
+  , is_part_of_explicit(false)
+  , is_lambda_out(false)
+  , is_used(false)
+  , actual_length(name + "_len")
+{
+	op1 = nullptr;
+	op2 = nullptr;
+
+	clearError();
+}
+
+// Plain explicit declaration
+Variable::Variable(std::string &s, ExplicitT)
+  : name(s)
+  , is_part_of_explicit(true)
+  , is_lambda_out(false)
+  , is_used(false)
+  , actual_length(name + "_len")
+{
+	op1 = nullptr;
+	op2 = nullptr;
+
+	clearError();
+}
+
+// Plain lambda declaration
+Variable::Variable(std::string &s, LambdaT)
+  : name(s)
+  , is_part_of_explicit(false)
+  , is_lambda_out(true)
+  , is_used(false)
+  , actual_length(name + "_len")
+{
+	op1 = nullptr;
+	op2 = nullptr;
+
+	clearError();
+}
+
+// Plain assignment
+Variable::Variable(std::string &s, Variable *o1)
+  : name(s)
+  , is_part_of_explicit(false)
+  , is_lambda_out(false)
+  , op1(o1)
+  , op2(nullptr)
+  , op('=')
+  , is_used(false)
+{
+	if (op1 == nullptr)
+		error("operand 1 is null.", -1);
+	op1->is_used = true;
+
+	clearError();
+}
+
+// Binary operation
+Variable::Variable(std::string &s, Variable *o1, Variable *o2, char o)
+  : name(s)
+  , is_part_of_explicit(false)
+  , is_lambda_out(false)
+  , op1(o1)
+  , op2(o2)
+  , op(o)
+  , is_used(false)
+{
+	if (op1 == nullptr)
+		error("operand 1 is null.", -1);
+	if (op2 == nullptr)
+		error("operand 2 is null.", -1);
+	op1->is_used = true;
+	op2->is_used = true;
+}
+
+void Variable::clearError()
+{
+	is_a_max = false;
+
+	if (is_part_of_explicit)
+	{
+		error_evaluated = true;
+		size            = 1;
+		error_degree    = 1;
+		value_bound     = 1;
+		error_bound     = 0;
+	}
+	else if (is_lambda_out)
+	{
+		error_evaluated = true;
+		size            = MAX_STATIC_SIZE;
+		error_degree    = 1;
+		value_bound     = 1;
+		error_bound     = 1;
+		// default values (error_degree, value_bound, error_bound) for lambda is not
+		// right, just for some calculation (e.g., find max_var, evaluate size in
+		// expansion).
+	}
+	else if (op1 == nullptr)
+	{
+		// other input variables
+		error_evaluated = true;
+		size            = 1;
+		error_degree    = 1;
+		value_bound     = 1;
+		error_bound     = 0;
+		if (name == "2")
+			value_bound = 2;
+	}
+	else
+	{
+		// other middle variables
+		error_evaluated = false;
+		size            = 1;
+		error_degree    = 1;
+		value_bound     = 1;
+		error_bound     = 0;
+	}
+
+	if (op1 != nullptr)
+		op1->clearError();
+	if (op2 != nullptr)
+		op2->clearError();
+}
+
+void Variable::setError(int _error_degree, int _size, fpnumber _error_bound,
+                        fpnumber _value_bound)
+{
+	error_degree = _error_degree;
+	size         = _size;
+	error_bound  = _error_bound;
+	value_bound  = _value_bound;
+
+	error_evaluated = true;
+}
+
+void Variable::propagateError()
+{
+	if (name == "1" || name == "2")
+		goto func_end;
+	if (op1 == nullptr && op2 == nullptr)
+		goto func_end; // input variable, no operands.
+
+	if (op1 && !op1->error_evaluated)
+		op1->propagateError();
+	if (op2 && !op2->error_evaluated)
+		op2->propagateError();
+
+	if (op == '=')
+	{
+		size         = op1->size;
+		value_bound  = op1->value_bound;
+		error_bound  = op1->error_bound;
+		error_degree = op1->error_degree;
+		if (op1->error_bound == 0)
+			op1->is_a_max = true;
+	}
+	else if (op == '+' || op == '-')
+	{
+		size = op1->size + op2->size;
+		if (op == '-' && op1->error_bound == 0 && op2->error_bound == 0)
+		{
+			// Translation filter.
+			// This is the same formula used in FPG. I am not sure it is correct.
+			// Why is the value bound 1 and not 2? (1 - (-1)) = 2.
+			value_bound  = 1;
+			error_bound  = value_bound * (0.5 * FPN_EPSILON);
+			error_degree = 1;
+			is_a_max     = true;
+		}
+		else
+		{
+			// Regular sum or subtraction
+			value_bound = op1->value_bound + op2->value_bound;
+			fpnumber u  = 0.5 * ulp(value_bound);
+			value_bound += u;
+			error_bound  = op1->error_bound + op2->error_bound + u;
+			error_degree = std::max(op1->error_degree, op2->error_degree);
+
+			if (op1->error_bound == 0)
+				op1->is_a_max = true;
+			if (op2->error_bound == 0)
+				op2->is_a_max = true;
+		}
+	}
+	else if (op == '*')
+	{
+		if (op1->name == std::string("2"))
+		{
+			size         = op2->size;
+			value_bound  = op1->value_bound * op2->value_bound;
+			error_bound  = op2->error_bound;
+			error_degree = op2->error_degree;
+		}
+		else
+		{
+			size        = 2 * op1->size * op2->size;
+			value_bound = op1->value_bound * op2->value_bound;
+			fpnumber u  = 0.5 * ulp(value_bound);
+			value_bound += u;
+			// The formula herebelow is slightly tighter than FPG's.
+			// Original as in FPG is commented below.
+			error_bound = op1->error_bound * op2->error_bound +
+			              op1->error_bound * (op2->value_bound - op2->error_bound) +
+			              op2->error_bound * (op1->value_bound - op1->error_bound) +
+			              u;
+			// error_bound = op1->error_bound * op2->error_bound +
+			//               op1->error_bound * op2->value_bound +
+			//               op2->error_bound *op1->value_bound + u;
+			error_degree = op1->error_degree + op2->error_degree;
+		}
+
+		if (op1->error_bound == 0)
+			op1->is_a_max = true;
+		if (op2->error_bound == 0)
+			op2->is_a_max = true;
+	}
+	else
+		error("Unknown operand", 0);
+
+func_end:
+	if (size > 2 * MAX_STATIC_SIZE)
+		size = 2 * MAX_STATIC_SIZE;
+	if (actual_length.empty())
+		actual_length = std::to_string(size);
+
+	error_evaluated = true;
+}
+
+Predicate::Predicate(bool _append, bool _output_filtered, bool _output_interval,
+                     bool _output_exact, bool _output_expansion)
+{
+	append           = _append;
+	output_filtered  = _output_filtered;
+	output_interval  = _output_interval;
+	output_exact     = _output_exact;
+	output_expansion = _output_expansion;
+
+	is_indirect = false;
+	is_lambda   = false;
+
+	// "2" is a special variable representing the constant 2
+	all_vars.push_back(Variable(std::string("2")));
+	// "1" is a special variable representing the constant 1
+	all_vars.push_back(Variable(std::string("1")));
+}
+
+Variable *Predicate::getVarByName(const std::string &name)
+{
+	if (name_2_vars.find(name) == name_2_vars.end())
+		return nullptr;
+	else
+		return name_2_vars.at(name);
+}
+
+void Predicate::produceAllCode(const std::string &func_name)
+{
+	std::string filtered_funcname  = func_name + "_filtered";
+	std::string interval_funcname  = func_name + "_interval";
+	std::string expansion_funcname = func_name + "_expansion";
+	std::string exact_funcname     = func_name + "_exact";
+
+	std::ofstream header;
+	openHeader(header);
+
+	std::ofstream file;
+	openFile(file, func_name);
+
+	if (output_filtered && !all_lambda_vars.empty() && all_error_defs.empty())
+		output_filtered = false;
+
+	// generate prototypes in header
+	if (output_filtered)
+		filteredPrototype(filtered_funcname, header);
+	if (output_interval)
+		intervalPrototype(interval_funcname, header);
+	if (output_exact)
+		exactPrototype(exact_funcname, header);
+	if (output_expansion)
+		expansionPrototype(expansion_funcname, header);
+
+	if (!is_lambda)
+		multistagePrototype(func_name, header);
+
+	// generate implementation in source file
+	if (output_filtered)
+		produceFilteredCode(filtered_funcname, file);
+	if (output_interval)
+		produceIntervalCode(interval_funcname, file);
+	if (output_exact)
+		produceExactCode(exact_funcname, file);
+	if (output_expansion)
+		produceExpansionCode(expansion_funcname, file);
+
+	if (!is_lambda)
+		produceMultiStageCode(func_name, filtered_funcname, interval_funcname,
+		                      exact_funcname, expansion_funcname, file);
+
+	header.close();
+	file.close();
+}
+
+/**
+ * @brief parameter prototypes for lambda function,
+ * @param mytype number types (double, IT, ET).
+ */
+std::string Predicate::createLambdaParamProtoList(const std::string &mytype)
+{
+	bool              first = true;
+	std::stringstream variables;
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		Variable &v = all_vars[i];
+		if (v.name.substr(0, 6) == "lambda")
+			variables << std::format(", {}& {}", mytype, v.name);
+		if (v.isInput() && v.is_used && v.name != "1" && v.name != "2")
+		{
+			variables << std::format("{}{} {}", (first) ? ("") : (", "), mytype,
+			                         v.name);
+			first = false;
+		}
+	}
+	return variables.str();
+}
+
+/**
+ * @param mytype type name (e.g., double, IE, ET)
+ * @param separate_explicit separate explicit point to coordinates
+ * (e.g., a -> ax, ay, az).
+ */
+std::string Predicate::createParameterProtoList(const std::string &mytype,
+                                                bool separate_explicit)
+{
+	bool              first = true;
+	std::stringstream variables;
+	// lambda variables =======================================================
+	for (LambdaVariable &l : all_lambda_vars)
+	{
+		variables << std::format("{}{}& {}", (first) ? ("const ") : (", const "),
+		                         l.get_type_string(), l.point_name);
+		first = false;
+	}
+	// explicit variables =====================================================
+	for (ExplicitVariable &ev : all_explicit_vars)
+	{
+		if (separate_explicit)
+		{
+			for (Variable *v : ev.coords)
+			{
+				variables << std::format("{}{} {}", first ? "" : ", ", mytype, v->name);
+				first = false;
+			}
+		}
+		else
+		{
+			variables << std::format("{}{}& {}", first ? "const " : ", const ",
+			                         ev.get_type_string(), ev.point_name);
+			first = false;
+		}
+	}
+	// other variables ========================================================
+	for (Variable &v : all_vars)
+	{
+		if (v.isParameter())
+		{
+			variables << std::format("{}{} {}", first ? "" : ", ", mytype, v.name);
+			first = false;
+		}
+	}
+	return variables.str();
+}
+
+std::string Predicate::createExpansionProtoList()
+{
+	if (is_lambda)
+	{
+		std::stringstream variables;
+		bool              first = true;
+		// input explicit variables
+		for (Variable &v : all_vars)
+		{
+			if (v.isInput() && v.name != "1" && v.name != "2" && v.is_used &&
+			    !v.is_lambda_out)
+			{
+				variables << ((first) ? ("double ") : (", double ")) << v.name;
+				first = false;
+			}
+		}
+		// output lambda variables
+		for (Variable &v : all_vars)
+		{
+			if (v.name.substr(0, 6) == "lambda")
+			{
+				variables << ((first) ? ("double **") : (", double **")) << v.name
+				          << ", int& " << v.name << "_len";
+				first = false;
+			}
+		}
+		return variables.str();
+	}
+	else
+	{
+		return createParameterProtoList("double", /*separate_explicit*/ true);
+	}
+}
+
+std::string Predicate::createParameterValueList(bool separate_explicit)
+{
+	bool              first = true;
+	std::stringstream values;
+	for (LambdaVariable &l : all_lambda_vars)
+	{
+		values << ((first) ? "" : ", ") << l.point_name;
+		first = false;
+	}
+	for (ExplicitVariable &v : all_explicit_vars)
+	{
+		if (separate_explicit)
+			values << ((first) ? "" : ", ") << v.get_vars();
+		else
+			values << ((first) ? "" : ", ") << v.get_methods();
+		first = false;
+	}
+	for (Variable &v : all_vars)
+	{
+		if (v.isParameter())
+		{
+			values << ((first) ? "" : ", ") << v.name;
+			first = false;
+		}
+	}
+	return values.str();
+}
+
+void Predicate::produceMultiStageCode(const std::string &func_name,
+                                      const std::string &filtered_funcname,
+                                      const std::string &interval_funcname,
+                                      const std::string &exact_funcname,
+                                      const std::string &expansion_funcname,
+                                      std::ofstream     &file)
+{
+	bool worth_a_semistatic_filter = true;
+	// ((*(all_vars.end() - 1)).error_degree <= MAX_WORTH_DEGREE);
+
+	std::string comm          = (worth_a_semistatic_filter) ? ("") : ("//");
+	std::string inline_ph     = "";
+	std::string template_decl = std::format(
+	  "template <typename {}, typename {} {}>", IT, ET,
+	  output_filtered ? std::string(", bool WithSSFilter") : std::string(""));
+	std::string return_type = Sign;
+
+	// create function that accept explicit points in double
+
+	file << std::format(
+	  "{} {}\n{} {}({})\n{{\n", inline_ph, template_decl, return_type, func_name,
+	  createParameterProtoList(FT, /*separate_explicit*/ true) +
+	    (is_indirect && output_filtered ? std::format(", {} arr", PntArr)
+	                                    : std::string("")));
+
+	std::string variables = createParameterValueList(/*separate_explicit*/ true);
+
+	file << std::format("{} ret;\n", return_type);
+
+	if (output_filtered)
+	{
+		file << "if constexpr (WithSSFilter) {\n";
+		file << std::format(
+		  "{}ret = {}{}({});\n", comm, filtered_funcname,
+		  all_lambda_vars.empty() ? "" : std::format("<{},{}>", IT, ET),
+		  variables + (is_indirect ? std::string(", arr") : std::string("")));
+		file << comm << "if (is_sign_reliable(ret)) return ret;\n";
+		file << "}\n";
+	}
+
+	if (output_interval)
+	{
+		file << std::format("ret = {}{}({});\n", interval_funcname,
+		                    all_lambda_vars.empty()
+		                      ? std::format("<{}>", IT)
+		                      : std::format("<{}, {}>", IT, ET),
+		                    variables);
+		file << "if (is_sign_reliable(ret)) return ret;\n";
+	}
+
+	if (output_exact && !output_expansion)
+	{
+		file << std::format("return {}{}({});\n", exact_funcname,
+		                    all_lambda_vars.empty()
+		                      ? std::format("<{}>", ET)
+		                      : std::format("<{}, {}>", IT, ET),
+		                    variables);
+	}
+
+	if (output_expansion)
+	{
+		file << std::format("return {}{}({});\n", expansion_funcname,
+		                    all_lambda_vars.empty()
+		                      ? std::string("")
+		                      : std::format("<{}, {}>", IT, ET),
+		                    variables);
+	}
+
+	file << "}\n\n";
+
+	// create function that accept explicit points in point type
+
+	if (!all_explicit_vars.empty())
+	{
+		file << std::format("{} {}\n{} {}({})\n{{\n", inline_ph, template_decl,
+		                    return_type, func_name,
+		                    createParameterProtoList(FT,
+		                                             /*separate_explicit*/ false) +
+		                      (is_indirect && output_filtered
+		                         ? std::format(", {} arr", PntArr)
+		                         : std::string("")));
+
+		variables =
+		  createParameterValueList(/*separate_explicit*/ false) +
+		  (is_indirect && output_filtered ? std::string(", arr") : std::string(""));
+
+		file << std::format("return {}{}({});\n", func_name,
+		                    std::format("<{}, {} {}>", IT, ET,
+		                                output_filtered
+		                                  ? std::string(", WithSSFilter")
+		                                  : std::string("")),
+		                    variables);
+
+		file << "}\n\n";
+	}
+}
+
+void Predicate::producePointArrangement(
+  std::vector<std::vector<size_t>> &arrangements,
+  std::vector<std::string>         &arrangements_str)
+{
+	if (all_lambda_vars.empty() || all_error_defs.empty())
+		return;
+
+	size_t lambda_vars_size = all_lambda_vars.size();
+	size_t error_defs_size  = all_error_defs.size();
+	// assume that error defs are sorted by type_id, e.g., {S(2), L(3), T(4)}
+
+	// arrangement (e.g., SSS, SSL, SST, SLL, SLT, STT, LLL, LLT, LTT, TTT)
+	//                    222  223  224  233  234  244  333  334  344  444
+	// [highest bit ... lowest bit]
+	std::vector<size_t> arr(lambda_vars_size, 0);
+
+	// increase arrangement by one.
+	auto inc_arr = [&]() -> bool
+	{
+		arr[lambda_vars_size - 1] += 1;
+		// check if need carry lowest bit.
+		if (arr[lambda_vars_size - 1] < error_defs_size)
+		{
+			return true; // does not need carry, go on
+		}
+		// need carry the lowest bit, further check if need carry other bits
+		size_t i;
+		for (i = lambda_vars_size - 1; i > 0 && arr[i] == error_defs_size; --i)
+		{
+			arr[i] = 0;
+			arr[i - 1] += 1;
+		}
+		// if we need to carry to the highest bit but it can't be carried, stop
+		if (i == 0 && arr[0] == error_defs_size)
+			return false;
+		// adjust lower bits to be not less than current bit
+		for (size_t j = i + 1; j < lambda_vars_size; ++j)
+			arr[j] = arr[i];
+		return true; // go on
+	};
+
+	do
+	{
+		// generate arrangement short names	(e.g., "SSL")
+		std::string arr_str = "";
+		for (size_t i = 0; i < lambda_vars_size; ++i)
+			arr_str += all_error_defs[arr[i]].short_name;
+		arrangements.push_back(arr);
+		arrangements_str.push_back(arr_str);
+	} while (inc_arr());
+}
+
+void Predicate::produceSemiStaticFilter(fpnumber epsilon, int degree,
+                                        const std::string &threshold_name,
+                                        std::ofstream     &file)
+{
+	int td  = 1;
+	int l2d = static_cast<int>(std::floor(std::log2(degree)));
+	for (int i = 0; i < l2d; i++)
+	{
+		file << std::format("{0:} *= {0:};\n", threshold_name);
+		td += td;
+	}
+	for (int i = 0; i < (degree - td); i++)
+		file << std::format("{} *= max_var;\n", threshold_name);
+	file << std::format("{} *= {};\n", threshold_name, epsilon);
+}
+
+void Predicate::produceFilteredCode(const std::string &funcname,
+                                    std::ofstream     &file)
+{
+	// Declare function =======================================================
+
+	std::string inline_ph =
+	  (!is_lambda && all_lambda_vars.empty()) ? "inline" : "";
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? ""
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string return_type = is_lambda ? Boolean : Sign;
+	std::string variables =
+	  is_lambda
+	    ? createLambdaParamProtoList(FT) + std::format(", {}& max_var", FT)
+	    : createParameterProtoList(FT, /*separate_explicit*/ true) +
+	        (is_indirect ? std::format(", {} arr", PntArr) : std::string(""));
+
+	file << std::format("{} {}\n{} {}({})\n{{\n", inline_ph, template_decl,
+	                    return_type, funcname, variables);
+
+	// Calculate lambdas ======================================================
+
+	if (is_indirect)
+	{
+		// declare lambda variables
+		// -- declare type
+		bool first;
+		file << FT;
+		// -- declare variables
+		first = true;
+		for (Variable &v : all_vars)
+			if (v.isInput() && v.is_lambda_out)
+			{
+				file << ((first) ? (" ") : (", ")) << v.name;
+				first = false;
+			}
+		file << ", max_var = 0;\n";
+		// -- get variables	and check validity
+		file << "if (\n";
+		first = true;
+		for (LambdaVariable &l : all_lambda_vars)
+		{
+			file << std::format("{} {}\n", first ? "!" : "|| !", l.print_filtered());
+			first = false;
+		}
+		// -- if invalid, return
+		file << ") return Sign::UNCERTAIN;\n\n";
+	}
+
+	// Function body - operations
+
+	Variable *v;
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		v = &all_vars[i];
+		if (v->isInput())
+			continue;
+		std::string &o1 = (*v->op1).name;
+
+		if (is_lambda && v->name.substr(0, 6) == "lambda")
+			file << std::format("{}", v->name);
+		else
+			file << std::format("{} {}", FT, v->name);
+
+		if (v->op2 == nullptr)
+		{
+			file << std::format(" = {};\n", o1);
+		}
+		else
+		{
+			std::string &o2 = (*v->op2).name;
+			file << std::format(" = {} {} {};\n", o1, v->op, o2);
+		}
+	}
+
+	// Function body - filter calculation
+
+	// -- find out the output variable
+	std::string outvar_name;
+	Variable   *outvar   = nullptr;
+	std::string eps_name = "epsilon";
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		outvar      = &all_vars[i];
+		outvar_name = all_vars[i].name;
+		if (outvar_name.substr(0, 8) == "lambda_d" &&
+		    (!is_lambda || outvar->op2 != nullptr))
+		{
+			eps_name = outvar_name + "_eps";
+			break;
+		}
+	}
+
+	// This should happen only when this is a lambda function and lambda_d = 1
+	if (is_lambda && eps_name == "epsilon")
+	{
+		file << "\nreturn true;\n}\n\n";
+		return;
+	}
+	// clear and propagate to find all max var
+	for (Variable &v_ : all_vars)
+		v_.clearError();
+	for (Variable &v_ : all_vars)
+		v_.propagateError();
+
+	// -- find out the maximal variable (inputs or difference between inputs)
+
+	bool maxes = std::any_of(all_vars.begin() + 1, all_vars.end(),
+	                         [](const Variable &var) { return var.is_a_max; });
+
+	if (is_lambda)
+		file << "\ndouble _tmp_fabs;\n";
+	else
+	{
+		if (maxes)
+			file << "\ndouble _tmp_fabs;\n";
+		if (!is_indirect)
+			file << "\ndouble max_var = 0.0;\n";
+	}
+
+	for (size_t i = 1; i < all_vars.size(); i++)
+		if (all_vars[i].is_a_max)
+			file << std::format(
+			  "if ((_tmp_fabs = fabs( {} )) > max_var) max_var = _tmp_fabs;\n",
+			  all_vars[i].name);
+
+	// -- evaluate error
+
+	if (is_indirect)
+	{
+		std::vector<std::vector<size_t>> arrangements;
+		std::vector<std::string>         arrangements_str;
+		producePointArrangement(arrangements, arrangements_str);
+
+		size_t lambda_vars_size = all_lambda_vars.size();
+
+		file << std::format("double {} = max_var;\n", eps_name);
+		file << "switch (arr) {\n";
+		for (size_t i = 0; i < arrangements.size(); i++)
+		{
+			const std::vector<size_t> &arr     = arrangements[i];
+			const std::string         &arr_str = arrangements_str[i];
+			// generate error bound and degree
+			// -- clear error
+			outvar->clearError();
+			// -- set new error to lambda variables
+			for (size_t j = 0; j < lambda_vars_size; j++)
+			{
+				ErrorDefinition &ed = all_error_defs[arr[j]];
+				LambdaVariable  &lv = all_lambda_vars[j];
+				for (size_t k = 0; k < ed.dim + 1; k++)
+				{
+					lv.output_pars[k]->setError(ed.pars[k].error_degree, ed.pars[k].size,
+					                            ed.pars[k].error_bound,
+					                            ed.pars[k].value_bound);
+				}
+			}
+			// -- propagate error
+			outvar->propagateError();
+
+			file << std::format("case {}::{}:{{\n", PntArr, arr_str);
+			produceSemiStaticFilter(outvar->error_bound, outvar->error_degree,
+			                        eps_name, file);
+			file << "}\nbreak;\n";
+		}
+		file << std::format("default:{};}}\n", Exit);
+	}
+	else
+	{
+		outvar->clearError();
+		outvar->propagateError();
+		file << std::format("double {} = max_var;\n", eps_name);
+		produceSemiStaticFilter(outvar->error_bound, outvar->error_degree, eps_name,
+		                        file);
+	}
+
+	// Function body - compare with filter and return
+
+	if (is_lambda)
+		file << std::format("\nreturn ({0:} > {0:}_eps || {0:} < -{0:}_eps);\n",
+		                    outvar_name);
+	else
+		file << std::format("\nreturn filter_sign({}, epsilon);\n", outvar_name);
+
+	// Function end
+	file << "}\n\n";
+}
+
+void Predicate::produceIntervalCode(const std::string &funcname,
+                                    std::ofstream     &file)
+{
+	// Declare function =======================================================
+
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? std::format("template <typename {}>", IT)
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string inline_ph   = "";
+	std::string return_type = is_lambda ? Boolean : Sign;
+	std::string variables =
+	  is_lambda ? createLambdaParamProtoList(IT)
+	            : createParameterProtoList(IT, /*separate_explicit*/ true);
+
+	file << std::format("{} {}\n{} {}({})\n{{\n", inline_ph, template_decl,
+	                    return_type, funcname, variables);
+
+	// Calculate lambdas ======================================================
+
+	if (is_indirect)
+	{
+		// declare lambda variables
+		// -- declare type
+		file << IT;
+		// -- declare variables
+		bool first = true;
+		for (Variable &v : all_vars)
+			if (v.isInput() && v.is_lambda_out)
+			{
+				file << ((first) ? (" ") : (", ")) << v.name;
+				first = false;
+			}
+		file << ";\n";
+		// -- get variables	and check validity
+		file << "if (\n";
+		first = true;
+		for (LambdaVariable &l : all_lambda_vars)
+		{
+			file << std::format("{} {}\n", first ? "!" : "|| !", l.print_interval());
+			first = false;
+		}
+		// -- if invalid, return
+		file << ") return Sign::UNCERTAIN;\n\n";
+	}
+
+	// Function body - operations =============================================
+
+	// protect rounding mode in interval calculation
+	file << std::format("typename {}::Protector P;\n\n", IT);
+
+	Variable *v = nullptr;
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		v = &all_vars[i];
+		if (v->isInput())
+			continue;
+		std::string  expr;
+		std::string &o1 = (*v->op1).name;
+
+		if (v->op == '=' && v->op2 == nullptr)
+		{ // assignment
+			expr = o1;
+		}
+		else
+		{ // binary operator
+			std::string &o2 = (*v->op2).name;
+
+			expr = ((o1 == "2") ? (o2 + " " + v->op + " " + o1)
+			                    : (o1 + " " + v->op + " " + o2));
+		}
+		// check if we need to declare this variable as a new var,
+		// then assign to it.
+		if (is_lambda && v->name.substr(0, 6) == "lambda")
+			file << std::format("{} = {};\n", v->name, expr);
+		else
+			file << std::format("{} {} = {};\n", IT, v->name, expr);
+	}
+
+	// Function body - dynamic filter =========================================
+
+	if (is_lambda)
+	{
+		// find "lambda_d" and check if its sign is reliable.
+		for (size_t i = 1; i < all_vars.size(); i++)
+		{
+			Variable &_v = all_vars[i];
+			if (_v.name.substr(0, 8) == "lambda_d")
+			{
+				file << std::format("return {}.is_sign_reliable();\n", _v.name);
+				break;
+			}
+		}
+	}
+	else
+	{
+		// check if last variable's sign is reliable
+		file << std::format("if (!{}.is_sign_reliable()) return Sign::UNCERTAIN;\n",
+		                    v->name);
+		// if it is reliable, return its sign.
+		file << std::format("return OMC::sign({});\n", v->name);
+	}
+
+	// function end ===========================================================
+	file << "}\n\n";
+}
+
+void Predicate::produceExpansionCode(const std::string &funcname,
+                                     std::ofstream     &file)
+{
+	// Declare function =======================================================
+
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? std::string("")
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string inline_ph   = is_lambda ? "inline" : "";
+	std::string return_type = is_lambda ? "void" : Sign;
+	std::string variables   = createExpansionProtoList();
+
+	file << std::format("{} {}\n{} {}({})\n{{\n", inline_ph, template_decl,
+	                    return_type, funcname, variables);
+
+	// Calculate stack size ====================================================
+
+	// Accoount for expansionObject + return_value
+	uint32_t fixed_stacksize = 152;
+	for (Variable &v : all_vars)
+		if (v.isParameter())
+			fixed_stacksize += 8; // Size of a pointer on 64bit systems
+	if (is_lambda)
+		for (Variable &v : all_vars)
+			if (v.name.substr(0, 6) == "lambda")
+				fixed_stacksize += 16; // two pointers
+			else
+				for (Variable &_v : all_vars)
+					if (_v.isInput() && _v.is_lambda_out)
+						fixed_stacksize += 16; // two pointers
+
+	if (fixed_stacksize >= MAX_STACK_SIZE)
+		error("Too many parameters - stack overflow unavoidable.\n", 0);
+
+	uint32_t local_max_size = MAX_STATIC_SIZE * 2;
+	uint32_t variable_stacksize;
+
+	// Accoount for variables
+
+	// -- clear and set default error
+	for (Variable &v_ : all_vars)
+		v_.clearError();
+	for (LambdaVariable &lv : all_lambda_vars)
+		for (Variable *v_ : lv.output_pars)
+			v_->error_evaluated = true;
+	// -- propagate error to get size for each variable
+	//    (error degree/bound is not used by expansion code.)
+	for (Variable &v_ : all_vars)
+		v_.propagateError();
+
+	// -- calculate the local maximal size
+	do
+	{
+		local_max_size /= 2;
+		variable_stacksize = 0;
+		for (Variable &v : all_vars)
+			if ((!is_lambda || v.name.substr(0, 6) != "lambda") && v.name != "2" &&
+			    v.name != "1")
+			{
+				if (v.size > static_cast<int>(local_max_size))
+					variable_stacksize += (local_max_size + 1) * 8;
+				else
+					variable_stacksize += (v.size * 8);
+			}
+			else
+				variable_stacksize += 4;
+	} while ((fixed_stacksize + variable_stacksize) >= MAX_STACK_SIZE);
+	printf("STACK --- %d\n", fixed_stacksize + variable_stacksize);
+
+	// Calculate lambdas ======================================================
+
+	if (is_indirect)
+	{
+		file << "double return_value = NAN;\n";
+
+#ifdef UNDERFLOW_GUARDING
+		file << "#ifdef CHECK_FOR_XYZERFLOWS\n";
+		file << "   feclearexcept(FE_ALL_EXCEPT);\n";
+		file << "#endif\n";
+#endif
+		// declare lambda variables and pointers.
+		bool first;
+		first = true;
+		for (Variable &v : all_vars)
+			if (v.isInput() && v.is_lambda_out)
+			{
+				//	if (v.size > local_max_size)
+				file << ((first) ? ("double ") : (", ")) << v.name << "_p["
+				     << local_max_size << "], *" << v.name << " = " << v.name << "_p";
+				//	else
+				// 		file << ((first) ? (" double ") : (", ")) << v.name << "[" <<
+				// v.size << "]";
+				first = false;
+			}
+		file << ";\n";
+		// declare lambda variables' length
+		first = true;
+		for (Variable &v : all_vars)
+			if (v.isInput() && v.is_lambda_out)
+			{
+				//	if (v.size > local_max_size)
+				file << ((first) ? ("int ") : (", ")) << v.name
+				     << "_len = " << local_max_size;
+				//	else
+				// 		file << ((first) ? (" int ") : (", ")) << v.name << "_len = "
+				// << v.size;
+				first = false;
+			}
+		file << ";\n";
+		// calculate lambda variables.
+		for (LambdaVariable &l : all_lambda_vars)
+		{
+			file << l.print_expansion() << ";\n";
+		}
+		// check validity of lambda variables
+		file << "if (";
+		first = true;
+		for (LambdaVariable &l : all_lambda_vars)
+		{
+			file << ((first) ? ("(") : (" && (")) << l.output_pars.back()->name << "["
+			     << l.output_pars.back()->name << "_len - 1] != 0)";
+			first = false;
+		}
+		file << ")\n{\n";
+	}
+
+	// seek the first variable that is not input.
+	size_t i;
+	for (i = 1; i < all_vars.size(); i++)
+		if (!all_vars[i].isInput())
+			break;
+
+	// Function body - operations ==============================================
+
+	file << "expansionObject o;\n";
+
+	Variable *v        = nullptr;
+	size_t    first_op = i;
+
+	for (i = 1; i < all_vars.size(); i++)
+	{
+		v = &all_vars[i];
+		if (v->isInput())
+			continue;
+		// -- get the first operand
+		Variable   &op1 = *v->op1;
+		std::string o1 =
+		  ((op1.name.substr(0, 6) == "lambda") ? ("*") : ("")) + op1.name;
+		// -- declare variable if it is new.
+		int          s1  = op1.size;
+		std::string &al1 = op1.actual_length;
+		std::string  lendec;
+		if (!is_lambda || v->name.substr(0, 6) != "lambda")
+		{
+			if (v->size > static_cast<int>(local_max_size))
+				file << "double " << v->name << "_p[" << local_max_size << "], *"
+				     << v->name << " = " << v->name << "_p;\n";
+			else
+				file << "double " << v->name << "[" << v->size << "];\n";
+			lendec = "int ";
+		}
+		else
+			lendec = "";
+		// -- assignment
+		if (v->op == '=' && v->op2 == nullptr)
+		{
+			if (o1 == std::string("1"))
+			{
+				file << "(*" << v->name << ")[0] = 1;\n";
+				file << "" << v->name << "_len = 1;\n";
+				v->actual_length = "1";
+			}
+			else
+				error("Only plain assignment = 1 is supported!\n", -1);
+
+			continue;
+		}
+		// -- binary operator
+		Variable   &op2 = *v->op2;
+		std::string o2 =
+		  ((op2.name.substr(0, 6) == "lambda") ? ("*") : ("")) + op2.name;
+		int          s2  = op2.size;
+		std::string &al2 = op2.actual_length;
+
+		std::string alb, rlb, lms;
+		if (v->name.substr(0, 6) == "lambda")
+		{
+			alb = "";
+			rlb = "*";
+			lms = v->name + "_len";
+		}
+		else
+		{
+			alb = "&";
+			rlb = "";
+			std::stringstream lls;
+			lls << local_max_size;
+			lms = lls.str();
+		}
+
+		// Known cases
+		// [k],n *
+		if (o1 == std::string("2"))
+		{
+			if (v->size > static_cast<int>(local_max_size))
+				file << lendec << v->name << "_len = o.Double_With_PreAlloc(" << al2
+				     << ", " << o2 << ", " << alb << v->name << ", " << lms << ");\n";
+			else
+				file << "o.Double(" << al2 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			v->actual_length = al2; // v->name + "_len";
+		}
+		// 1,1 +-*^
+		else if (s1 == 1 && s2 == 1)
+		{
+			if (v->op == '+')
+				file << "o.two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '-')
+				file << "o.two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '*' && v->op1 != v->op2)
+				file << "o.Two_Prod(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '*' && v->op1 == v->op2)
+				file << "o.Square(" << o1 << ", " << rlb << v->name << ");\n";
+		}
+		// 2,1 *
+		else if (s1 == 2 && s2 == 1)
+		{
+			if (v->op == '*')
+				file << "o.Two_One_Prod(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '-')
+				file << "o.two_One_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+		}
+		// 1,2 *
+		else if (s1 == 1 && s2 == 2)
+		{
+			if (v->op == '*')
+				file << "o.Two_One_Prod(" << o2 << ", " << o1 << ", " << rlb << v->name
+				     << ");\n";
+		}
+		// 2,2 +-*^
+		else if (s1 == 2 && s2 == 2 && v->op != '*') // Add Two_Square
+		{
+			if (v->op == '+')
+				file << "o.Two_Two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '-')
+				file << "o.Two_Two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+			else if (v->op == '*')
+				file << "o.Two_Two_Prod(" << o1 << ", " << o2 << ", " << rlb << v->name
+				     << ");\n";
+		}
+		// Unknown cases
+		// n,n +-*
+		else
+		{
+			if (v->size > static_cast<int>(local_max_size))
+			{
+				// uint32_t lms = (!is_lambda || v->name.substr(0, 6) != "lambda") ?
+				// local_max_size : MAX_STATIC_SIZE;
+				if (!is_lambda || v->name.substr(0, 6) != "lambda")
+				{
+					std::stringstream lls;
+					lls << local_max_size;
+					lms = lls.str();
+				}
+				if (v->op == '+')
+				{
+					if (s2 == 1)
+						file << lendec << v->name << "_len = o.Gen_Sum_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << 1 << ", &" << o2 << ", " << alb
+						     << v->name << ", " << lms << ");\n";
+					else if (s1 == 1)
+						file << lendec << v->name << "_len = o.Gen_Sum_With_PreAlloc(" << 1
+						     << ", &" << o1 << ", " << al2 << ", " << o2 << ", " << alb
+						     << v->name << ", " << lms << ");\n";
+					else
+						file << lendec << v->name << "_len = o.Gen_Sum_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << al2 << ", " << o2 << ", "
+						     << alb << v->name << ", " << lms << ");\n";
+				}
+				else if (v->op == '-')
+				{
+					if (s2 == 1)
+						file << lendec << v->name << "_len = o.Gen_Diff_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << 1 << ", &" << o2 << ", " << alb
+						     << v->name << ", " << lms << ");\n";
+					else if (s1 == 1)
+						file << lendec << v->name << "_len = o.Gen_Diff_With_PreAlloc(" << 1
+						     << ", &" << o1 << ", " << al2 << ", " << o2 << ", " << alb
+						     << v->name << ", " << lms << ");\n";
+					else
+						file << lendec << v->name << "_len = o.Gen_Diff_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << al2 << ", " << o2 << ", "
+						     << alb << v->name << ", " << lms << ");\n";
+				}
+				else if (v->op == '*')
+				{
+					if (s2 == 1)
+						file << lendec << v->name << "_len = o.Gen_Scale_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << o2 << ", " << alb << v->name
+						     << ", " << lms << ");\n";
+					else if (s1 == 1)
+						file << lendec << v->name << "_len = o.Gen_Scale_With_PreAlloc("
+						     << al2 << ", " << o2 << ", " << o1 << ", " << alb << v->name
+						     << ", " << lms << ");\n";
+					else
+						file << lendec << v->name << "_len = o.Gen_Product_With_PreAlloc("
+						     << al1 << ", " << o1 << ", " << al2 << ", " << o2 << ", "
+						     << alb << v->name << ", " << lms << ");\n";
+				}
+			}
+			else if (v->op == '+')
+			{
+				if (s2 == 1)
+					file << lendec << v->name << "_len = o.Gen_Sum(" << al1 << ", " << o1
+					     << ", " << 1 << ", &" << o2 << ", " << rlb << v->name << ");\n";
+				else if (s1 == 1)
+					file << lendec << v->name << "_len = o.Gen_Sum(" << 1 << ", &" << o1
+					     << ", " << al2 << ", " << o2 << ", " << rlb << v->name << ");\n";
+				else
+					file << lendec << v->name << "_len = o.Gen_Sum(" << al1 << ", " << o1
+					     << ", " << al2 << ", " << o2 << ", " << rlb << v->name << ");\n";
+			}
+			else if (v->op == '-')
+			{
+				if (s2 == 1)
+					file << lendec << v->name << "_len = o.Gen_Diff(" << al1 << ", " << o1
+					     << ", " << 1 << ", &" << o2 << ", " << rlb << v->name << ");\n";
+				else if (s1 == 1)
+					file << lendec << v->name << "_len = o.Gen_Diff(" << 1 << ", &" << o1
+					     << ", " << al2 << ", " << o2 << ", " << rlb << v->name << ");\n";
+				else
+					file << lendec << v->name << "_len = o.Gen_Diff(" << al1 << ", " << o1
+					     << ", " << al2 << ", " << o2 << ", " << rlb << v->name << ");\n";
+			}
+			else if (v->op == '*')
+			{
+				if (s2 == 1)
+					file << lendec << v->name << "_len = o.Gen_Scale(" << al1 << ", "
+					     << o1 << ", " << o2 << ", " << rlb << v->name << ");\n";
+				else if (s1 == 1)
+					file << lendec << v->name << "_len = o.Gen_Scale(" << al2 << ", "
+					     << o2 << ", " << o1 << ", " << rlb << v->name << ");\n";
+				else
+					file << lendec << v->name << "_len = o.Gen_Product(" << al1 << ", "
+					     << o1 << ", " << al2 << ", " << o2 << ", " << rlb << v->name
+					     << ");\n";
+			}
+			v->actual_length = v->name + "_len";
+		}
+	}
+
+	file << "\n";
+
+	// Function end ============================================================
+
+	{
+		if (!is_lambda)
+			file << ((is_indirect) ? ("") : ("double "))
+			     << "return_value = " << v->name << "[" << v->actual_length
+			     << " - 1];\n";
+
+		// -- free newly allocated memory in function
+		for (i--; i >= first_op; i--)
+		{
+			v = &all_vars[i];
+			if (v->size > static_cast<int>(local_max_size) &&
+			    (!is_lambda || v->name.substr(0, 6) != "lambda"))
+				file << "if (" << v->name << "_p != " << v->name << ") FreeDoubles("
+				     << v->name << ");\n";
+		}
+
+		if (!is_lambda)
+		{
+			if (is_indirect)
+			{
+				file << "}\n\n";
+				// -- free allocated memory of lambda variables
+				for (LambdaVariable &lv : all_lambda_vars)
+				{
+					file << std::format("if (!{}::global_cached_values_enabled()){{\n",
+					                    lv.get_type_string());
+					for (Variable *_v : lv.output_pars)
+					{
+						// we will malloc and cache lambda variables,
+						// so comment below check and always free.
+						// if (_v->size > static_cast<int>(local_max_size))
+						file << std::format("if ({0}_p != {0}) FreeDoubles({0});\n",
+						                    _v->name);
+					}
+					file << "}\n\n";
+				}
+				// -- check result is valid, otherwise call exact function.
+#ifdef UNDERFLOW_GUARDING
+				file << "#ifdef CHECK_FOR_XYZERFLOWS\n";
+				file << "if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW)) "
+				        "return ";
+
+				std::string exactname =
+				  funcname.substr(0,
+				                  funcname.size() - std::string("_expansion").size()) +
+				  "_exact";
+
+				std::string template_value = (is_lambda || all_lambda_vars.empty())
+				                               ? std::format("<{}>", ET)
+				                               : std::format("<{}, {}>", IT, ET);
+
+				file << exactname << template_value << "("
+				     << createParameterValueList(/*separate_explicit*/ true) << ");\n";
+				file << "#endif\n\n";
+#endif
+			}
+
+			file << "\nif (return_value > 0) return Sign::POSITIVE;\n";
+			file << "if (return_value < 0) return Sign::NEGATIVE;\n";
+			file << "if (return_value == 0) return Sign::ZERO;\n";
+			// file << "return Sign::UNCERTAIN;\n";
+			file << "OMC_EXIT(\"Should not happen.\");\n";
+		}
+	}
+
+	file << "}\n\n";
+}
+
+void Predicate::produceExactCode(const std::string &funcname,
+                                 std::ofstream     &file)
+{
+	// Declare function =====================================================
+
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? std::format("template <typename {}>", ET)
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string inline_ph   = "";
+	std::string return_type = is_lambda ? "void" : Sign;
+	std::string variables =
+	  is_lambda ? createLambdaParamProtoList(ET)
+	            : createParameterProtoList(ET, /*separate_explicit*/ true);
+
+	file << std::format("{} {}\n{} {}({})\n{{\n", inline_ph, template_decl,
+	                    return_type, funcname, variables);
+
+	// Calculate lambdas =====================================================
+
+	if (is_indirect)
+	{
+		// declare lambda variables
+		// -- declare type
+		file << ET;
+		// -- declare variables
+		bool first = true;
+		for (Variable &v : all_vars)
+			if (v.isInput() && v.is_lambda_out)
+			{
+				file << ((first) ? (" ") : (", ")) << v.name;
+				first = false;
+			}
+		file << ";\n";
+		// -- get variables
+		for (LambdaVariable &l : all_lambda_vars)
+			file << std::format("{};\n", l.print_exact());
+	}
+
+	// Function body - operations =============================================
+
+	Variable *v = nullptr;
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		v = &all_vars[i];
+		if (v->isInput())
+			continue;
+		std::string  expr;
+		std::string &o1 = (*v->op1).name;
+
+		if (v->op == '=' && v->op2 == nullptr)
+		{ // assignment
+			expr = o1;
+		}
+		else
+		{ // binary operator
+			std::string &o2 = (*v->op2).name;
+
+			expr = ((o1 == "2") ? (o2 + " " + v->op + " " + o1)
+			                    : (o1 + " " + v->op + " " + o2));
+		}
+		// check if we need to declare this variable as a new var,
+		// then assign to it.
+		if (is_lambda && v->name.substr(0, 6) == "lambda")
+			file << std::format("{} = {};\n", v->name, expr);
+		else
+			file << std::format("{} {} = {};\n", ET, v->name, expr);
+	}
+
+	// Function body - return	(no filter here) ===============================
+
+	if (!is_lambda)
+		file << std::format("return OMC::sign({});\n", v->name);
+
+	// function end ===========================================================
+	file << "}\n\n";
+}
+
+void Predicate::multistagePrototype(const std::string &func_name,
+                                    std::ofstream     &file)
+{
+	std::string template_decl = std::format(
+	  "template <typename {}, typename {} {}>", IT, ET,
+	  output_filtered ? std::string(", bool WithSSFilter") : std::string(""));
+	std::string return_type = Sign;
+
+	file << std::format(
+	  "{} {} {}({});\n\n", template_decl, return_type, func_name,
+	  createParameterProtoList(FT, /*separate_explicit*/ true) +
+	    (is_indirect && output_filtered ? std::format(", {} arr", PntArr)
+	                                    : std::string("")));
+
+	if (!all_explicit_vars.empty())
+	{
+		file << std::format(
+		  "{} {} {}({});\n\n", template_decl, return_type, func_name,
+		  createParameterProtoList(FT, /*separate_explicit*/ false) +
+		    (is_indirect && output_filtered ? std::format(", {} arr", PntArr)
+		                                    : std::string("")));
+	}
+}
+
+void Predicate::filteredPrototype(const std::string &funcname,
+                                  std::ofstream     &file)
+{
+	std::string export_sign = "";
+	std::string inline_ph =
+	  (!is_lambda && all_lambda_vars.empty()) ? "inline" : "";
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? ""
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string return_type = is_lambda ? Boolean : Sign;
+
+	std::string variables =
+	  is_lambda
+	    ? createLambdaParamProtoList(FT) + std::format(", {}& max_var", FT)
+	    : createParameterProtoList(FT, /*separate_explicit*/ true) +
+	        (is_indirect ? std::format(", {} arr", PntArr) : std::string(""));
+
+	file << std::format("{} {} {} {} {}({});\n\n", inline_ph, template_decl,
+	                    export_sign, return_type, funcname, variables);
+}
+
+void Predicate::intervalPrototype(const std::string &funcname,
+                                  std::ofstream     &file)
+{
+	std::string inline_ph = "";
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? std::format("template <typename {}>", IT)
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string export_sign = "";
+	std::string return_type = is_lambda ? Boolean : Sign;
+
+	std::string variables =
+	  is_lambda ? createLambdaParamProtoList(IT)
+	            : createParameterProtoList(IT, /*separate_explicit*/ true);
+
+	file << std::format("{} {} {} {} {}({});\n\n", inline_ph, template_decl,
+	                    export_sign, return_type, funcname, variables);
+}
+
+void Predicate::expansionPrototype(const std::string &funcname,
+                                   std::ofstream     &file)
+{
+	std::string inline_ph =
+	  (is_lambda || all_lambda_vars.empty()) ? "inline" : "";
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? ""
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string export_sign = "";
+	std::string return_type = is_lambda ? ("void") : Sign;
+
+	std::string variables = createExpansionProtoList();
+
+	file << std::format("{} {} {} {} {}({});\n\n", inline_ph, template_decl,
+	                    export_sign, return_type, funcname, variables);
+}
+
+void Predicate::exactPrototype(const std::string &funcname, std::ofstream &file)
+{
+	std::string inline_ph = "";
+	std::string template_decl =
+	  (is_lambda || all_lambda_vars.empty())
+	    ? std::format("template <typename {}>", ET)
+	    : std::format("template <typename {}, typename {}>", IT, ET);
+	std::string export_sign = "";
+	std::string return_type = is_lambda ? "void" : Sign;
+
+	std::string variables =
+	  is_lambda ? createLambdaParamProtoList(ET)
+	            : createParameterProtoList(ET, /*separate_explicit*/ true);
+
+	file << std::format("{} {} {} {} {}({});\n\n", inline_ph, template_decl,
+	                    export_sign, return_type, funcname, variables);
+}
+
+void Predicate::printErrorBounds()
+{
+	for (size_t i = 1; i < all_vars.size(); i++)
+	{
+		Variable &v = all_vars[i];
+		std::cout << v.name << " " << v.error_degree << " " << v.size << " ";
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
+		          << v.error_bound << " ";
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
+		          << v.value_bound << "\n";
+	}
+	std::cout << "NAME ERR_DEGREE EXP_SIZE ERR_BOUND VAL_BOUND\n";
+}
+
+void Predicate::openHeader(std::ofstream &header)
+{
+	std::string heading_comment;
+	create_heading_comment(heading_comment);
+
+	bool headerNeedHeadingBlock = true;
+
+	if (append)
+	{
+		std::ifstream checkopen;
+		checkopen.open("indirect_predicates.h");
+		if (checkopen.is_open())
+		{
+			headerNeedHeadingBlock = false;
+			checkopen.close();
+		}
+		header.open("indirect_predicates.h", std::ios_base::app);
+	}
+	else
+	{
+		header.open("indirect_predicates.h", std::ios_base::out);
+	}
+
+	if (headerNeedHeadingBlock)
+	{
+		header << heading_comment;
+		header << "#include \"implicit_point.h\"\n\n";
+	}
+}
+
+void Predicate::openFile(std::ofstream &file, const std::string &func_name)
+{
+	std::string heading_comment;
+	create_heading_comment(heading_comment);
+
+	bool fileNeedHeadingBlock = true;
+	if (append)
+	{
+		std::ifstream checkopen;
+		checkopen.open("indirect_predicates.hpp");
+		if (checkopen.is_open())
+		{
+			fileNeedHeadingBlock = false;
+			checkopen.close();
+		}
+		file.open("indirect_predicates.hpp", std::ios_base::app);
+	}
+	else
+	{
+		file.open(func_name + ".hpp", std::ios_base::out);
+	}
+
+	if (fileNeedHeadingBlock)
+	{
+		file << heading_comment;
+		file << "#include \"implicit_point.h\"\n\n";
+		file << "#pragma intrinsic(fabs)\n\n";
+#ifdef UNDERFLOW_GUARDING
+		file
+		  << "// Uncomment the following to activate overflow/underflow checks\n";
+		file << "#define CHECK_FOR_XYZERFLOWS\n\n";
+#endif
+	}
+}
+
+void Predicate::parseExplicitVar(std::string &line)
+{
+	size_t      pos        = line.find('(');
+	// explicitPoint2D or explicitPoint3D
+	std::string pnt_type   = line.substr(0, pos);
+	std::string defs       = line.substr(pos + 1, line.size() - (pos + 2));
+	pos                    = defs.find(':');
+	// e.g., p
+	std::string pnt_name   = defs.substr(0, pos);
+	// e.g., px,py,pz
+	std::string pnt_coords = defs.substr(pos + 1, defs.size() - (pos + 1));
+
+	all_explicit_vars.push_back(ExplicitVariable(pnt_type));
+	ExplicitVariable &v = all_explicit_vars.back();
+
+	std::vector<std::string> tokens;
+	tokenize(pnt_name, tokens, ',');
+
+	v.point_name = tokens[0];
+
+	// store coordinates as variables
+	if (pnt_coords.find_first_of(',') != std::string::npos)
+	{ // multiple coordinates
+		tokenize(pnt_coords, tokens, ',');
+
+		for (size_t i = 0; i < tokens.size(); i++)
+		{
+			all_vars.push_back(Variable(tokens[i], Variable::ExplicitT()));
+			v.coords.push_back(&all_vars.back());
+			name_2_vars[all_vars.back().name] = &all_vars.back();
+		}
+	}
+	else
+	{ // single coordinate
+		all_vars.push_back(Variable(pnt_coords, Variable::ExplicitT()));
+		v.coords.push_back(&all_vars.back());
+		name_2_vars[all_vars.back().name] = &all_vars.back();
+	}
+}
+
+void Predicate::parseLambdaVar(std::string &line)
+{
+	size_t      pos        = line.find('(');
+	// implicitPoint2D or implicitPoint3D
+	std::string pnt_type   = line.substr(0, pos);
+	// lambda variable is seen as a function
+	std::string parameters = line.substr(pos + 1, line.size() - (pos + 2));
+	pos                    = parameters.find(':');
+	// input point name, e.g., p1
+	std::string input_pars = parameters.substr(0, pos);
+	// output lambda values, e.g., l1x,l1y,l1z,d1
+	std::string output_pars =
+	  parameters.substr(pos + 1, parameters.size() - (pos + 1));
+
+	all_lambda_vars.push_back(LambdaVariable(pnt_type));
+	LambdaVariable &l = all_lambda_vars.back();
+
+	std::vector<std::string> tokens;
+	tokenize(input_pars, tokens, ',');
+
+	l.point_name = tokens[0];
+
+	if (output_pars.find_first_of(',') != std::string::npos)
+	{
+		tokenize(output_pars, tokens, ',');
+
+		for (size_t i = 0; i < tokens.size(); i++)
+		{
+			all_vars.push_back(Variable(tokens[i], Variable::LambdaT()));
+			l.output_pars.push_back(&all_vars.back());
+			name_2_vars[all_vars.back().name] = &all_vars.back();
+		}
+	}
+	else
+	{
+		error("can't parse lambda variable because fail to tokenize output_pars.",
+		      -1);
+	}
+
+	is_indirect = true;
+}
+
+void Predicate::parseErrorDefinition(std::string &line)
+{
+	size_t      pos        = line.find('(');
+	// lambda variable is seen as a function
+	std::string parameters = line.substr(pos + 1, line.size() - (pos + 2));
+	pos                    = parameters.find(':');
+	// input point name, e.g., SSI, LPI, TPI
+	std::string input_pars = parameters.substr(0, pos);
+	// output lambda values, e.g., x,y,z,d
+	std::string output_pars =
+	  parameters.substr(pos + 1, parameters.size() - (pos + 1));
+
+	all_error_defs.emplace_back();
+	ErrorDefinition &ed = all_error_defs.back();
+
+	std::vector<std::string> tokens;
+
+	tokenize(input_pars, tokens, ',');
+
+	ed.name       = tokens[0];
+	ed.short_name = tokens[1];
+	ed.dim        = atoi(tokens[2].c_str());
+
+	tokenize(output_pars, tokens, ';');
+
+	ed.pars.resize(ed.dim + 1);
+
+	for (size_t i = 0; i < tokens.size(); i += 5)
+	{
+		std::string allvarstuff = tokens[i] + ";" + tokens[i + 1] + ";" +
+		                          tokens[i + 2] + ";" + tokens[i + 3] + ";" +
+		                          tokens[i + 4];
+		ed.parseOneErrorDef(ed.pars[i / 5], allvarstuff);
+	}
+
+	if (ed.dim == 2)
+		PntArr = "PntArr2";
+	else if (ed.dim == 3)
+		PntArr = "PntArr3";
+}
+
+bool Predicate::parseLine(std::ifstream &file, int ln)
+{
+	std::string              line;
+	std::vector<std::string> all_toks, tokens;
+	if (!std::getline(file, line))
+		return false;
+	tokenize(line, all_toks, ' ');
+
+	for (unsigned int i = 0; i < all_toks.size(); i++)
+		if (all_toks[i][0] == '/' && all_toks[i][1] == '/')
+			break; // meet a comment
+		else
+			tokens.push_back(all_toks[i]);
+
+	if (tokens.size() == 0)
+		return true; // Skip blank lines
+
+	if (tokens.size() == 1) // Single parameter or lambda_var
+	{
+		size_t pos = tokens[0].find('(');
+		if (pos == std::string::npos) // Single parameter
+		{
+			all_vars.push_back(Variable(tokens[0]));
+			name_2_vars[tokens[0]] = &all_vars.back();
+		}
+		else if (tokens[0].starts_with("explicitPoint"))
+		{
+			parseExplicitVar(tokens[0]);
+		}
+		else if (tokens[0].starts_with("implicitPoint"))
+		{
+			parseLambdaVar(tokens[0]);
+		}
+		else if (tokens[0].starts_with("errorDefinition"))
+		{
+			parseErrorDefinition(tokens[0]);
+		}
+		else
+		{
+			error("Error: unrecognized var", ln);
+		}
+	}
+	else
+	{
+		if (tokens[1] == "=") // Assignment
+		{
+			if (tokens.size() == 5) // Binary op
+			{
+				std::string &newvarname = tokens[0];
+				if (getVarByName(newvarname) != nullptr)
+					error("Error: variable already declared", ln);
+				Variable *op1 = getVarByName(tokens[2]);
+				if (op1 == nullptr)
+					error("Error: unknown variable used", ln);
+				Variable *op2 = getVarByName(tokens[4]);
+				if (op2 == nullptr)
+					error("Error: unknown variable used", ln);
+				char op = tokens[3][0];
+				if (support_operators.find_first_of(op) == std::string::npos)
+					error("Error: operator not supported", ln);
+				all_vars.push_back(Variable(newvarname, op1, op2, op));
+				name_2_vars[newvarname] = &all_vars.back();
+			}
+			else if (tokens.size() == 3) // Plain assignment
+			{
+				std::string &newvarname = tokens[0];
+				if (getVarByName(newvarname) != nullptr)
+					error("Error: variable already declared", ln);
+				Variable *op1 = getVarByName(tokens[2]);
+				if (op1 == nullptr)
+					error("Error: unknown variable used", ln);
+				all_vars.push_back(Variable(newvarname, op1));
+				name_2_vars[newvarname] = &all_vars.back();
+			}
+			else
+				error("Error: unexpected number of tokens", ln);
+		}
+		else // Parameter list
+		{
+			for (size_t i = 0; i < tokens.size(); i++)
+			{
+				all_vars.push_back(Variable(tokens[i]));
+				name_2_vars[tokens[i]] = &all_vars.back();
+			}
+		}
+	}
+
+	return true;
+}

@@ -1,0 +1,140 @@
+explicitPoint3D(a:xa,ya,za)
+explicitPoint3D(b:xb,yb,zb)
+explicitPoint3D(c:xc,yc,zc)
+explicitPoint3D(o:xo,yo,zo)
+explicitPoint3D(p:xp,yp,zp)
+explicitPoint3D(q:xq,yq,zq)
+explicitPoint3D(r:xr,yr,zr)
+explicitPoint3D(s:xs,ys,zs)
+explicitPoint3D(t:xt,yt,zt)
+
+// p - o
+xpo = xp - xo
+ypo = yp - yo
+zpo = zp - zo
+// q - o
+xqo = xq - xo
+yqo = yq - yo
+zqo = zq - zo
+
+// s - r
+xsr = xs - xr
+ysr = ys - yr
+zsr = zs - zr
+// t - r
+xtr = xt - xr
+ytr = yt - yr
+ztr = zt - zr
+
+// calculate normal of plane opq
+ypo_zqo = ypo * zqo
+zpo_yqo = zpo * yqo
+zpo_xqo = zpo * xqo
+xpo_zqo = xpo * zqo
+xpo_yqo = xpo * yqo
+ypo_xqo = ypo * xqo
+
+x_nor_opq = ypo_zqo - zpo_yqo
+y_nor_opq = zpo_xqo - xpo_zqo
+z_nor_opq = xpo_yqo - ypo_xqo
+
+// calculate normal of plane rst
+ysr_ztr = ysr * ztr
+zsr_ytr = zsr * ytr
+zsr_xtr = zsr * xtr
+xsr_ztr = xsr * ztr
+xsr_ytr = xsr * ytr
+ysr_xtr = ysr * xtr
+
+x_nor_rst = ysr_ztr - zsr_ytr
+y_nor_rst = zsr_xtr - xsr_ztr
+z_nor_rst = xsr_ytr - ysr_xtr
+
+// o - a
+xoa = xo - xa
+yoa = yo - ya
+zoa = zo - za
+
+// r - a
+xra = xr - xa
+yra = yr - ya
+zra = zr - za
+
+// b - a
+xba = xb - xa
+yba = yb - ya
+zba = zb - za
+
+// c - a
+xca = xc - xa
+yca = yc - ya
+zca = zc - za
+
+// (o - a) dot normal of plane opq
+temp_0 = xoa * x_nor_opq
+temp_1 = yoa * y_nor_opq
+temp_2 = zoa * z_nor_opq
+temp_3 = temp_0 + temp_1
+oa_dot_nor_opq = temp_2 + temp_3
+
+// (r - a) dot normal of plane rst
+temp_4 = xra * x_nor_rst
+temp_5 = yra * y_nor_rst
+temp_6 = zra * z_nor_rst
+temp_7 = temp_4 + temp_5
+ra_dot_nor_rst = temp_6 + temp_7
+
+// (b - a) dot normal of plane opq
+temp_8 = xba * x_nor_opq
+temp_9 = yba * y_nor_opq
+temp_10 = zba * z_nor_opq
+temp_11 = temp_8 + temp_9
+ba_dot_nor_opq = temp_10 + temp_11
+
+// (c - a) dot normal of plane opq
+temp_12 = xca * x_nor_opq
+temp_13 = yca * y_nor_opq
+temp_14 = zca * z_nor_opq
+temp_15 = temp_12 + temp_13
+ca_dot_nor_opq = temp_14 + temp_15
+
+// (b - a) dot normal of plane rst
+temp_16 = xba * x_nor_rst
+temp_17 = yba * y_nor_rst
+temp_18 = zba * z_nor_rst
+temp_19 = temp_16 + temp_17
+ba_dot_nor_rst = temp_18 + temp_19
+
+// (c - a) dot normal of plane rst
+temp_20 = xca * x_nor_rst
+temp_21 = yca * y_nor_rst
+temp_22 = zca * z_nor_rst
+temp_23 = temp_20 + temp_21
+ca_dot_nor_rst = temp_22 + temp_23
+
+temp_100 = ba_dot_nor_opq * ca_dot_nor_rst
+temp_101 = ca_dot_nor_opq * ba_dot_nor_rst
+lambda_d = temp_100 - temp_101
+
+temp_102 = oa_dot_nor_opq * ca_dot_nor_rst
+temp_103 = ca_dot_nor_opq * ra_dot_nor_rst
+det_sub0 = temp_102 - temp_103
+
+temp_105 = ba_dot_nor_opq * ra_dot_nor_rst
+temp_106 = oa_dot_nor_opq * ba_dot_nor_rst
+det_sub1 = temp_105 - temp_106
+
+xu = det_sub0 * xba
+yu = det_sub0 * yba
+zu = det_sub0 * zba
+xv = det_sub1 * xca
+yv = det_sub1 * yca
+zv = det_sub1 * zca
+
+lambda_x = xu + xv
+lambda_y = yu + yv
+lambda_z = zu + zv
+
+base_x = xa
+base_y = ya
+base_z = za

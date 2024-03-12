@@ -1,0 +1,43 @@
+explicitPoint3D(a:xa,ya,za)
+explicitPoint3D(b:xb,yb,zb)
+explicitPoint3D(p:xp,yp,zp)
+explicitPoint3D(q:xq,yq,zq)
+
+// let "I = a + t (b - a)"
+// we have "(I - p) cross (q - p) = 0"
+// transform to "((a - p) + t (b - a)) cross (q - p) = 0"
+
+// a - p
+xap = xa - xp
+yap = ya - yp
+
+// q - p
+yqp = yq - yp
+xqp = xq - xp
+
+// b - a
+xba = xb - xa
+yba = yb - ya
+zba = zb - za
+
+// lambda_n = cross (a-p, q-p)
+c1 = xap * yqp
+c2 = xqp * yap
+lambda_n = c1 - c2
+
+// lambda_d = - cross (b-a, q-p)
+c3 = xba * yqp
+c4 = xqp * yba
+lambda_d = c4 - c3
+
+// now t = lambda_n / lambda_d
+lambda_x = lambda_n * xba
+lambda_y = lambda_n * yba
+lambda_z = lambda_n * zba
+
+// base is xa, ya, za
+beta_x = xa
+beta_y = ya
+beta_z = za
+
+// now "I = beta_xyz + lambda_xyz / lambda_d"
