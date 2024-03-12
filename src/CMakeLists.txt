@@ -11,4 +11,4 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(OpenMeshCraft)
 
-add_subdirectory(PredicatesGenerator EXCLUDE_FROM_ALL)
+add_subdirectory(PredicatesGenerator)

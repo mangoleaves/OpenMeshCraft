@@ -5,10 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 # set the project name
 project(PredicatesGenerator)
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES converter.cpp)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES converter.cpp converter.h
+                                                    main.cpp)
+
+file(GLOB SRC_H "${CMAKE_CURRENT_SOURCE_DIR}/IndirectPredicates/*.h")
+file(GLOB SRC_CPP "${CMAKE_CURRENT_SOURCE_DIR}/IndirectPredicates/*.cpp")
 
 # add the library
-add_executable(${PROJECT_NAME} converter.cpp converter.h main.cpp)
+add_executable(${PROJECT_NAME} ${SRC_H} ${SRC_CPP})
 
 # include directory
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
