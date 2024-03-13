@@ -8,8 +8,8 @@ project(PredicatesGenerator)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES converter.cpp converter.h
                                                     main.cpp)
 
-file(GLOB SRC_H "${CMAKE_CURRENT_SOURCE_DIR}/IndirectPredicates/*.h")
-file(GLOB SRC_CPP "${CMAKE_CURRENT_SOURCE_DIR}/IndirectPredicates/*.cpp")
+file(GLOB SRC_H "${CMAKE_CURRENT_SOURCE_DIR}/OffsetPredicates/*.h")
+file(GLOB SRC_CPP "${CMAKE_CURRENT_SOURCE_DIR}/OffsetPredicates/*.cpp")
 
 # add the library
 add_executable(${PROJECT_NAME} ${SRC_H} ${SRC_CPP})

@@ -138,3 +138,5 @@ lambda_z = zu + zv
 base_x = xa
 base_y = ya
 base_z = za
+
+// all vars starting with "lambda" and "beta" will be output.

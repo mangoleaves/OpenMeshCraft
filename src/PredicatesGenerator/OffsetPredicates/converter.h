@@ -55,10 +55,21 @@ class Variable
 public:
 	// Properties ###############################################################
 
-	std::string name;         // Variable name
-	bool is_part_of_explicit; // TRUE if this var is the part of an explicit point
-	bool is_lambda_out; // TRUE if this var is the output of a lambda calculation
-	bool is_used;       // TRUE if this var is the operand of another var
+	std::string name; // Variable name
+
+	// TRUE if this var is the part of an explicit point
+	// example: this var is part of explicitPoint(p:px,py,pz)
+	bool is_part_of_explicit;
+
+	// TRUE if this var is the part of an implicit point
+	// example: this var is part of implicitPoint(p:bx,by,bz,lx,ly,lz,ld)
+	bool is_part_of_implicit;
+
+	bool is_lambda;   // TRUE if name starts with "lambda"
+	bool is_lambda_d; // TRUE if name starts with "lambda_d"
+	bool is_beta;     // TRUE if name starts with "beta"
+
+	bool is_used; // TRUE if this var is the operand of another var
 
 	// Operands and operator ####################################################
 
@@ -81,7 +92,7 @@ public:
 	struct ExplicitT
 	{
 	};
-	struct LambdaT
+	struct ImplicitT
 	{
 	};
 
@@ -93,7 +104,7 @@ public: /* Constructors ******************************************************/
 	Variable(std::string &s, ExplicitT);
 
 	// Plain lambda declaration
-	Variable(std::string &s, LambdaT);
+	Variable(std::string &s, ImplicitT);
 
 	// Plain assignment
 	Variable(std::string &s, Variable *o1);
@@ -114,11 +125,14 @@ public: /* Checks ************************************************************/
 
 	bool isParameter() const
 	{
-		return isInput() && name != "1" && name != "2" && !is_lambda_out &&
+		return isInput() && name != "1" && name != "2" && !is_part_of_implicit &&
 		       !is_part_of_explicit;
 	}
 };
 
+/**
+ * @brief LambdaVariable comes from declaration of implicit point.
+ */
 class LambdaVariable
 {
 public:
@@ -136,14 +150,17 @@ public:
 public:
 	LambdaVariable(std::string &n);
 
-	std::string get_type_string();
+	std::string get_type_string() const;
 
-	std::string print_filtered();
-	std::string print_interval();
-	std::string print_expansion();
-	std::string print_exact();
+	std::string print_filtered() const;
+	std::string print_interval() const;
+	std::string print_expansion() const;
+	std::string print_exact() const;
 };
 
+/**
+ * @brief ExplicitVariable comes from declaration of explicit point.
+ */
 class ExplicitVariable
 {
 public:
@@ -161,10 +178,10 @@ public:
 public:
 	ExplicitVariable(std::string &n);
 
-	std::string get_type_string();
+	std::string get_type_string() const;
 
-	std::string get_vars();
-	std::string get_methods();
+	std::string get_vars() const;
+	std::string get_methods() const;
 };
 
 class ErrorDefinition

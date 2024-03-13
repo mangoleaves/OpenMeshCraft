@@ -41,7 +41,7 @@ x_ba_nor = xba * xnor
 y_ba_nor = yba * ynor
 z_ba_nor = zba * znor
 temp_0 = x_ba_nor + y_ba_nor
-lambda_n = temp_0 + z_ba_nor
+n = temp_0 + z_ba_nor
 
 // (o - a) dot normal
 x_oa_nor = xoa * xnor
@@ -50,10 +50,12 @@ z_oa_nor = zoa * znor
 temp_1 = x_oa_nor + y_oa_nor
 lambda_d = temp_1 + z_oa_nor
 
-// lambda = lambda_n * (b - a)
-lambda_x = lambda_n * xba
-lambda_y = lambda_n * yba
-lambda_z = lambda_n * zba
+// lambda = n * (b - a)
+lambda_x = n * xba
+lambda_y = n * yba
+lambda_z = n * zba
 beta_x = xa
 beta_y = ya
 beta_z = za
+
+// all vars starting with "lambda" and "beta" will be output.
