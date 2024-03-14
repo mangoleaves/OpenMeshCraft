@@ -1,0 +1,13 @@
+// Sign of (p-q).dot(r-s)
+explicitPoint3D(p:py,pz)
+explicitPoint3D(r:ry,rz)
+explicitPoint3D(q:qy,qz)
+explicitPoint3D(s:sy,sz)
+
+ly = py - qy
+lz = pz - qz
+gy = ry - sy
+gz = rz - sz
+dy = ly * gy
+dz = lz * gz
+d = dy + dz

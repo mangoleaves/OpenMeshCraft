@@ -1,0 +1,72 @@
+implicitPoint3D(p1:l1x,l1y,l1z,d1,b1x,b1y,b1z)
+implicitPoint3D(p2:l2x,l2y,l2z,d2,b2x,b2y,b2z)
+implicitPoint3D(p3:l3x,l3y,l3z,d3,b3x,b3y,b3z)
+
+errorDefinition(SSI,S,3:lx;3;64;1.332267629550188e-15;2.000000000000002;ly;3;64;1.332267629550188e-15;2.000000000000002;lz;3;64;1.332267629550188e-15;2.000000000000002;d;2;16;8.881784197001253e-16;2.000000000000001)
+errorDefinition(LPI,L,3:lx;4;256;5.995204332975847e-15;6.000000000000008;ly;4;256;5.995204332975847e-15;6.000000000000008;lz;4;256;5.995204332975847e-15;6.000000000000008;d;3;192;4.886390771174922e-015;6.000000000000007)
+errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;256;3.073097332162437e-13;144.0000000000005;lz;7;256;3.073097332162437e-13;144.0000000000005;d;6;256;1.314504061156187e-13;72.00000000000019)
+
+// p1 is query point, p2-p3 is the line
+// orient2d: (p1 - p3) cross (p2 - p3)
+
+// we calculate determinant
+//    | p1 - p3 |
+//    | p2 - p3 |
+// expand to
+//    | b1 + l1/d1 - b3 + l3 / d3 |
+//    | b2 + l2/d2 - b3 + l3 / d3 |
+// transform to
+//    | d3 * (d1 * (b1 - b3) + l1) + l3 * d1 |
+//    | d3 * (d2 * (b2 - b3) + l2) + l3 * d2 |
+
+// -- b1 - p3
+b1b3x = b1x - b3x
+b1b3y = b1y - b3y
+
+// -- b2 - p3
+b2b3x = b2x - b3x
+b2b3y = b2y - b3y
+
+// -- d1 * (b1 - p3)
+d1_b1b3x = d1 * b1b3x
+d1_b1b3y = d1 * b1b3y
+
+// -- d1 * (b1 - p3) + l1
+d1_b1b3_l1x = d1_b1b3x + l1x
+d1_b1b3_l1y = d1_b1b3y + l1y
+
+// -- d3 * (d1 * (b1 - p3) + l1)
+d3d1_b1b3_l1x = d1_b1b3_l1x * d3
+d3d1_b1b3_l1y = d1_b1b3_l1y * d3
+
+// -- d2 * (b2 - p3)
+d2_b2b3x = d2 * b2b3x
+d2_b2b3y = d2 * b2b3y
+
+// -- d2 * (b2 - p3) + l2
+d2_b2b3_l2x = d2_b2b3x + l2x
+d2_b2b3_l2y = d2_b2b3y + l2y
+
+// -- d3 * (d2 * (b2 - p3) + l2)
+d3d2_b2b3_l2x = d2_b2b3_l2x * d3
+d3d2_b2b3_l2y = d2_b2b3_l2y * d3
+
+// -- l3 * d1
+l3d1x = l3x * d1
+l3d1y = l3y * d1
+
+// -- l3 * d2
+l3d2x = l3x * d2
+l3d2y = l3y * d2
+
+// -- p1 - p3
+i1x = d3d1_b1b3_l1x + l3d1x
+i1y = d3d1_b1b3_l1y + l3d1y
+
+// -- p2 - p3
+i2x = d3d2_b2b3_l2x + l3d2x
+i2y = d3d2_b2b3_l2y + l3d2y
+
+t0 = i1x * i2y
+t1 = i1y * i2x
+det = t0 - t1

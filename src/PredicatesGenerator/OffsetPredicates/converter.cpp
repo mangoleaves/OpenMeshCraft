@@ -154,8 +154,11 @@ std::string LambdaVariable::print_expansion() const
 	bool              first = true;
 	for (Variable *v : output_pars)
 	{
-		variables << ((first) ? ("&") : (", &")) << v->name << ", " << v->name
-		          << "_len";
+		if (v->is_lambda || v->is_lambda_d)
+			variables << std::format("{0} &{1}, {1}_len", (first) ? ("") : (","),
+			                         v->name);
+		else
+			variables << std::format("{0} {1}", (first) ? ("") : (","), v->name);
 		first = false;
 	}
 	return std::format("{}.getExpansionLambda({})", point_name, variables.str());
@@ -268,9 +271,9 @@ Variable::Variable(std::string &s, ImplicitT)
   : name(s)
   , is_part_of_explicit(false)
   , is_part_of_implicit(true)
-  , is_lambda(false)
-  , is_lambda_d(false)
-  , is_beta(false)
+  , is_lambda(name.starts_with("l") || name.starts_with("d"))
+  , is_lambda_d(name.starts_with("d"))
+  , is_beta(name.starts_with("b"))
   , is_used(false)
   , actual_length(name + "_len")
 {
@@ -336,13 +339,25 @@ void Variable::clearError()
 	else if (is_part_of_implicit)
 	{
 		error_evaluated = true;
-		size            = MAX_STATIC_SIZE;
-		error_degree    = 1;
-		value_bound     = 1;
-		error_bound     = 1;
-		// default values (error_degree, value_bound, error_bound) for lambda is not
-		// right, just for some calculation (e.g., find max_var, evaluate size in
-		// expansion).
+		if (is_lambda)
+		{
+			size         = MAX_STATIC_SIZE;
+			error_degree = 1;
+			value_bound  = 1;
+			error_bound  = 1;
+		}
+		else if (is_beta)
+		{
+			size         = 1;
+			error_degree = 1;
+			value_bound  = 1;
+			error_bound  = 0;
+		}
+		else
+			error("neither lambda nor beta", 0);
+		// default values (error_degree, value_bound, error_bound) for lambda/beta
+		// is not right, just for some calculation (e.g., find max_var, evaluate
+		// size in expansion).
 	}
 	else if (op1 == nullptr)
 	{
@@ -1019,7 +1034,9 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 			{
 				ErrorDefinition &ed = all_error_defs[arr[j]];
 				LambdaVariable  &lv = all_lambda_vars[j];
-				for (size_t k = 0; k < ed.dim + 1; k++)
+				// -- dim 2: lx,ly,d,bx,by
+				// -- dim 3: lx,ly,lz,d,bx,by,bz
+				for (size_t k = 0; k < ed.dim * 2 + 1; k++)
 				{
 					lv.output_pars[k]->setError(ed.pars[k].error_degree, ed.pars[k].size,
 					                            ed.pars[k].error_bound,
@@ -1204,7 +1221,12 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		for (const Variable &_v : all_vars)
 		{
 			if (_v.isInput() && _v.is_part_of_implicit)
-				fixed_stacksize += 16; // two pointers
+			{
+				if (_v.is_lambda || _v.is_lambda_d)
+					fixed_stacksize += 16; // two pointers
+				else                     //_v.is_beta
+					fixed_stacksize += 8;  // one reference
+			}
 		}
 	}
 
@@ -1264,12 +1286,20 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		{
 			if (v.isInput() && v.is_part_of_implicit)
 			{
-				//	if (v.size > local_max_size)
-				file << ((first) ? ("double ") : (", ")) << v.name << "_p["
-				     << local_max_size << "], *" << v.name << " = " << v.name << "_p";
-				//	else
-				// 		file << ((first) ? (" double ") : (", ")) << v.name << "[" <<
-				// v.size << "]";
+				if (v.is_lambda || v.is_lambda_d)
+				{
+					// if (v.size > local_max_size)
+					file << std::format("{0} {1}_p[{2}], *{1} = {1}_p",
+					                    (first) ? ("double ") : (", "), v.name,
+					                    local_max_size);
+					// else
+					// file << std::format("{0} {1}_p[{2}], *{1} = {1}_p",
+					//                    (first) ? ("double ") : (", "), v.name, v.size);
+				}
+				else // v.is_beta
+				{
+					file << std::format("{} {}", (first) ? ("double ") : (", "), v.name);
+				}
 				first = false;
 			}
 		}
@@ -1280,13 +1310,16 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		{
 			if (v.isInput() && v.is_part_of_implicit)
 			{
-				//	if (v.size > local_max_size)
-				file << ((first) ? ("int ") : (", ")) << v.name
-				     << "_len = " << local_max_size;
-				//	else
-				// 		file << ((first) ? (" int ") : (", ")) << v.name << "_len = "
-				// << v.size;
-				first = false;
+				if (v.is_lambda || v.is_lambda_d)
+				{
+					//	if (v.size > local_max_size)
+					file << std::format("{} {}_len = {}", (first) ? ("int ") : (", "),
+					                    v.name, local_max_size);
+					//	else
+					//	file << std::format("{} {}_len = {}", (first) ? ("int ") : (", "),
+					//                  v.name, v.size);
+					first = false;
+				}
 			}
 		}
 		file << ";\n";
@@ -1300,9 +1333,15 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		first = true;
 		for (const LambdaVariable &l : all_lambda_vars)
 		{
-			file << ((first) ? ("(") : (" && (")) << l.output_pars.back()->name << "["
-			     << l.output_pars.back()->name << "_len - 1] != 0)";
-			first = false;
+			for (Variable *_v : l.output_pars)
+			{
+				if (_v->is_lambda_d)
+				{
+					file << std::format("{0} ({1}[{1}_len-1] != 0)",
+					                    (first) ? ("") : ("&&"), _v->name);
+					first = false;
+				}
+			}
 		}
 		file << ")\n{\n";
 	}
@@ -1326,10 +1365,10 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		if (v->isInput())
 			continue;
 		// -- get the first operand
-		const Variable &op1 = *v->op1;
-		std::string     o1  = ((op1.is_lambda) ? ("*") : ("")) + op1.name; // FIXME
+		const Variable    &op1 = *v->op1;
+		std::string        o1  = ((op1.is_lambda) ? ("*") : ("")) + op1.name;
 		// -- declare variable if it is new.
-		int             s1  = op1.size;
+		int                s1  = op1.size;
 		const std::string &al1 = op1.actual_length;
 		std::string        lendec;
 		if (!is_lambda || (!v->is_lambda && !v->is_beta))
@@ -1357,14 +1396,14 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 				file << v->name << " = " << v->op1->name << ";\n";
 			}
 			else
-				error("Only plain assignment = 1 is supported!\n", -1);
+				error("Plain assignment not supported!\n", -1);
 
 			continue;
 		}
 		// -- binary operator
-		const Variable &op2 = *v->op2;
-		std::string     o2  = ((op2.is_lambda) ? ("*") : ("")) + op2.name; // FIXME
-		int             s2  = op2.size;
+		const Variable    &op2 = *v->op2;
+		std::string        o2  = ((op2.is_lambda) ? ("*") : ("")) + op2.name;
+		int                s2  = op2.size;
 		const std::string &al2 = op2.actual_length;
 
 		std::string alb, rlb, lms;
@@ -1374,16 +1413,11 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 			rlb = "*";
 			lms = v->name + "_len";
 		}
-		else if (v->is_beta) // FIXME
-		{
-		}
 		else
 		{
 			alb = "&";
 			rlb = "";
-			std::stringstream lls;
-			lls << local_max_size;
-			lms = lls.str();
+			lms = std::to_string(local_max_size);
 		}
 
 		// Known cases
@@ -1432,7 +1466,7 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		}
 		// 2,2 +-*^
 		else if (s1 == 2 && s2 == 2 && v->op != '*') // Add Two_Square
-		{
+		{ // TODO why not Two_Two_Prod? why add Two_Square?
 			if (v->op == '+')
 				file << "o.Two_Two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";
@@ -1451,11 +1485,9 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 			{
 				// uint32_t lms = (!is_lambda || !v->is_lambda) ?
 				// local_max_size : MAX_STATIC_SIZE;
-				if (!is_lambda || !v->is_lambda) // FIXME
+				if (!is_lambda || !v->is_lambda)
 				{
-					std::stringstream lls;
-					lls << local_max_size;
-					lms = lls.str();
+					lms = std::to_string(local_max_size);
 				}
 				if (v->op == '+')
 				{
@@ -1570,20 +1602,23 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 			{
 				file << "}\n\n";
 				// -- free allocated memory of lambda variables
+				file << std::format("if (!{}::global_cached_values_enabled()){{\n",
+				                    all_lambda_vars.front().get_type_string());
 				for (const LambdaVariable &lv : all_lambda_vars)
 				{
-					file << std::format("if (!{}::global_cached_values_enabled()){{\n",
-					                    lv.get_type_string());
 					for (const Variable *_v : lv.output_pars)
 					{
-						// we will malloc and cache lambda variables,
-						// so comment below check and always free.
-						// if (_v->size > static_cast<int>(local_max_size))
-						file << std::format("if ({0}_p != {0}) FreeDoubles({0});\n",
-						                    _v->name);
+						if (_v->is_lambda || _v->is_lambda_d)
+						{
+							// we will malloc and cache lambda variables,
+							// so comment below check and always free.
+							// if (_v->size > static_cast<int>(local_max_size))
+							file << std::format("if ({0}_p != {0}) FreeDoubles({0});\n",
+							                    _v->name);
+						}
 					}
-					file << "}\n\n";
 				}
+				file << "}\n\n";
 				// -- check result is valid, otherwise call exact function.
 #ifdef UNDERFLOW_GUARDING
 				file << "#ifdef CHECK_FOR_XYZERFLOWS\n";
@@ -1813,9 +1848,9 @@ void Predicate::printErrorBounds()
 	{
 		Variable &v = all_vars[i];
 		std::cout << v.name << " " << v.error_degree << " " << v.size << " ";
-		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10)
 		          << v.error_bound << " ";
-		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10)
 		          << v.value_bound << "\n";
 	}
 	std::cout << "NAME ERR_DEGREE EXP_SIZE ERR_BOUND VAL_BOUND\n";
@@ -1932,7 +1967,7 @@ void Predicate::parseExplicitVar(std::string &line)
 	}
 }
 
-void Predicate::parseLambdaVar(std::string &line)
+void Predicate::parseImplicitVar(std::string &line)
 {
 	size_t      pos        = line.find('(');
 	// implicitPoint2D or implicitPoint3D
@@ -1942,7 +1977,7 @@ void Predicate::parseLambdaVar(std::string &line)
 	pos                    = parameters.find(':');
 	// input point name, e.g., p1
 	std::string input_pars = parameters.substr(0, pos);
-	// output lambda values, e.g., l1x,l1y,l1z,d1
+	// output implicit values, e.g., l1x,l1y,l1z,d1,b1x,b1y,b1z
 	std::string output_pars =
 	  parameters.substr(pos + 1, parameters.size() - (pos + 1));
 
@@ -1999,14 +2034,25 @@ void Predicate::parseErrorDefinition(std::string &line)
 
 	tokenize(output_pars, tokens, ';');
 
-	ed.pars.resize(ed.dim + 1);
+	ed.pars.reserve(ed.dim * 2 + 1);
 
+	// parse error definition for lx, ly, lz, d
 	for (size_t i = 0; i < tokens.size(); i += 5)
 	{
 		std::string allvarstuff = tokens[i] + ";" + tokens[i + 1] + ";" +
 		                          tokens[i + 2] + ";" + tokens[i + 3] + ";" +
 		                          tokens[i + 4];
-		ed.parseOneErrorDef(ed.pars[i / 5], allvarstuff);
+		ed.pars.emplace_back();
+		ed.parseOneErrorDef(ed.pars.back(), allvarstuff);
+	}
+	// directly add error definition for bx,by,bz
+	for (size_t i = 0; i < ed.dim; i++)
+	{
+		ed.pars.emplace_back();
+		ed.pars.back().error_degree = 1;
+		ed.pars.back().size         = 1;
+		ed.pars.back().error_bound  = 0;
+		ed.pars.back().value_bound  = 1;
 	}
 
 	if (ed.dim == 2)
@@ -2046,7 +2092,7 @@ bool Predicate::parseLine(std::ifstream &file, int ln)
 		}
 		else if (tokens[0].starts_with("implicitPoint"))
 		{
-			parseLambdaVar(tokens[0]);
+			parseImplicitVar(tokens[0]);
 		}
 		else if (tokens[0].starts_with("errorDefinition"))
 		{

@@ -262,7 +262,7 @@ protected: /* File and parse **************************************************/
 
 	void parseExplicitVar(std::string &line);
 
-	void parseLambdaVar(std::string &line);
+	void parseImplicitVar(std::string &line);
 
 	void parseErrorDefinition(std::string &line);
 
