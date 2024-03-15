@@ -91,7 +91,6 @@ void ImplicitPoint3T_LPI<IT, ET>::get_Explicit(EP &e) const
 			lambda_y = OMC::to_double(ely);
 			lambda_z = OMC::to_double(elz);
 			lambda_d = OMC::to_double(eld);
-			return;
 		}
 		else
 		{
