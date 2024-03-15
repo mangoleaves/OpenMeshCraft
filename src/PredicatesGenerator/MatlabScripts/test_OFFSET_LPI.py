@@ -3,16 +3,13 @@ import time
 
 
 def calculate_intersection_point_vector(a, b, o, p, q):
-    # Calculate normals
     nor_opq = np.cross(p - o, q - o)
 
-    # Calculate m
-    n = np.dot(b - a, nor_opq)
+    lambda_d = np.dot(b - a, nor_opq)
 
-    # Calculate determinant of L matrix
-    lambda_d = -np.dot(a - o, nor_opq)
+    t = -np.dot(a - o, nor_opq)
 
-    lambda_result = n * (b - a)
+    lambda_result = t * (b - a)
 
     return lambda_result, lambda_d
 
@@ -86,14 +83,10 @@ for i in range(num_samples):
     p = samples[i, 9:12]
     q = samples[i, 12:]
     time_start = time.time()
-    v_lambda, v_lambda_d = calculate_intersection_point_vector(
-        a, b, o, p, q
-    )
+    v_lambda, v_lambda_d = calculate_intersection_point_vector(a, b, o, p, q)
     time_vector = time_vector + (time.time() - time_start)
     time_start = time.time()
-    n_lambda, n_lambda_d = calculate_intersection_point_number(
-        a, b, o, p, q
-    )
+    n_lambda, n_lambda_d = calculate_intersection_point_number(a, b, o, p, q)
     time_number = time_number + (time.time() - time_start)
 
     if (

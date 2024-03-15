@@ -13,8 +13,6 @@
 
 namespace OMC {
 
-
-
 template <typename IT, typename ET>
 class OnePointCachedValues2
 {
@@ -83,6 +81,8 @@ public:
 	}
 };
 
+#if defined(INDIRECT_PREDICATES)
+
 template <typename IT, typename ET>
 class OnePointCachedValues3
 {
@@ -115,6 +115,11 @@ public:
 
 	OnePointCachedValues3() noexcept
 	{
+		exact_lambda_x    = nullptr;
+		exact_lambda_y    = nullptr;
+		exact_lambda_z    = nullptr;
+		exact_denominator = nullptr;
+
 		expansion_lambda_x     = nullptr;
 		expansion_lambda_y     = nullptr;
 		expansion_lambda_z     = nullptr;
@@ -155,6 +160,88 @@ public:
 	}
 };
 
+#elif defined(OFFSET_PREDICATES)
+
+template <typename IT, typename ET>
+class OnePointCachedValues3
+{
+public:
+	using FT = double;
+
+public:
+	// floating-point filter
+	// NaN demoninator is used to check if it is cached.
+	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
+	  ssfilter_denominator, ssfilter_beta_x, ssfilter_beta_y, ssfilter_beta_z,
+	  ssfilter_max_val;
+	// dynamic filter (interval number)
+	// NaN demoninator is used to check if it is cached.
+	IT  dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator;
+	// exact number
+	// exact cached is used to check if it is cached.
+	ET *exact_lambda_x = nullptr, *exact_lambda_y = nullptr,
+	   *exact_lambda_z = nullptr, *exact_denominator = nullptr;
+	// expansion number
+	// nullptr denominator is used to check if it is cached.
+	FT *expansion_lambda_x = nullptr, *expansion_lambda_y = nullptr,
+	   *expansion_lambda_z = nullptr, *expansion_denominator = nullptr;
+	int expansion_lambda_x_len = 0, expansion_lambda_y_len = 0,
+	    expansion_lambda_z_len = 0, expansion_d_len = 0;
+
+	bool ssfilter_cached  = false;
+	bool dfilter_cached   = false;
+	bool exact_cached     = false;
+	bool expansion_cached = false;
+
+	OnePointCachedValues3() noexcept
+	{
+		exact_lambda_x    = nullptr;
+		exact_lambda_y    = nullptr;
+		exact_lambda_z    = nullptr;
+		exact_denominator = nullptr;
+
+		expansion_lambda_x     = nullptr;
+		expansion_lambda_y     = nullptr;
+		expansion_lambda_z     = nullptr;
+		expansion_denominator  = nullptr;
+		expansion_lambda_x_len = 0;
+		expansion_lambda_y_len = 0;
+		expansion_lambda_z_len = 0;
+		expansion_d_len        = 0;
+
+		ssfilter_cached  = false;
+		dfilter_cached   = false;
+		exact_cached     = false;
+		expansion_cached = false;
+	}
+
+	OnePointCachedValues3(const OnePointCachedValues3 &rhs) = delete;
+	OnePointCachedValues3(OnePointCachedValues3 &&rhs)      = delete;
+
+	void operator=(const OnePointCachedValues3 &rhs) = delete;
+	void operator=(OnePointCachedValues3 &&rhs)      = delete;
+
+	~OnePointCachedValues3() noexcept
+	{
+		if (expansion_cached)
+		{
+			free(expansion_lambda_x);
+			free(expansion_lambda_y);
+			free(expansion_lambda_z);
+			free(expansion_denominator);
+		}
+		if (exact_cached)
+		{
+			delete exact_lambda_x;
+			delete exact_lambda_y;
+			delete exact_lambda_z;
+			delete exact_denominator;
+		}
+	}
+};
+
+#endif
+
 template <typename IT_, typename ET_, typename OnePointCachedValues_>
 class GlobalCachedValues
 {
@@ -187,8 +274,8 @@ public:
 	{
 		int thread_id = tbb::this_task_arena::current_thread_index();
 		OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
-		                             "thread id {} excceed maps size {}", thread_id,
-		                             m_maps.size());
+		                     "thread id {} excceed maps size {}", thread_id,
+		                     m_maps.size());
 		// first, try finding in most recently accessed cached calue
 		if (point_ptr == m_MRA[thread_id].first)
 			return *m_MRA[thread_id].second;
@@ -204,8 +291,8 @@ public:
 		{
 			int thread_id = tbb::this_task_arena::current_thread_index();
 			OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
-			                             "thread id {} excceed maps size {}",
-			                             thread_id, m_maps.size());
+			                     "thread id {} excceed maps size {}", thread_id,
+			                     m_maps.size());
 			m_maps[thread_id].erase(point_ptr);
 			if (point_ptr == m_MRA[thread_id].first)
 				m_MRA[thread_id] = KVP(nullptr, nullptr);
@@ -218,8 +305,8 @@ public:
 		{
 			int thread_id = tbb::this_task_arena::current_thread_index();
 			OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
-			                             "thread id {} excceed maps size {}",
-			                             thread_id, m_maps.size());
+			                     "thread id {} excceed maps size {}", thread_id,
+			                     m_maps.size());
 			m_maps[thread_id].clear();
 			m_MRA[thread_id] = KVP(nullptr, nullptr);
 		}
@@ -262,7 +349,5 @@ protected:
 	/// mutex for multi-thread safety
 	std::atomic_flag spin_lock = ATOMIC_FLAG_INIT;
 };
-
-
 
 } // namespace OMC

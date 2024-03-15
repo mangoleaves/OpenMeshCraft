@@ -1365,10 +1365,10 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		if (v->isInput())
 			continue;
 		// -- get the first operand
-		const Variable    &op1 = *v->op1;
-		std::string        o1  = ((op1.is_lambda) ? ("*") : ("")) + op1.name;
+		const Variable &op1 = *v->op1;
+		std::string o1 = ((is_lambda && op1.is_lambda) ? ("*") : ("")) + op1.name;
 		// -- declare variable if it is new.
-		int                s1  = op1.size;
+		int         s1 = op1.size;
 		const std::string &al1 = op1.actual_length;
 		std::string        lendec;
 		if (!is_lambda || (!v->is_lambda && !v->is_beta))
@@ -1401,9 +1401,9 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 			continue;
 		}
 		// -- binary operator
-		const Variable    &op2 = *v->op2;
-		std::string        o2  = ((op2.is_lambda) ? ("*") : ("")) + op2.name;
-		int                s2  = op2.size;
+		const Variable &op2 = *v->op2;
+		std::string o2 = ((is_lambda && op2.is_lambda) ? ("*") : ("")) + op2.name;
+		int         s2 = op2.size;
 		const std::string &al2 = op2.actual_length;
 
 		std::string alb, rlb, lms;

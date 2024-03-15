@@ -9,5 +9,5 @@ errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;25
 // (b1y - by) * d1 + l1y
 
 t0 = b1y - by
-t1 = t0 * d
+t1 = t0 * d1
 ky = t1 + l1y

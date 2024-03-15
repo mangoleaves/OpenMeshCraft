@@ -114,3 +114,10 @@
 #else
 	#define __FILENAME__ __FILE__
 #endif
+
+/*********************************************************/
+/* Macros that control behavior of predicates ************/
+/*********************************************************/
+
+// #define INDIRECT_PREDICATES
+#define OFFSET_PREDICATES

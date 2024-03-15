@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	// Print all
 	predicate.produceAllCode(func_name);
 
-	// predicate.printErrorBounds();
+	predicate.printErrorBounds();
 
 	_controlfp(_RC_NEAR, _MCW_RC);
 

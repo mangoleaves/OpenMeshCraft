@@ -23,9 +23,9 @@ ao = a - o;
 % normal of plane opq
 normal_opq = cross(po, qo)
 
-n = dot(ba, normal_opq)
+d = dot(ba, normal_opq)
 
-d = - dot(ao, normal_opq)
+n = - dot(ao, normal_opq)
 
 base = a;
 

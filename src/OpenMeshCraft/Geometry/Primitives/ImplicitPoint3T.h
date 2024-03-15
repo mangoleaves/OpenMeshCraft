@@ -51,11 +51,21 @@ public: /* Members ***********************************************************/
 	const EP &Q() const { return *iq; }
 
 public: /* Lambdas ***********************************************************/
+#if defined(INDIRECT_PREDICATES)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
+#elif defined(OFFSET_PREDICATES)
+	// clang-format off
+	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz, FT &mv) const;
+	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by, IT &bz) const;
+	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d, ET &bx, ET &by, ET &bz) const;
+	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
+	                        int &lz_len, FT **d, int &d_len, FT &bx, FT &by, FT &bz) const;
+	// clang-format on
+#endif
 
 	static GCV &gcv() { return global_cached_values; }
 
@@ -115,11 +125,23 @@ public: /* Members ***********************************************************/
 	const EP &T() const { return *it; }
 
 public: /* Lambdas ***********************************************************/
+#if defined(INDIRECT_PREDICATES)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
+#elif defined(OFFSET_PREDICATES)
+	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz,
+	                       FT &mv) const;
+	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by,
+	                       IT &bz) const;
+	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d, ET &bx, ET &by,
+	                    ET &bz) const;
+	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
+	                        int &lz_len, FT **d, int &d_len, FT &bx, FT &by,
+	                        FT &bz) const;
+#endif
 
 	static GCV &gcv() { return global_cached_values; }
 
@@ -177,11 +199,21 @@ public: /* Members ***********************************************************/
 	const EP &U3() const { return *iu3; }
 
 public: /* Lambdas ***********************************************************/
+#if defined(INDIRECT_PREDICATES)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
+#elif defined(OFFSET_PREDICATES)
+	// clang-format off
+	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz, FT &mv) const;
+	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by, IT &bz) const;
+	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d, ET &bx, ET& by, ET &bz) const;
+	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
+	                        int &lz_len, FT **d, int &d_len, FT &bx, FT &by, FT &bz) const;
+	// clang-format on
+#endif
 
 	static GCV &gcv() { return global_cached_values; }
 
@@ -193,6 +225,7 @@ private:
 	static GCV global_cached_values;
 };
 
+#if defined(INDIRECT_PREDICATES)
 /// @brief Implicit point defined as a linear combination of two points.
 /// start with p and end with q: (1-t)p + tq  or  p + t(q-p).
 template <typename IT_, typename ET_>
@@ -246,6 +279,7 @@ private:
 
 	static GCV global_cached_values;
 };
+#endif
 
 // static member variables
 template <typename IT_, typename ET_>
@@ -263,10 +297,12 @@ typename ImplicitPoint3T_TPI<IT_, ET_>::GCV
   ImplicitPoint3T_TPI<IT_, ET_>::global_cached_values =
     ImplicitPoint3T_TPI<IT_, ET_>::GCV();
 
+#if defined(INDIRECT_PREDICATES)
 template <typename IT_, typename ET_>
 typename ImplicitPoint3T_LNC<IT_, ET_>::GCV
   ImplicitPoint3T_LNC<IT_, ET_>::global_cached_values =
     ImplicitPoint3T_LNC<IT_, ET_>::GCV();
+#endif
 
 inline void normalizeLambda3D(double *lx, int &lxl, double *ly, int &lyl,
                               double *lz, int &lzl, double *d, int &dl)

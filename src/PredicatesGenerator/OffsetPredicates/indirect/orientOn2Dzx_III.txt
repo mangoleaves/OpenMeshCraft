@@ -13,11 +13,11 @@ errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;25
 //    | p1 - p3 |
 //    | p2 - p3 |
 // expand to
-//    | b1 + l1/d1 - b3 + l3 / d3 |
-//    | b2 + l2/d2 - b3 + l3 / d3 |
+//    | b1 + l1 / d1 - b3 - l3 / d3 |
+//    | b2 + l2 / d2 - b3 - l3 / d3 |
 // transform to
-//    | d3 * (d1 * (b1 - b3) + l1) + l3 * d1 |
-//    | d3 * (d2 * (b2 - b3) + l2) + l3 * d2 |
+//    | d3 * (d1 * (b1 - b3) + l1) - l3 * d1 |
+//    | d3 * (d2 * (b2 - b3) + l2) - l3 * d2 |
 
 // -- b1 - p3
 b1b3z = b1z - b3z
@@ -60,12 +60,12 @@ l3d2z = l3z * d2
 l3d2x = l3x * d2
 
 // -- p1 - p3
-i1z = d3d1_b1b3_l1z + l3d1z
-i1x = d3d1_b1b3_l1x + l3d1x
+i1z = d3d1_b1b3_l1z - l3d1z
+i1x = d3d1_b1b3_l1x - l3d1x
 
 // -- p2 - p3
-i2z = d3d2_b2b3_l2z + l3d2z
-i2x = d3d2_b2b3_l2x + l3d2x
+i2z = d3d2_b2b3_l2z - l3d2z
+i2x = d3d2_b2b3_l2x - l3d2x
 
 t0 = i1z * i2x
 t1 = i1x * i2z
