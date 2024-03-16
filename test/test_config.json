@@ -3,8 +3,7 @@
     "TestIfCrash": {
       "dir": "./data/arrangements_data/",
       "filename": "CamelBox.stl",
-      "verbose": true,
-      "record_checked": false
+      "verbose": true
     },
     "TestDataSet": {
       "models_dir": "who-knows",

@@ -1,3 +1,4 @@
+#include "OpenMeshCraft/Geometry/Predicates/IndirectDefinitions.h"
 #include "OpenMeshCraft/Utils/Logger.h"
 #include "test_utils.h"
 
@@ -5,6 +6,8 @@ boost::property_tree::ptree omc_test_config;
 
 int main(int argc, char **argv)
 {
+	OMC_PRED_PROFILE_INIT;
+
 	::testing::InitGoogleTest(&argc, argv);
 
 	for (int i = 1; i < argc; i++)
@@ -16,8 +19,7 @@ int main(int argc, char **argv)
 			if (boost::filesystem::is_regular_file(
 			      boost::filesystem::path(config_path)))
 			{
-				boost::property_tree::read_json(config_path,
-				                                omc_test_config);
+				boost::property_tree::read_json(config_path, omc_test_config);
 			}
 			else
 			{
@@ -27,5 +29,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	return RUN_ALL_TESTS();
+	int ret = RUN_ALL_TESTS();
+
+	OMC_PRED_PROFILE_PRINT;
+
+	return ret;
 }

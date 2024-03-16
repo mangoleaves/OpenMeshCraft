@@ -2,8 +2,9 @@
 
 #include "IndirectPredicateDetailsHand.h"
 
-#include "OpenMeshCraft/NumberTypes/BigNumbers.h"
 #include "OpenMeshCraft/NumberTypes/ExpansionObject.h"
+#include "OpenMeshCraft/NumberTypes/IntervalNumber.h"
+#include "OpenMeshCraft/NumberTypes/LazyNumber.h"
 
 // Uncomment the following to activate overflow/underflow checks
 #define CHECK_FOR_XYZERFLOWS

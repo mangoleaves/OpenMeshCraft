@@ -1,7 +1,5 @@
 #pragma once
 
-#include "OpenMeshCraft/NumberTypes/NumberTypesDecl.h"
-
 #include "OpenMeshCraft/Utils/Macros.h"
 
 namespace OMC {

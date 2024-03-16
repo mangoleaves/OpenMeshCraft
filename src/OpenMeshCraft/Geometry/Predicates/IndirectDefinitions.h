@@ -5,7 +5,7 @@
 
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 
-#include "OpenMeshCraft/Utils/Macros.h"
+#include <array>
 
 namespace OMC {
 
@@ -407,5 +407,65 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 #undef Map4
 #undef Map5
 #undef BEP
+
+enum class PredicateNames : size_t
+{
+	_lessThanOnX_IE = 0,
+	_lessThanOnX_II,
+	_lessThanOnY_IE,
+	_lessThanOnY_II,
+	_lessThanOnZ_IE,
+	_lessThanOnZ_II,
+	_orientOn2Dxy_IEE,
+	_orientOn2Dxy_IIE,
+	_orientOn2Dxy_III,
+	_orientOn2Dyz_IEE,
+	_orientOn2Dyz_IIE,
+	_orientOn2Dyz_III,
+	_orientOn2Dzx_IEE,
+	_orientOn2Dzx_IIE,
+	_orientOn2Dzx_III,
+	CNT
+};
+
+struct PredicatesProfile
+{
+	static constexpr size_t ARR_CNT = 32;
+
+	static uint32_t total_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static uint32_t ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static uint32_t d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+
+	static void initialize();
+	static void inc_total(PredicateNames name, PntArr3 arr);
+	static void inc_ss_fail(PredicateNames name, PntArr3 arr);
+	static void inc_d_fail(PredicateNames name, PntArr3 arr);
+
+	static void print();
+};
+
+#ifdef OMC_PRED_PROFILE
+
+#define OMC_PRED_PROFILE_INIT OMC::PredicatesProfile::initialize()
+#define OMC_PRED_PROFILE_PRINT OMC::PredicatesProfile::print()
+
+#define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)\
+	OMC::PredicatesProfile::inc_total(pred, arr)
+
+#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)\
+	OMC::PredicatesProfile::inc_ss_fail(pred, arr)
+
+#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)\
+	OMC::PredicatesProfile::inc_d_fail(pred, arr)
+
+#else
+
+#define OMC_PRED_PROFILE_INIT
+#define OMC_PRED_PROFILE_PRINT
+
+#define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)
+#define OMC_PRED_PROFILE_INC_SUCCEED(pred, arr)
+
+#endif
 
 } // namespace OMC
