@@ -7,6 +7,8 @@
 
 namespace OMC {
 
+#ifdef OMC_PRED_PROFILE
+
 uint32_t PredicatesProfile::total_count[(size_t)PredicateNames::CNT][ARR_CNT];
 uint32_t PredicatesProfile::ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 uint32_t PredicatesProfile::d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
@@ -173,5 +175,7 @@ void PredicatesProfile::print()
 		}
 	}
 }
+
+#endif
 
 } // namespace OMC

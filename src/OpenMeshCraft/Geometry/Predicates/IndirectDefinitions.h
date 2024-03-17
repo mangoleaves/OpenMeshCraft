@@ -408,6 +408,8 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 #undef Map5
 #undef BEP
 
+#ifdef OMC_PRED_PROFILE
+
 enum class PredicateNames : size_t
 {
 	_lessThanOnX_IE = 0,
@@ -444,8 +446,6 @@ struct PredicatesProfile
 	static void print();
 };
 
-#ifdef OMC_PRED_PROFILE
-
 #define OMC_PRED_PROFILE_INIT OMC::PredicatesProfile::initialize()
 #define OMC_PRED_PROFILE_PRINT OMC::PredicatesProfile::print()
 
@@ -464,7 +464,8 @@ struct PredicatesProfile
 #define OMC_PRED_PROFILE_PRINT
 
 #define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)
-#define OMC_PRED_PROFILE_INC_SUCCEED(pred, arr)
+#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
+#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
 
 #endif
 
