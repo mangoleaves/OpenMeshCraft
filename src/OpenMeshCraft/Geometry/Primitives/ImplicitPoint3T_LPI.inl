@@ -447,7 +447,8 @@ bool ImplicitPoint3T_LPI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 			  P().x(), P().y(), P().z(), Q().x(), Q().y(), Q().z(), R().x(), R().y(),
 			  R().z(), S().x(), S().y(), S().z(), T().x(), T().y(), T().z(),
 			  cv.dfilter_denominator, cv.dfilter_lambda_x, cv.dfilter_lambda_y,
-			  cv.dfilter_lambda_z, bx, by, bz);
+			  cv.dfilter_lambda_z, cv.dfilter_beta_x, cv.dfilter_beta_y,
+			  cv.dfilter_beta_z);
 			if (cv.dfilter_denominator.is_negative())
 			{
 				cv.dfilter_lambda_x.invert();
@@ -461,9 +462,9 @@ bool ImplicitPoint3T_LPI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 		lz = cv.dfilter_lambda_z;
 		d  = cv.dfilter_denominator;
 		// beta xyz must be "double" floating point number
-		bx = cv.ssfilter_beta_x;
-		by = cv.ssfilter_beta_y;
-		bz = cv.ssfilter_beta_z;
+		bx = cv.dfilter_beta_x;
+		by = cv.dfilter_beta_y;
+		bz = cv.dfilter_beta_z;
 		return (d.is_sign_reliable());
 	}
 	else
@@ -498,12 +499,16 @@ void ImplicitPoint3T_LPI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 			cv.exact_lambda_x    = new ET();
 			cv.exact_lambda_y    = new ET();
 			cv.exact_lambda_z    = new ET();
+			cv.exact_beta_x      = new ET();
+			cv.exact_beta_y      = new ET();
+			cv.exact_beta_z      = new ET();
 			lambda3d_LPI_exact<ET>(
 			  ET(P().x()), ET(P().y()), ET(P().z()), ET(Q().x()), ET(Q().y()),
 			  ET(Q().z()), ET(R().x()), ET(R().y()), ET(R().z()), ET(S().x()),
 			  ET(S().y()), ET(S().z()), ET(T().x()), ET(T().y()), ET(T().z()),
 			  *cv.exact_denominator, *cv.exact_lambda_x, *cv.exact_lambda_y,
-			  *cv.exact_lambda_z, bx, by, bz);
+			  *cv.exact_lambda_z, *cv.exact_beta_x, *cv.exact_beta_y,
+			  *cv.exact_beta_z);
 			if (OMC::sign(*cv.exact_denominator) == Sign::NEGATIVE)
 			{
 				*cv.exact_lambda_x    = -*cv.exact_lambda_x;
@@ -517,9 +522,9 @@ void ImplicitPoint3T_LPI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		lz = *cv.exact_lambda_z;
 		d  = *cv.exact_denominator;
 		// beta xyz must be "double" floating point number
-		bx = cv.ssfilter_beta_x;
-		by = cv.ssfilter_beta_y;
-		bz = cv.ssfilter_beta_z;
+		bx = *cv.exact_beta_x;
+		by = *cv.exact_beta_y;
+		bz = *cv.exact_beta_z;
 	}
 	else
 	{
@@ -559,7 +564,8 @@ void ImplicitPoint3T_LPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 			  &cv.expansion_denominator, cv.expansion_d_len, &cv.expansion_lambda_x,
 			  cv.expansion_lambda_x_len, &cv.expansion_lambda_y,
 			  cv.expansion_lambda_y_len, &cv.expansion_lambda_z,
-			  cv.expansion_lambda_z_len, bx, by, bz);
+			  cv.expansion_lambda_z_len, cv.ssfilter_beta_x, cv.ssfilter_beta_y,
+			  cv.ssfilter_beta_z);
 			if (cv.expansion_denominator[cv.expansion_d_len - 1] < 0)
 			{
 				expansionObject o;
