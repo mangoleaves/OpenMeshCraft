@@ -90,18 +90,6 @@ Sign orient2dzx(const GenericPoint3T<IT, ET> &p1,
 
 /*************** Max Component In Triangle Normal *******************/
 
-inline int maxComponentInTriangleNormal_filtered(double ov1x, double ov1y,
-                                                 double ov1z, double ov2x,
-                                                 double ov2y, double ov2z,
-                                                 double ov3x, double ov3y,
-                                                 double ov3z);
-
-inline int maxComponentInTriangleNormal_expansion(double ov1x, double ov1y,
-                                                  double ov1z, double ov2x,
-                                                  double ov2y, double ov2z,
-                                                  double ov3x, double ov3y,
-                                                  double ov3z);
-
 inline int maxComponentInTriangleNormal(double ov1x, double ov1y, double ov1z,
                                         double ov2x, double ov2y, double ov2z,
                                         double ov3x, double ov3y, double ov3z);

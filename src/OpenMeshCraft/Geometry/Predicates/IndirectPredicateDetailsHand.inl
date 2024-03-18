@@ -636,40 +636,89 @@ inline int maxComponentInTriangleNormal_filtered(double ov1x, double ov1y,
 	double nvz2 = v2y * v3x;
 	double nvz  = nvz1 - nvz2;
 
-	double _tmp_fabs, max_var = 0;
-	if ((_tmp_fabs = fabs(v3x)) > max_var)
-		max_var = _tmp_fabs;
-	if ((_tmp_fabs = fabs(v3y)) > max_var)
-		max_var = _tmp_fabs;
-	if ((_tmp_fabs = fabs(v3z)) > max_var)
-		max_var = _tmp_fabs;
-	if ((_tmp_fabs = fabs(v2x)) > max_var)
-		max_var = _tmp_fabs;
-	if ((_tmp_fabs = fabs(v2y)) > max_var)
-		max_var = _tmp_fabs;
-	if ((_tmp_fabs = fabs(v2z)) > max_var)
-		max_var = _tmp_fabs;
-	double epsilon = 8.88395e-016 * max_var * max_var;
-
 	double nvxc = fabs(nvx);
 	double nvyc = fabs(nvy);
 	double nvzc = fabs(nvz);
 	double nv   = nvxc;
+	int    dim  = 0;
 	if (nvyc > nv)
-		nv = nvyc;
-	if (nvzc > nv)
-		nv = nvzc;
-
-	if (nv > epsilon)
 	{
-		if (nv == nvx)
-			return 0;
-		if (nv == nvy)
-			return 1;
-		if (nv == nvz)
-			return 2;
+		nv  = nvyc;
+		dim = 1;
 	}
+	if (nvzc > nv)
+	{
+		nv  = nvzc;
+		dim = 2;
+	}
+
+	double eps = 8.88720573725927976811e-16, max1, max2;
+	if (dim == 0)
+	{
+		max1 = fabs(v2y) >= fabs(v2z) ? fabs(v2y) : fabs(v2z);
+		max2 = fabs(v3y) >= fabs(v3z) ? fabs(v3y) : fabs(v3z);
+	}
+	else if (dim == 1)
+	{
+		max1 = fabs(v2x) >= fabs(v2z) ? fabs(v2x) : fabs(v2z);
+		max2 = fabs(v3x) >= fabs(v3z) ? fabs(v3x) : fabs(v3z);
+	}
+	else // dim==2
+	{
+		max1 = fabs(v2x) >= fabs(v2y) ? fabs(v2x) : fabs(v2y);
+		max2 = fabs(v3x) >= fabs(v3y) ? fabs(v3x) : fabs(v3y);
+	}
+	if (nv > eps * max1 * max2)
+		return dim;
+
 	return -1;
+}
+
+inline int maxComponentInTriangleNormal_interval(
+  IntervalNumber<std::false_type> ov1x, IntervalNumber<std::false_type> ov1y,
+  IntervalNumber<std::false_type> ov1z, IntervalNumber<std::false_type> ov2x,
+  IntervalNumber<std::false_type> ov2y, IntervalNumber<std::false_type> ov2z,
+  IntervalNumber<std::false_type> ov3x, IntervalNumber<std::false_type> ov3y,
+  IntervalNumber<std::false_type> ov3z)
+{
+	using IT = IntervalNumber<std::false_type>;
+	IT::Protector P;
+
+	IT v3x  = ov3x - ov2x;
+	IT v3y  = ov3y - ov2y;
+	IT v3z  = ov3z - ov2z;
+	IT v2x  = ov2x - ov1x;
+	IT v2y  = ov2y - ov1y;
+	IT v2z  = ov2z - ov1z;
+	IT nvx1 = v2y * v3z;
+	IT nvx2 = v2z * v3y;
+	IT nvx  = nvx1 - nvx2;
+	IT nvy1 = v3x * v2z;
+	IT nvy2 = v3z * v2x;
+	IT nvy  = nvy1 - nvy2;
+	IT nvz1 = v2x * v3y;
+	IT nvz2 = v2y * v3x;
+	IT nvz  = nvz1 - nvz2;
+
+	int    dim = -1;
+	double nv  = 0.;
+	if (nvx.is_sign_reliable())
+	{
+		nv  = fabs(nvx.inf() + nvx.sup());
+		dim = 0;
+	}
+	if (nvy.is_sign_reliable())
+	{
+		nv  = std::max(nv, fabs(nvy.inf() + nvy.sup()));
+		dim = 1;
+	}
+	if (nvz.is_sign_reliable())
+	{
+		nv  = std::max(nv, fabs(nvz.inf() + nvz.sup()));
+		dim = 2;
+	}
+
+	return dim;
 }
 
 inline int maxComponentInTriangleNormal_expansion(double ov1x, double ov1y,
@@ -729,6 +778,10 @@ inline int maxComponentInTriangleNormal(double ov1x, double ov1y, double ov1z,
 {
 	int ret;
 	ret = maxComponentInTriangleNormal_filtered(ov1x, ov1y, ov1z, ov2x, ov2y,
+	                                            ov2z, ov3x, ov3y, ov3z);
+	if (ret >= 0)
+		return ret;
+	ret = maxComponentInTriangleNormal_interval(ov1x, ov1y, ov1z, ov2x, ov2y,
 	                                            ov2z, ov3x, ov3y, ov3z);
 	if (ret >= 0)
 		return ret;
