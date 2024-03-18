@@ -67,6 +67,15 @@ if(OMC_CMAKE_LOG_FATAL)
   target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_LOG_FATAL)
 endif()
 
+# enable profiling predicates
+if(OMC_CMAKE_PRED_PROFILE)
+  message(STATUS "[OpenMeshCraft] Enable profiling predicates")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_PRED_PROFILE)
+else()
+  # message(STATUS "[OpenMeshCraft] Disable profiling predicates")
+  # target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_DISABLE_AVX)
+endif()
+
 # generate debug information
 if(OMC_CMAKE_ENABLE_DEBUG_INFO)
 

@@ -1,0 +1,41 @@
+implicitPoint3D(p1:l1x,l1y,l1z,d1,b1x,b1y,b1z)
+explicitPoint3D(p2:p2y,p2z) // Explicit point 1
+explicitPoint3D(p3:p3y,p3z) // Explicit point 2
+
+errorDefinition(SSI,S,3:lx;3;64;1.332267629550188e-15;2.000000000000002;ly;3;64;1.332267629550188e-15;2.000000000000002;lz;3;64;1.332267629550188e-15;2.000000000000002;d;2;16;8.881784197001253e-16;2.000000000000001)
+errorDefinition(LPI,L,3:lx;4;256;5.995204332975847e-15;6.000000000000008;ly;4;256;5.995204332975847e-15;6.000000000000008;lz;4;256;5.995204332975847e-15;6.000000000000008;d;3;192;4.886390771174922e-015;6.000000000000007)
+errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;256;3.073097332162437e-13;144.0000000000005;lz;7;256;3.073097332162437e-13;144.0000000000005;d;6;256;1.314504061156187e-13;72.00000000000019)
+
+// p1 is query point, p2-p3 is the line
+// orient2d: (p1 - p3) cross (p2 - p3)
+
+// we calculate determinant
+//    | p1 - p3 |
+//    | p2 - p3 |
+// expand to
+//    | b1 + l1/d1 - p3 |
+//    |     p2 - p3     |
+// transform to
+//    | l1 + d1 (b1 - p3) |
+//    |      p2 - p3      |
+
+// -- b1 - p3
+b1p3y = b1y - p3y
+b1p3z = b1z - p3z
+
+// -- d1 * (b1 - p3)
+d1_b1p3y = d1 * b1p3y
+d1_b1p3z = d1 * b1p3z
+
+// -- d1 * (b1 - p3) + l1
+iy = d1_b1p3y + l1y
+iz = d1_b1p3z + l1z
+
+// -- p2 - p3
+p2p3y = p2y - p3y
+p2p3z = p2z - p3z
+
+// -- (p1 - p3) cross (p2 - p3)
+t0 = iy * p2p3z
+t1 = iz * p2p3y
+det = t0 - t1

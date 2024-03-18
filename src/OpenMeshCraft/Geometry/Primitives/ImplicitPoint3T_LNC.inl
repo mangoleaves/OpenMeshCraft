@@ -6,6 +6,8 @@
 
 namespace OMC {
 
+#if defined(INDIRECT_PREDICATES)
+
 template <typename IT, typename ET>
 ImplicitPoint3T_LNC<IT, ET>::ImplicitPoint3T_LNC() noexcept
   : GP(PointType::LNC)
@@ -226,5 +228,7 @@ void ImplicitPoint3T_LNC<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 		normalizeLambda3D(*lx, lx_len, *ly, ly_len, *lz, lz_len, *d, d_len);
 	}
 }
+
+#endif
 
 } // namespace OMC

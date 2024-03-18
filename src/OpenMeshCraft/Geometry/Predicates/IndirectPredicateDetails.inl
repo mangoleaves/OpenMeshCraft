@@ -6,8 +6,6 @@
 #include "OpenMeshCraft/NumberTypes/IntervalNumber.h"
 #include "OpenMeshCraft/NumberTypes/LazyNumber.h"
 
-#include "OpenMeshCraft/Utils/Macros.h"
-
 #pragma intrinsic(fabs)
 
 // Uncomment the following to activate overflow/underflow checks
@@ -1943,6 +1941,8 @@ Sign squareDistance3D(const GenericPoint3T<IT, ET> &p,
 	                                              q.y(), q.z(), dis);
 }
 
+#if defined(INDIRECT_PREDICATES)
+
 template <typename IT, typename ET>
 Sign dotProductSign2D_EEI_interval(const GenericPoint2T<IT, ET> &q, IT px,
                                    IT py, IT rx, IT ry)
@@ -1994,9 +1994,9 @@ Sign dotProductSign2D_EEI_expansion(const GenericPoint2T<IT, ET> &q, double px,
                                     double py, double rx, double ry)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lqx_p[128], *lqx = lqx_p, lqy_p[128], *lqy = lqy_p, dq_p[128],
 	                   *dq = dq_p;
 	int lqx_len = 128, lqy_len = 128, dq_len = 128;
@@ -2062,10 +2062,10 @@ Sign dotProductSign2D_EEI_expansion(const GenericPoint2T<IT, ET> &q, double px,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign2D_EEI_exact<IT, ET>(q, px, py, rx, ry);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -2142,9 +2142,9 @@ Sign dotProductSign2D_IEE_expansion(const GenericPoint2T<IT, ET> &p, double rx,
                                     double ry, double qx, double qy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[128], *lpx = lpx_p, lpy_p[128], *lpy = lpy_p, dp_p[128],
 	                   *dp = dp_p;
 	int lpx_len = 128, lpy_len = 128, dp_len = 128;
@@ -2198,10 +2198,10 @@ Sign dotProductSign2D_IEE_expansion(const GenericPoint2T<IT, ET> &p, double rx,
 			FreeDoubles(dp);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign2D_IEE_exact<IT, ET>(p, rx, ry, qx, qy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -2291,9 +2291,9 @@ Sign dotProductSign2D_IEI_expansion(const GenericPoint2T<IT, ET> &p,
                                     double ry)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[64], *lpx = lpx_p, lpy_p[64], *lpy = lpy_p, dp_p[64], *dp = dp_p,
 	                  lqx_p[64], *lqx = lqx_p, lqy_p[64], *lqy = lqy_p, dq_p[64],
 	                  *dq = dq_p;
@@ -2390,10 +2390,10 @@ Sign dotProductSign2D_IEI_expansion(const GenericPoint2T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign2D_IEI_exact<IT, ET>(p, q, rx, ry);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -2477,9 +2477,9 @@ Sign dotProductSign2D_IIE_expansion(const GenericPoint2T<IT, ET> &p,
                                     double qy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[64], *lpx = lpx_p, lpy_p[64], *lpy = lpy_p, dp_p[64], *dp = dp_p,
 	                  lrx_p[64], *lrx = lrx_p, lry_p[64], *lry = lry_p, dr_p[64],
 	                  *dr = dr_p;
@@ -2558,10 +2558,10 @@ Sign dotProductSign2D_IIE_expansion(const GenericPoint2T<IT, ET> &p,
 			FreeDoubles(dr);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign2D_IIE_exact<IT, ET>(p, r, qx, qy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -2656,9 +2656,9 @@ Sign dotProductSign2D_III_expansion(const GenericPoint2T<IT, ET> &p,
                                     const GenericPoint2T<IT, ET> &q)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[64], *lpx = lpx_p, lpy_p[64], *lpy = lpy_p, dp_p[64], *dp = dp_p,
 	                  lrx_p[64], *lrx = lrx_p, lry_p[64], *lry = lry_p, dr_p[64],
 	                  *dr = dr_p, lqx_p[64], *lqx = lqx_p, lqy_p[64],
@@ -2777,10 +2777,10 @@ Sign dotProductSign2D_III_expansion(const GenericPoint2T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign2D_III_exact<IT, ET>(p, r, q);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -2867,9 +2867,9 @@ Sign dotProductSign3D_EEI_expansion(const GenericPoint3T<IT, ET> &q, double px,
                                     double rz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lqx_p[64], *lqx = lqx_p, lqy_p[64], *lqy = lqy_p, lqz_p[64],
 	                  *lqz = lqz_p, dq_p[64], *dq = dq_p;
 	int lqx_len = 64, lqy_len = 64, lqz_len = 64, dq_len = 64;
@@ -2962,10 +2962,10 @@ Sign dotProductSign3D_EEI_expansion(const GenericPoint3T<IT, ET> &q, double px,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign3D_EEI_exact<IT, ET>(q, px, py, pz, rx, ry, rz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -3054,9 +3054,9 @@ Sign dotProductSign3D_IEE_expansion(const GenericPoint3T<IT, ET> &p, double rx,
                                     double qz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[128], *lpx = lpx_p, lpy_p[128], *lpy = lpy_p, lpz_p[128],
 	                   *lpz = lpz_p, dp_p[128], *dp = dp_p;
 	int lpx_len = 128, lpy_len = 128, lpz_len = 128, dp_len = 128;
@@ -3131,10 +3131,10 @@ Sign dotProductSign3D_IEE_expansion(const GenericPoint3T<IT, ET> &p, double rx,
 			FreeDoubles(dp);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign3D_IEE_exact<IT, ET>(p, rx, ry, rz, qx, qy, qz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -3241,9 +3241,9 @@ Sign dotProductSign3D_IEI_expansion(const GenericPoint3T<IT, ET> &p,
                                     double ry, double rz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[64], *lpx = lpx_p, lpy_p[64], *lpy = lpy_p, lpz_p[64],
 	                  *lpz = lpz_p, dp_p[64], *dp = dp_p, lqx_p[64], *lqx = lqx_p,
 	                  lqy_p[64], *lqy = lqy_p, lqz_p[64], *lqz = lqz_p, dq_p[64],
@@ -3378,10 +3378,10 @@ Sign dotProductSign3D_IEI_expansion(const GenericPoint3T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign3D_IEI_exact<IT, ET>(p, q, rx, ry, rz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -3480,9 +3480,9 @@ Sign dotProductSign3D_IIE_expansion(const GenericPoint3T<IT, ET> &p,
                                     double qy, double qz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[64], *lpx = lpx_p, lpy_p[64], *lpy = lpy_p, lpz_p[64],
 	                  *lpz = lpz_p, dp_p[64], *dp = dp_p, lrx_p[64], *lrx = lrx_p,
 	                  lry_p[64], *lry = lry_p, lrz_p[64], *lrz = lrz_p, dr_p[64],
@@ -3592,10 +3592,10 @@ Sign dotProductSign3D_IIE_expansion(const GenericPoint3T<IT, ET> &p,
 			FreeDoubles(dr);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign3D_IIE_exact<IT, ET>(p, r, qx, qy, qz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -3708,9 +3708,9 @@ Sign dotProductSign3D_III_expansion(const GenericPoint3T<IT, ET> &p,
                                     const GenericPoint3T<IT, ET> &q)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double lpx_p[32], *lpx = lpx_p, lpy_p[32], *lpy = lpy_p, lpz_p[32],
 	                  *lpz = lpz_p, dp_p[32], *dp = dp_p, lrx_p[32], *lrx = lrx_p,
 	                  lry_p[32], *lry = lry_p, lrz_p[32], *lrz = lrz_p, dr_p[32],
@@ -3878,10 +3878,10 @@ Sign dotProductSign3D_III_expansion(const GenericPoint3T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return dotProductSign3D_III_exact<IT, ET>(p, r, q);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -4000,9 +4000,9 @@ Sign inCirclexy_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
                                double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p;
 	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64;
@@ -4147,10 +4147,10 @@ Sign inCirclexy_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCirclexy_IEEE_exact<IT, ET>(p1, pbx, pby, pcx, pcy, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -4288,9 +4288,9 @@ Sign inCirclexy_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
                                double pcy, double pdx, double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32],
 	                  *l1z = l1z_p, d1_p[32], *d1 = d1_p, l2x_p[32], *l2x = l2x_p,
 	                  l2y_p[32], *l2y = l2y_p, l2z_p[32], *l2z = l2z_p, d2_p[32],
@@ -4491,10 +4491,10 @@ Sign inCirclexy_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCirclexy_IIEE_exact<IT, ET>(p1, p2, pcx, pcy, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -4643,9 +4643,9 @@ Sign inCirclexy_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32],
 	                  *l1z = l1z_p, d1_p[32], *d1 = d1_p, l2x_p[32], *l2x = l2x_p,
 	                  l2y_p[32], *l2y = l2y_p, l2z_p[32], *l2z = l2z_p, d2_p[32],
@@ -4895,10 +4895,10 @@ Sign inCirclexy_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCirclexy_IIIE_exact<IT, ET>(p1, p2, p3, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -5063,9 +5063,9 @@ Sign inCirclexy_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
                                const GenericPoint3T<IT, ET> &p4)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[16],
 	  *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16], *l1z = l1z_p, d1_p[16],
 	  *d1 = d1_p, l2x_p[16], *l2x = l2x_p, l2y_p[16], *l2y = l2y_p, l2z_p[16],
@@ -5369,10 +5369,10 @@ Sign inCirclexy_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d4);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCirclexy_IIII_exact<IT, ET>(p1, p2, p3, p4);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -5492,9 +5492,9 @@ Sign inCircle_IEEE_expansion(const GenericPoint2T<IT, ET> &p1, double pbx,
                              double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, d1_p[64], *d1 = d1_p;
 	int    l1x_len = 64, l1y_len = 64, d1_len = 64;
 	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &d1, d1_len);
@@ -5635,10 +5635,10 @@ Sign inCircle_IEEE_expansion(const GenericPoint2T<IT, ET> &p1, double pbx,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCircle_IEEE_exact<IT, ET>(p1, pbx, pby, pcx, pcy, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -5776,9 +5776,9 @@ Sign inCircle_IIEE_expansion(const GenericPoint2T<IT, ET> &p1,
                              double pcy, double pdx, double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, d1_p[32], *d1 = d1_p,
 	                  l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p, d2_p[32],
 	                  *d2 = d2_p;
@@ -5972,10 +5972,10 @@ Sign inCircle_IIEE_expansion(const GenericPoint2T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCircle_IIEE_exact<IT, ET>(p1, p2, pcx, pcy, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -6124,9 +6124,9 @@ Sign inCircle_IIIE_expansion(const GenericPoint2T<IT, ET> &p1,
                              double pdy)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, d1_p[32], *d1 = d1_p,
 	                  l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p, d2_p[32],
 	                  *d2 = d2_p, l3x_p[32], *l3x = l3x_p, l3y_p[32],
@@ -6365,10 +6365,10 @@ Sign inCircle_IIIE_expansion(const GenericPoint2T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCircle_IIIE_exact<IT, ET>(p1, p2, p3, pdx, pdy);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -6533,9 +6533,9 @@ Sign inCircle_IIII_expansion(const GenericPoint2T<IT, ET> &p1,
                              const GenericPoint2T<IT, ET> &p4)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, d1_p[32], *d1 = d1_p,
 	                  l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p, d2_p[32],
 	                  *d2 = d2_p, l3x_p[32], *l3x = l3x_p, l3y_p[32],
@@ -6824,10 +6824,10 @@ Sign inCircle_IIII_expansion(const GenericPoint2T<IT, ET> &p1,
 			FreeDoubles(d4);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inCircle_IIII_exact<IT, ET>(p1, p2, p3, p4);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -7048,9 +7048,9 @@ Sign inSphere_IEEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
                               double pex, double pey, double pez)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[16], *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16],
 	                  *l1z = l1z_p, d1_p[16], *d1 = d1_p;
 	int l1x_len = 16, l1y_len = 16, l1z_len = 16, d1_len = 16;
@@ -7379,11 +7379,11 @@ Sign inSphere_IEEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inSphere_IEEEE_exact<IT, ET>(p1, pbx, pby, pbz, pcx, pcy, pcz, pdx,
 		                                    pdy, pdz, pex, pey, pez);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -7631,9 +7631,9 @@ Sign inSphere_IIEEE_expansion(const GenericPoint3T<IT, ET> &p1,
                               double pdz, double pex, double pey, double pez)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[16], *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16],
 	                  *l1z = l1z_p, d1_p[16], *d1 = d1_p, l2x_p[16], *l2x = l2x_p,
 	                  l2y_p[16], *l2y = l2y_p, l2z_p[16], *l2z = l2z_p, d2_p[16],
@@ -8042,11 +8042,11 @@ Sign inSphere_IIEEE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inSphere_IIEEE_exact<IT, ET>(p1, p2, pcx, pcy, pcz, pdx, pdy, pdz,
 		                                    pex, pey, pez);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -8307,9 +8307,9 @@ Sign inSphere_IIIEE_expansion(const GenericPoint3T<IT, ET> &p1,
                               double pez)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[16], *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16],
 	                  *l1z = l1z_p, d1_p[16], *d1 = d1_p, l2x_p[16], *l2x = l2x_p,
 	                  l2y_p[16], *l2y = l2y_p, l2z_p[16], *l2z = l2z_p, d2_p[16],
@@ -8788,11 +8788,11 @@ Sign inSphere_IIIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inSphere_IIIEE_exact<IT, ET>(p1, p2, p3, pdx, pdy, pdz, pex, pey,
 		                                    pez);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -9067,9 +9067,9 @@ Sign inSphere_IIIIE_expansion(const GenericPoint3T<IT, ET> &p1,
                               double pey, double pez)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[16],
 	  *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16], *l1z = l1z_p, d1_p[16],
 	  *d1 = d1_p, l2x_p[16], *l2x = l2x_p, l2y_p[16], *l2y = l2y_p, l2z_p[16],
@@ -9614,10 +9614,10 @@ Sign inSphere_IIIIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d4);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inSphere_IIIIE_exact<IT, ET>(p1, p2, p3, p4, pex, pey, pez);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -9918,9 +9918,9 @@ Sign inSphere_IIIII_expansion(const GenericPoint3T<IT, ET> &p1,
                               const GenericPoint3T<IT, ET> &p5)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[8],
 	  *l1x = l1x_p, l1y_p[8], *l1y = l1y_p, l1z_p[8], *l1z = l1z_p, d1_p[8],
 	  *d1 = d1_p, l2x_p[8], *l2x = l2x_p, l2y_p[8], *l2y = l2y_p, l2z_p[8],
@@ -10549,10 +10549,10 @@ Sign inSphere_IIIII_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d5);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return inSphere_IIIII_exact<IT, ET>(p1, p2, p3, p4, p5);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -10656,9 +10656,9 @@ template <typename IT, typename ET>
 Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -10691,10 +10691,10 @@ Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnX_IE_exact<IT, ET>(p1, bx);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -10708,16 +10708,19 @@ Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1, double bx, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnX_IE_filtered<IT, ET>(p1, bx, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnX_IE, arr);
 	}
 	ret = lessThanOnX_IE_interval<IT, ET>(p1, bx);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_IE, arr);
 	return lessThanOnX_IE_expansion<IT, ET>(p1, bx);
 }
 
@@ -10847,9 +10850,9 @@ Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
                               const GenericPoint3T<IT, ET> &p2)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, l2x_p[128],
 	                   *l2x = l2x_p, l2y_p[128], *l2y = l2y_p, l2z_p[128],
@@ -10905,10 +10908,10 @@ Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnX_II_exact<IT, ET>(p1, p2);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -10923,16 +10926,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnX_II_filtered<IT, ET>(p1, p2, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnX_II, arr);
 	}
 	ret = lessThanOnX_II_interval<IT, ET>(p1, p2);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_II, arr);
 	return lessThanOnX_II_expansion<IT, ET>(p1, p2);
 }
 
@@ -11015,9 +11021,9 @@ template <typename IT, typename ET>
 Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -11050,10 +11056,10 @@ Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnY_IE_exact<IT, ET>(p1, by);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -11067,16 +11073,19 @@ Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1, double by, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnY_IE_filtered<IT, ET>(p1, by, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnY_IE, arr);
 	}
 	ret = lessThanOnY_IE_interval<IT, ET>(p1, by);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_IE, arr);
 	return lessThanOnY_IE_expansion<IT, ET>(p1, by);
 }
 
@@ -11206,9 +11215,9 @@ Sign lessThanOnY_II_expansion(const GenericPoint3T<IT, ET> &p1,
                               const GenericPoint3T<IT, ET> &p2)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, l2x_p[128],
 	                   *l2x = l2x_p, l2y_p[128], *l2y = l2y_p, l2z_p[128],
@@ -11264,10 +11273,10 @@ Sign lessThanOnY_II_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnY_II_exact<IT, ET>(p1, p2);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -11282,16 +11291,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnY_II_filtered<IT, ET>(p1, p2, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnY_II, arr);
 	}
 	ret = lessThanOnY_II_interval<IT, ET>(p1, p2);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_II, arr);
 	return lessThanOnY_II_expansion<IT, ET>(p1, p2);
 }
 
@@ -11374,9 +11386,9 @@ template <typename IT, typename ET>
 Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -11409,10 +11421,10 @@ Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnZ_IE_exact<IT, ET>(p1, bz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -11426,16 +11438,19 @@ Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1, double bz, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnZ_IE_filtered<IT, ET>(p1, bz, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnZ_IE, arr);
 	}
 	ret = lessThanOnZ_IE_interval<IT, ET>(p1, bz);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_IE, arr);
 	return lessThanOnZ_IE_expansion<IT, ET>(p1, bz);
 }
 
@@ -11565,9 +11580,9 @@ Sign lessThanOnZ_II_expansion(const GenericPoint3T<IT, ET> &p1,
                               const GenericPoint3T<IT, ET> &p2)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, l2x_p[128],
 	                   *l2x = l2x_p, l2y_p[128], *l2y = l2y_p, l2z_p[128],
@@ -11623,10 +11638,10 @@ Sign lessThanOnZ_II_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return lessThanOnZ_II_exact<IT, ET>(p1, p2);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -11641,16 +11656,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = lessThanOnZ_II_filtered<IT, ET>(p1, p2, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnZ_II, arr);
 	}
 	ret = lessThanOnZ_II_interval<IT, ET>(p1, p2);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_II, arr);
 	return lessThanOnZ_II_expansion<IT, ET>(p1, p2);
 }
 
@@ -11753,9 +11771,9 @@ Sign orient2D_IEE_expansion(const GenericPoint2T<IT, ET> &p1, double p2x,
                             double p2y, double p3x, double p3y)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, d1_p[128],
 	                   *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, d1_len = 128;
@@ -11807,10 +11825,10 @@ Sign orient2D_IEE_expansion(const GenericPoint2T<IT, ET> &p1, double p2x,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient2D_IEE_exact<IT, ET>(p1, p2x, p2y, p3x, p3y);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -11953,9 +11971,9 @@ Sign orient2D_IIE_expansion(const GenericPoint2T<IT, ET> &p1,
                             double p3y)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, d1_p[64], *d1 = d1_p,
 	                  l2x_p[64], *l2x = l2x_p, l2y_p[64], *l2y = l2y_p, d2_p[64],
 	                  *d2 = d2_p;
@@ -12045,10 +12063,10 @@ Sign orient2D_IIE_expansion(const GenericPoint2T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient2D_IIE_exact<IT, ET>(p1, p2, p3x, p3y);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -12198,9 +12216,9 @@ Sign orient2D_III_expansion(const GenericPoint2T<IT, ET> &p1,
                             const GenericPoint2T<IT, ET> &p3)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, d1_p[64], *d1 = d1_p,
 	                  l2x_p[64], *l2x = l2x_p, l2y_p[64], *l2y = l2y_p, d2_p[64],
 	                  *d2 = d2_p, l3x_p[64], *l3x = l3x_p, l3y_p[64],
@@ -12310,10 +12328,10 @@ Sign orient2D_III_expansion(const GenericPoint2T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient2D_III_exact<IT, ET>(p1, p2, p3);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -12517,9 +12535,9 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double ax,
                              double bz, double cx, double cy, double cz)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p;
 	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64;
@@ -12650,10 +12668,10 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double ax,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient3D_IEEE_exact<IT, ET>(p1, ax, ay, az, bx, by, bz, cx, cy, cz);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -12917,9 +12935,9 @@ Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
                              double p4z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32],
 	                  *l1z = l1z_p, d1_p[32], *d1 = d1_p, l2x_p[32], *l2x = l2x_p,
 	                  l2y_p[32], *l2y = l2y_p, l2z_p[32], *l2z = l2z_p, d2_p[32],
@@ -13088,10 +13106,10 @@ Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient3D_IIEE_exact<IT, ET>(p1, p2, p3x, p3y, p3z, p4x, p4y, p4z);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -13416,9 +13434,9 @@ Sign orient3D_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
                              double p4y, double p4z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32],
 	                  *l1z = l1z_p, d1_p[32], *d1 = d1_p, l2x_p[32], *l2x = l2x_p,
 	                  l2y_p[32], *l2y = l2y_p, l2z_p[32], *l2z = l2z_p, d2_p[32],
@@ -13627,10 +13645,10 @@ Sign orient3D_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient3D_IIIE_exact<IT, ET>(p1, p2, p3, p4x, p4y, p4z);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -14099,9 +14117,9 @@ Sign orient3D_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
                              const GenericPoint3T<IT, ET> &p4)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[32],
 	  *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32], *l1z = l1z_p, d1_p[32],
 	  *d1 = d1_p, l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p, l2z_p[32],
@@ -14382,10 +14400,10 @@ Sign orient3D_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d4);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orient3D_IIII_exact<IT, ET>(p1, p2, p3, p4);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -14530,9 +14548,9 @@ Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
                                 double p2y, double p3x, double p3y)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -14587,10 +14605,10 @@ Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dxy_IEE_exact<IT, ET>(p1, p2x, p2y, p3x, p3y);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -14605,16 +14623,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
                       double p3x, double p3y, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dxy_IEE_filtered<IT, ET>(p1, p2x, p2y, p3x, p3y, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_IEE, arr);
 	}
 	ret = orientOn2Dxy_IEE_interval<IT, ET>(p1, p2x, p2y, p3x, p3y);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IEE, arr);
 	return orientOn2Dxy_IEE_expansion<IT, ET>(p1, p2x, p2y, p3x, p3y);
 }
 
@@ -14792,16 +14813,19 @@ Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3x,
                       double op3y, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dxy_IIE_filtered<IT, ET>(p1, p2, op3x, op3y, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
 	}
 	ret = orientOn2Dxy_IIE_interval<IT, ET>(p1, p2, op3x, op3y);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
 	return orientOn2Dxy_IIE_expansion<IT, ET>(p1, p2, op3x, op3y);
 }
 
@@ -15044,16 +15068,19 @@ Sign orientOn2Dxy_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dxy_III_filtered<IT, ET>(p1, p2, p3, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_III, arr);
 	}
 	ret = orientOn2Dxy_III_interval<IT, ET>(p1, p2, p3);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_III, arr);
 	return orientOn2Dxy_III_expansion<IT, ET>(p1, p2, p3);
 }
 
@@ -15172,9 +15199,9 @@ Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
                                 double p2z, double p3y, double p3z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -15229,10 +15256,10 @@ Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dyz_IEE_exact<IT, ET>(p1, p2y, p2z, p3y, p3z);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -15247,16 +15274,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1, double p2y, double p2z,
                       double p3y, double p3z, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dyz_IEE_filtered<IT, ET>(p1, p2y, p2z, p3y, p3z, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_IEE, arr);
 	}
 	ret = orientOn2Dyz_IEE_interval<IT, ET>(p1, p2y, p2z, p3y, p3z);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IEE, arr);
 	return orientOn2Dyz_IEE_expansion<IT, ET>(p1, p2y, p2z, p3y, p3z);
 }
 
@@ -15434,16 +15464,19 @@ Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3y,
                       double op3z, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dyz_IIE_filtered<IT, ET>(p1, p2, op3y, op3z, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_IIE, arr);
 	}
 	ret = orientOn2Dyz_IIE_interval<IT, ET>(p1, p2, op3y, op3z);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IIE, arr);
 	return orientOn2Dyz_IIE_expansion<IT, ET>(p1, p2, op3y, op3z);
 }
 
@@ -15686,16 +15719,19 @@ Sign orientOn2Dyz_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dyz_III_filtered<IT, ET>(p1, p2, p3, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_III, arr);
 	}
 	ret = orientOn2Dyz_III_interval<IT, ET>(p1, p2, p3);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_III, arr);
 	return orientOn2Dyz_III_expansion<IT, ET>(p1, p2, p3);
 }
 
@@ -15814,9 +15850,9 @@ Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
                                 double p2z, double p3x, double p3z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
 	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p;
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
@@ -15871,10 +15907,10 @@ Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 			FreeDoubles(d1);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dzx_IEE_exact<IT, ET>(p1, p2x, p2z, p3x, p3z);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -15889,16 +15925,19 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2z,
                       double p3x, double p3z, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dzx_IEE_filtered<IT, ET>(p1, p2x, p2z, p3x, p3z, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_IEE, arr);
 	}
 	ret = orientOn2Dzx_IEE_interval<IT, ET>(p1, p2x, p2z, p3x, p3z);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IEE, arr);
 	return orientOn2Dzx_IEE_expansion<IT, ET>(p1, p2x, p2z, p3x, p3z);
 }
 
@@ -16076,16 +16115,19 @@ Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3x,
                       double op3z, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dzx_IIE_filtered<IT, ET>(p1, p2, op3x, op3z, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_IIE, arr);
 	}
 	ret = orientOn2Dzx_IIE_interval<IT, ET>(p1, p2, op3x, op3z);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IIE, arr);
 	return orientOn2Dzx_IIE_expansion<IT, ET>(p1, p2, op3x, op3z);
 }
 
@@ -16328,16 +16370,19 @@ Sign orientOn2Dzx_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
 		ret = orientOn2Dzx_III_filtered<IT, ET>(p1, p2, p3, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_III, arr);
 	}
 	ret = orientOn2Dzx_III_interval<IT, ET>(p1, p2, p3);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_III, arr);
 	return orientOn2Dzx_III_expansion<IT, ET>(p1, p2, p3);
 }
 
@@ -16390,9 +16435,9 @@ Sign squareDistance2D_IE_expansion(const GenericPoint2T<IT, ET> &p, double qx,
                                    double qy, double dis)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double px_p[128], *px = px_p, py_p[128], *py = py_p, d_p[128], *d = d_p;
 	int    px_len = 128, py_len = 128, d_len = 128;
 	p.getExpansionLambda(&px, px_len, &py, py_len, &d, d_len);
@@ -16457,10 +16502,10 @@ Sign squareDistance2D_IE_expansion(const GenericPoint2T<IT, ET> &p, double qx,
 			FreeDoubles(d);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return squareDistance2D_IE_exact<IT, ET>(p, qx, qy, dis);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -16547,9 +16592,9 @@ Sign squareDistance2D_II_expansion(const GenericPoint2T<IT, ET> &p,
                                    const GenericPoint2T<IT, ET> &q, double dis)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double px_p[64], *px = px_p, py_p[64], *py = py_p, dp_p[64], *dp = dp_p,
 	                 qx_p[64], *qx = qx_p, qy_p[64], *qy = qy_p, dq_p[64],
 	                 *dq = dq_p;
@@ -16643,10 +16688,10 @@ Sign squareDistance2D_II_expansion(const GenericPoint2T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return squareDistance2D_II_exact<IT, ET>(p, q, dis);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -16725,9 +16770,9 @@ Sign squareDistance3D_IE_expansion(const GenericPoint3T<IT, ET> &p, double qx,
                                    double qy, double qz, double dis)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double px_p[64], *px = px_p, py_p[64], *py = py_p, pz_p[64], *pz = pz_p,
 	                 d_p[64], *d = d_p;
 	int px_len = 64, py_len = 64, pz_len = 64, d_len = 64;
@@ -16810,10 +16855,10 @@ Sign squareDistance3D_IE_expansion(const GenericPoint3T<IT, ET> &p, double qx,
 			FreeDoubles(d);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return squareDistance3D_IE_exact<IT, ET>(p, qx, qy, qz, dis);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -16911,9 +16956,9 @@ Sign squareDistance3D_II_expansion(const GenericPoint3T<IT, ET> &p,
                                    const GenericPoint3T<IT, ET> &q, double dis)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double px_p[64], *px = px_p, py_p[64], *py = py_p, pz_p[64], *pz = pz_p,
 	                 dp_p[64], *dp = dp_p, qx_p[64], *qx = qx_p, qy_p[64],
 	                 *qy = qy_p, qz_p[64], *qz = qz_p, dq_p[64], *dq = dq_p;
@@ -17032,10 +17077,10 @@ Sign squareDistance3D_II_expansion(const GenericPoint3T<IT, ET> &p,
 			FreeDoubles(dq);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return squareDistance3D_II_exact<IT, ET>(p, q, dis);
-#endif
+	#endif
 
 	if (return_value > 0)
 		return Sign::POSITIVE;
@@ -17056,5 +17101,5743 @@ Sign squareDistance3D_II(const GenericPoint3T<IT, ET> &p,
 		return ret;
 	return squareDistance3D_II_expansion<IT, ET>(p, q, dis);
 }
+
+#elif defined(OFFSET_PREDICATES)
+
+template <typename IT, typename ET>
+Sign lessThanOnX_IE_filtered(const GenericPoint3T<IT, ET> &p1, double bx,
+                             PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1x - bx;
+	double t1 = t0 * d1;
+	double kx = t1 + l1x;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.108624468950439e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.2879996548476053e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.680700271819666e-13;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(kx, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_IE_interval(const GenericPoint3T<IT, ET> &p1, IT bx)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1x - bx;
+	IT t1 = t0 * d1;
+	IT kx = t1 + l1x;
+	if (!kx.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(kx);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET t0 = b1x - bx;
+	ET t1 = t0 * d1;
+	ET kx = t1 + l1x;
+	return OMC::sign(kx);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1x, bx, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double kx_p[128], *kx = kx_p;
+		int    kx_len = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1x_len, l1x, &kx, 128);
+
+		return_value = kx[kx_len - 1];
+		if (kx_p != kx)
+			FreeDoubles(kx);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnX_IE_exact<IT, ET>(p1, bx);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1, double bx, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_IE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnX_IE_filtered<IT, ET>(p1, bx, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnX_IE, arr);
+	}
+	ret = lessThanOnX_IE_interval<IT, ET>(p1, bx);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_IE, arr);
+	return lessThanOnX_IE_expansion<IT, ET>(p1, bx);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &b, PntArr3 arr)
+{
+	return lessThanOnX_IE<IT, ET, WithSSFilter>(p1, b.x(), arr);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1x - b2x;
+	double t1 = t0 * d1;
+	double t2 = t1 * d2;
+	double t3 = l1x * d2;
+	double t4 = l2x * d1;
+	double t5 = t2 + t3;
+	double kx = t5 - t4;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6431300764452333e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.084585960075558e-14;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6022738691390292e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.20746164403263e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.27253154330999e-12;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.0712852827055069e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(kx, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_interval(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1x - b2x;
+	IT t1 = t0 * d1;
+	IT t2 = t1 * d2;
+	IT t3 = l1x * d2;
+	IT t4 = l2x * d1;
+	IT t5 = t2 + t3;
+	IT kx = t5 - t4;
+	if (!kx.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(kx);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_exact(const GenericPoint3T<IT, ET> &p1,
+                          const GenericPoint3T<IT, ET> &p2)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET t0 = b1x - b2x;
+	ET t1 = t0 * d1;
+	ET t2 = t1 * d2;
+	ET t3 = l1x * d2;
+	ET t4 = l2x * d1;
+	ET t5 = t2 + t3;
+	ET kx = t5 - t4;
+	return OMC::sign(kx);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
+                              const GenericPoint3T<IT, ET> &p2)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z,
+	                   l2x_p[128], *l2x = l2x_p, l2y_p[128], *l2y = l2y_p,
+	                   l2z_p[128], *l2z = l2z_p, d2_p[128], *d2 = d2_p, b2x, b2y,
+	                   b2z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128, l2x_len = 128,
+	    l2y_len = 128, l2z_len = 128, d2_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1x, b2x, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double t2_p[128], *t2 = t2_p;
+		int t2_len = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		double t3_p[128], *t3 = t3_p;
+		int    t3_len =
+		  o.Gen_Product_With_PreAlloc(l1x_len, l1x, d2_len, d2, &t3, 128);
+		double t4_p[128], *t4 = t4_p;
+		int    t4_len =
+		  o.Gen_Product_With_PreAlloc(l2x_len, l2x, d1_len, d1, &t4, 128);
+		double t5_p[128], *t5 = t5_p;
+		int    t5_len = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		double kx_p[128], *kx = kx_p;
+		int    kx_len = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &kx, 128);
+
+		return_value = kx[kx_len - 1];
+		if (kx_p != kx)
+			FreeDoubles(kx);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnX_II_exact<IT, ET>(p1, p2);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnX_II(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_II, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnX_II_filtered<IT, ET>(p1, p2, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnX_II, arr);
+	}
+	ret = lessThanOnX_II_interval<IT, ET>(p1, p2);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_II, arr);
+	return lessThanOnX_II_expansion<IT, ET>(p1, p2);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_IE_filtered(const GenericPoint3T<IT, ET> &p1, double by,
+                             PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1y - by;
+	double t1 = t0 * d1;
+	double ky = t1 + l1y;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.108624468950439e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.2879996548476053e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.680700271819666e-13;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(ky, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_IE_interval(const GenericPoint3T<IT, ET> &p1, IT by)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1y - by;
+	IT t1 = t0 * d1;
+	IT ky = t1 + l1y;
+	if (!ky.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(ky);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_IE_exact(const GenericPoint3T<IT, ET> &p1, ET by)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET t0 = b1y - by;
+	ET t1 = t0 * d1;
+	ET ky = t1 + l1y;
+	return OMC::sign(ky);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1y, by, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double ky_p[128], *ky = ky_p;
+		int    ky_len = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1y_len, l1y, &ky, 128);
+
+		return_value = ky[ky_len - 1];
+		if (ky_p != ky)
+			FreeDoubles(ky);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnY_IE_exact<IT, ET>(p1, by);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1, double by, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_IE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnY_IE_filtered<IT, ET>(p1, by, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnY_IE, arr);
+	}
+	ret = lessThanOnY_IE_interval<IT, ET>(p1, by);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_IE, arr);
+	return lessThanOnY_IE_expansion<IT, ET>(p1, by);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &b, PntArr3 arr)
+{
+	return lessThanOnY_IE<IT, ET, WithSSFilter>(p1, b.y(), arr);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1y - b2y;
+	double t1 = t0 * d1;
+	double t2 = t1 * d2;
+	double t3 = l1y * d2;
+	double t4 = l2y * d1;
+	double t5 = t2 + t3;
+	double ky = t5 - t4;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6431300764452333e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.084585960075558e-14;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6022738691390292e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.20746164403263e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.27253154330999e-12;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.0712852827055069e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(ky, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_II_interval(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1y - b2y;
+	IT t1 = t0 * d1;
+	IT t2 = t1 * d2;
+	IT t3 = l1y * d2;
+	IT t4 = l2y * d1;
+	IT t5 = t2 + t3;
+	IT ky = t5 - t4;
+	if (!ky.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(ky);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_II_exact(const GenericPoint3T<IT, ET> &p1,
+                          const GenericPoint3T<IT, ET> &p2)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET t0 = b1y - b2y;
+	ET t1 = t0 * d1;
+	ET t2 = t1 * d2;
+	ET t3 = l1y * d2;
+	ET t4 = l2y * d1;
+	ET t5 = t2 + t3;
+	ET ky = t5 - t4;
+	return OMC::sign(ky);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnY_II_expansion(const GenericPoint3T<IT, ET> &p1,
+                              const GenericPoint3T<IT, ET> &p2)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z,
+	                   l2x_p[128], *l2x = l2x_p, l2y_p[128], *l2y = l2y_p,
+	                   l2z_p[128], *l2z = l2z_p, d2_p[128], *d2 = d2_p, b2x, b2y,
+	                   b2z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128, l2x_len = 128,
+	    l2y_len = 128, l2z_len = 128, d2_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1y, b2y, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double t2_p[128], *t2 = t2_p;
+		int t2_len = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		double t3_p[128], *t3 = t3_p;
+		int    t3_len =
+		  o.Gen_Product_With_PreAlloc(l1y_len, l1y, d2_len, d2, &t3, 128);
+		double t4_p[128], *t4 = t4_p;
+		int    t4_len =
+		  o.Gen_Product_With_PreAlloc(l2y_len, l2y, d1_len, d1, &t4, 128);
+		double t5_p[128], *t5 = t5_p;
+		int    t5_len = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		double ky_p[128], *ky = ky_p;
+		int    ky_len = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &ky, 128);
+
+		return_value = ky[ky_len - 1];
+		if (ky_p != ky)
+			FreeDoubles(ky);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnY_II_exact<IT, ET>(p1, p2);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnY_II(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_II, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnY_II_filtered<IT, ET>(p1, p2, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnY_II, arr);
+	}
+	ret = lessThanOnY_II_interval<IT, ET>(p1, p2);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_II, arr);
+	return lessThanOnY_II_expansion<IT, ET>(p1, p2);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_IE_filtered(const GenericPoint3T<IT, ET> &p1, double bz,
+                             PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1z - bz;
+	double t1 = t0 * d1;
+	double kz = t1 + l1z;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.108624468950439e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.2879996548476053e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.680700271819666e-13;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(kz, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_IE_interval(const GenericPoint3T<IT, ET> &p1, IT bz)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1z - bz;
+	IT t1 = t0 * d1;
+	IT kz = t1 + l1z;
+	if (!kz.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(kz);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bz)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET t0 = b1z - bz;
+	ET t1 = t0 * d1;
+	ET kz = t1 + l1z;
+	return OMC::sign(kz);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1z, bz, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double kz_p[128], *kz = kz_p;
+		int    kz_len = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1z_len, l1z, &kz, 128);
+
+		return_value = kz[kz_len - 1];
+		if (kz_p != kz)
+			FreeDoubles(kz);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnZ_IE_exact<IT, ET>(p1, bz);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1, double bz, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_IE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnZ_IE_filtered<IT, ET>(p1, bz, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnZ_IE, arr);
+	}
+	ret = lessThanOnZ_IE_interval<IT, ET>(p1, bz);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_IE, arr);
+	return lessThanOnZ_IE_expansion<IT, ET>(p1, bz);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &b, PntArr3 arr)
+{
+	return lessThanOnZ_IE<IT, ET, WithSSFilter>(p1, b.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double t0 = b1z - b2z;
+	double t1 = t0 * d1;
+	double t2 = t1 * d2;
+	double t3 = l1z * d2;
+	double t4 = l2z * d1;
+	double t5 = t2 + t3;
+	double kz = t5 - t4;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(t0)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6431300764452333e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.084585960075558e-14;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6022738691390292e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.20746164403263e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.27253154330999e-12;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.0712852827055069e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(kz, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_II_interval(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT t0 = b1z - b2z;
+	IT t1 = t0 * d1;
+	IT t2 = t1 * d2;
+	IT t3 = l1z * d2;
+	IT t4 = l2z * d1;
+	IT t5 = t2 + t3;
+	IT kz = t5 - t4;
+	if (!kz.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(kz);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_II_exact(const GenericPoint3T<IT, ET> &p1,
+                          const GenericPoint3T<IT, ET> &p2)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET t0 = b1z - b2z;
+	ET t1 = t0 * d1;
+	ET t2 = t1 * d2;
+	ET t3 = l1z * d2;
+	ET t4 = l2z * d1;
+	ET t5 = t2 + t3;
+	ET kz = t5 - t4;
+	return OMC::sign(kz);
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnZ_II_expansion(const GenericPoint3T<IT, ET> &p1,
+                              const GenericPoint3T<IT, ET> &p2)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z,
+	                   l2x_p[128], *l2x = l2x_p, l2y_p[128], *l2y = l2y_p,
+	                   l2z_p[128], *l2z = l2z_p, d2_p[128], *d2 = d2_p, b2x, b2y,
+	                   b2z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128, l2x_len = 128,
+	    l2y_len = 128, l2z_len = 128, d2_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          t0[2];
+		o.two_Diff(b1z, b2z, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double t2_p[128], *t2 = t2_p;
+		int t2_len = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		double t3_p[128], *t3 = t3_p;
+		int    t3_len =
+		  o.Gen_Product_With_PreAlloc(l1z_len, l1z, d2_len, d2, &t3, 128);
+		double t4_p[128], *t4 = t4_p;
+		int    t4_len =
+		  o.Gen_Product_With_PreAlloc(l2z_len, l2z, d1_len, d1, &t4, 128);
+		double t5_p[128], *t5 = t5_p;
+		int    t5_len = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		double kz_p[128], *kz = kz_p;
+		int    kz_len = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &kz, 128);
+
+		return_value = kz[kz_len - 1];
+		if (kz_p != kz)
+			FreeDoubles(kz);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return lessThanOnZ_II_exact<IT, ET>(p1, p2);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign lessThanOnZ_II(const GenericPoint3T<IT, ET> &p1,
+                    const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_II, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = lessThanOnZ_II_filtered<IT, ET>(p1, p2, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_lessThanOnZ_II, arr);
+	}
+	ret = lessThanOnZ_II_interval<IT, ET>(p1, p2);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_II, arr);
+	return lessThanOnZ_II_expansion<IT, ET>(p1, p2);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IEEE_filtered(const GenericPoint3T<IT, ET> &p1, double p2x,
+                            double p2y, double p2z, double p3x, double p3y,
+                            double p3z, double p4x, double p4y, double p4z,
+                            PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p4x    = b1x - p4x;
+	double b1p4y    = b1y - p4y;
+	double b1p4z    = b1z - p4z;
+	double d1_b1p4x = d1 * b1p4x;
+	double d1_b1p4y = d1 * b1p4y;
+	double d1_b1p4z = d1 * b1p4z;
+	double p1x_p4x  = d1_b1p4x + l1x;
+	double p1y_p4y  = d1_b1p4y + l1y;
+	double p1z_p4z  = d1_b1p4z + l1z;
+	double p2x_p4x  = p2x - p4x;
+	double p2y_p4y  = p2y - p4y;
+	double p2z_p4z  = p2z - p4z;
+	double tmp4_a   = p1x_p4x * p2y_p4y;
+	double tmp4_b   = p1y_p4y * p2x_p4x;
+	double m01      = tmp4_a - tmp4_b;
+	double tmi_a    = p1x_p4x * p2z_p4z;
+	double tmi_b    = p1z_p4z * p2x_p4x;
+	double m02      = tmi_a - tmi_b;
+	double tmp2_a   = p1y_p4y * p2z_p4z;
+	double tmp2_b   = p1z_p4z * p2y_p4y;
+	double m12      = tmp2_a - tmp2_b;
+	double p3x_p4x  = p3x - p4x;
+	double p3y_p4y  = p3y - p4y;
+	double p3z_p4z  = p3z - p4z;
+	double mt1      = m01 * p3z_p4z;
+	double mt2      = m02 * p3y_p4y;
+	double mt3      = m12 * p3x_p4x;
+	double mtt      = mt2 - mt1;
+	double m012     = mtt - mt3;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2x_p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2y_p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2z_p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3x_p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3y_p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3z_p4z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.552713678800503e-14;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.199125434364624e-13;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.5225156125307035e-12;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(m012, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IEEE_interval(const GenericPoint3T<IT, ET> &p1, IT p2x, IT p2y,
+                            IT p2z, IT p3x, IT p3y, IT p3z, IT p4x, IT p4y,
+                            IT p4z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p4x    = b1x - p4x;
+	IT b1p4y    = b1y - p4y;
+	IT b1p4z    = b1z - p4z;
+	IT d1_b1p4x = d1 * b1p4x;
+	IT d1_b1p4y = d1 * b1p4y;
+	IT d1_b1p4z = d1 * b1p4z;
+	IT p1x_p4x  = d1_b1p4x + l1x;
+	IT p1y_p4y  = d1_b1p4y + l1y;
+	IT p1z_p4z  = d1_b1p4z + l1z;
+	IT p2x_p4x  = p2x - p4x;
+	IT p2y_p4y  = p2y - p4y;
+	IT p2z_p4z  = p2z - p4z;
+	IT tmp4_a   = p1x_p4x * p2y_p4y;
+	IT tmp4_b   = p1y_p4y * p2x_p4x;
+	IT m01      = tmp4_a - tmp4_b;
+	IT tmi_a    = p1x_p4x * p2z_p4z;
+	IT tmi_b    = p1z_p4z * p2x_p4x;
+	IT m02      = tmi_a - tmi_b;
+	IT tmp2_a   = p1y_p4y * p2z_p4z;
+	IT tmp2_b   = p1z_p4z * p2y_p4y;
+	IT m12      = tmp2_a - tmp2_b;
+	IT p3x_p4x  = p3x - p4x;
+	IT p3y_p4y  = p3y - p4y;
+	IT p3z_p4z  = p3z - p4z;
+	IT mt1      = m01 * p3z_p4z;
+	IT mt2      = m02 * p3y_p4y;
+	IT mt3      = m12 * p3x_p4x;
+	IT mtt      = mt2 - mt1;
+	IT m012     = mtt - mt3;
+	if (!m012.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IEEE_exact(const GenericPoint3T<IT, ET> &p1, ET p2x, ET p2y,
+                         ET p2z, ET p3x, ET p3y, ET p3z, ET p4x, ET p4y, ET p4z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET b1p4x    = b1x - p4x;
+	ET b1p4y    = b1y - p4y;
+	ET b1p4z    = b1z - p4z;
+	ET d1_b1p4x = d1 * b1p4x;
+	ET d1_b1p4y = d1 * b1p4y;
+	ET d1_b1p4z = d1 * b1p4z;
+	ET p1x_p4x  = d1_b1p4x + l1x;
+	ET p1y_p4y  = d1_b1p4y + l1y;
+	ET p1z_p4z  = d1_b1p4z + l1z;
+	ET p2x_p4x  = p2x - p4x;
+	ET p2y_p4y  = p2y - p4y;
+	ET p2z_p4z  = p2z - p4z;
+	ET tmp4_a   = p1x_p4x * p2y_p4y;
+	ET tmp4_b   = p1y_p4y * p2x_p4x;
+	ET m01      = tmp4_a - tmp4_b;
+	ET tmi_a    = p1x_p4x * p2z_p4z;
+	ET tmi_b    = p1z_p4z * p2x_p4x;
+	ET m02      = tmi_a - tmi_b;
+	ET tmp2_a   = p1y_p4y * p2z_p4z;
+	ET tmp2_b   = p1z_p4z * p2y_p4y;
+	ET m12      = tmp2_a - tmp2_b;
+	ET p3x_p4x  = p3x - p4x;
+	ET p3y_p4y  = p3y - p4y;
+	ET p3z_p4z  = p3z - p4z;
+	ET mt1      = m01 * p3z_p4z;
+	ET mt2      = m02 * p3y_p4y;
+	ET mt3      = m12 * p3x_p4x;
+	ET mtt      = mt2 - mt1;
+	ET m012     = mtt - mt3;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
+                             double p2y, double p2z, double p3x, double p3y,
+                             double p3z, double p4x, double p4y, double p4z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
+	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p4x[2];
+		o.two_Diff(b1x, p4x, b1p4x);
+		double b1p4y[2];
+		o.two_Diff(b1y, p4y, b1p4y);
+		double b1p4z[2];
+		o.two_Diff(b1z, p4z, b1p4z);
+		double d1_b1p4x_p[64], *d1_b1p4x = d1_b1p4x_p;
+		int    d1_b1p4x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 64);
+		double d1_b1p4y_p[64], *d1_b1p4y = d1_b1p4y_p;
+		int    d1_b1p4y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4y, &d1_b1p4y, 64);
+		double d1_b1p4z_p[64], *d1_b1p4z = d1_b1p4z_p;
+		int    d1_b1p4z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4z, &d1_b1p4z, 64);
+		double p1x_p4x_p[64], *p1x_p4x = p1x_p4x_p;
+		int p1x_p4x_len = o.Gen_Sum_With_PreAlloc(d1_b1p4x_len, d1_b1p4x, l1x_len,
+		                                          l1x, &p1x_p4x, 64);
+		double p1y_p4y_p[64], *p1y_p4y = p1y_p4y_p;
+		int p1y_p4y_len = o.Gen_Sum_With_PreAlloc(d1_b1p4y_len, d1_b1p4y, l1y_len,
+		                                          l1y, &p1y_p4y, 64);
+		double p1z_p4z_p[64], *p1z_p4z = p1z_p4z_p;
+		int p1z_p4z_len = o.Gen_Sum_With_PreAlloc(d1_b1p4z_len, d1_b1p4z, l1z_len,
+		                                          l1z, &p1z_p4z, 64);
+		double p2x_p4x[2];
+		o.two_Diff(p2x, p4x, p2x_p4x);
+		double p2y_p4y[2];
+		o.two_Diff(p2y, p4y, p2y_p4y);
+		double p2z_p4z[2];
+		o.two_Diff(p2z, p4z, p2z_p4z);
+		double tmp4_a_p[64], *tmp4_a = tmp4_a_p;
+		int    tmp4_a_len = o.Gen_Product_With_PreAlloc(p1x_p4x_len, p1x_p4x, 2,
+		                                                p2y_p4y, &tmp4_a, 64);
+		double tmp4_b_p[64], *tmp4_b = tmp4_b_p;
+		int    tmp4_b_len = o.Gen_Product_With_PreAlloc(p1y_p4y_len, p1y_p4y, 2,
+		                                                p2x_p4x, &tmp4_b, 64);
+		double m01_p[64], *m01 = m01_p;
+		int    m01_len = o.Gen_Diff_With_PreAlloc(tmp4_a_len, tmp4_a, tmp4_b_len,
+		                                          tmp4_b, &m01, 64);
+		double tmi_a_p[64], *tmi_a = tmi_a_p;
+		int    tmi_a_len =
+		  o.Gen_Product_With_PreAlloc(p1x_p4x_len, p1x_p4x, 2, p2z_p4z, &tmi_a, 64);
+		double tmi_b_p[64], *tmi_b = tmi_b_p;
+		int    tmi_b_len =
+		  o.Gen_Product_With_PreAlloc(p1z_p4z_len, p1z_p4z, 2, p2x_p4x, &tmi_b, 64);
+		double m02_p[64], *m02 = m02_p;
+		int    m02_len =
+		  o.Gen_Diff_With_PreAlloc(tmi_a_len, tmi_a, tmi_b_len, tmi_b, &m02, 64);
+		double tmp2_a_p[64], *tmp2_a = tmp2_a_p;
+		int    tmp2_a_len = o.Gen_Product_With_PreAlloc(p1y_p4y_len, p1y_p4y, 2,
+		                                                p2z_p4z, &tmp2_a, 64);
+		double tmp2_b_p[64], *tmp2_b = tmp2_b_p;
+		int    tmp2_b_len = o.Gen_Product_With_PreAlloc(p1z_p4z_len, p1z_p4z, 2,
+		                                                p2y_p4y, &tmp2_b, 64);
+		double m12_p[64], *m12 = m12_p;
+		int    m12_len = o.Gen_Diff_With_PreAlloc(tmp2_a_len, tmp2_a, tmp2_b_len,
+		                                          tmp2_b, &m12, 64);
+		double p3x_p4x[2];
+		o.two_Diff(p3x, p4x, p3x_p4x);
+		double p3y_p4y[2];
+		o.two_Diff(p3y, p4y, p3y_p4y);
+		double p3z_p4z[2];
+		o.two_Diff(p3z, p4z, p3z_p4z);
+		double mt1_p[64], *mt1 = mt1_p;
+		int    mt1_len =
+		  o.Gen_Product_With_PreAlloc(m01_len, m01, 2, p3z_p4z, &mt1, 64);
+		double mt2_p[64], *mt2 = mt2_p;
+		int    mt2_len =
+		  o.Gen_Product_With_PreAlloc(m02_len, m02, 2, p3y_p4y, &mt2, 64);
+		double mt3_p[64], *mt3 = mt3_p;
+		int    mt3_len =
+		  o.Gen_Product_With_PreAlloc(m12_len, m12, 2, p3x_p4x, &mt3, 64);
+		double mtt_p[64], *mtt = mtt_p;
+		int    mtt_len =
+		  o.Gen_Diff_With_PreAlloc(mt2_len, mt2, mt1_len, mt1, &mtt, 64);
+		double m012_p[64], *m012 = m012_p;
+		int    m012_len =
+		  o.Gen_Diff_With_PreAlloc(mtt_len, mtt, mt3_len, mt3, &m012, 64);
+
+		return_value = m012[m012_len - 1];
+		if (m012_p != m012)
+			FreeDoubles(m012);
+		if (mtt_p != mtt)
+			FreeDoubles(mtt);
+		if (mt3_p != mt3)
+			FreeDoubles(mt3);
+		if (mt2_p != mt2)
+			FreeDoubles(mt2);
+		if (mt1_p != mt1)
+			FreeDoubles(mt1);
+		if (m12_p != m12)
+			FreeDoubles(m12);
+		if (tmp2_b_p != tmp2_b)
+			FreeDoubles(tmp2_b);
+		if (tmp2_a_p != tmp2_a)
+			FreeDoubles(tmp2_a);
+		if (m02_p != m02)
+			FreeDoubles(m02);
+		if (tmi_b_p != tmi_b)
+			FreeDoubles(tmi_b);
+		if (tmi_a_p != tmi_a)
+			FreeDoubles(tmi_a);
+		if (m01_p != m01)
+			FreeDoubles(m01);
+		if (tmp4_b_p != tmp4_b)
+			FreeDoubles(tmp4_b);
+		if (tmp4_a_p != tmp4_a)
+			FreeDoubles(tmp4_a);
+		if (p1z_p4z_p != p1z_p4z)
+			FreeDoubles(p1z_p4z);
+		if (p1y_p4y_p != p1y_p4y)
+			FreeDoubles(p1y_p4y);
+		if (p1x_p4x_p != p1x_p4x)
+			FreeDoubles(p1x_p4x);
+		if (d1_b1p4z_p != d1_b1p4z)
+			FreeDoubles(d1_b1p4z);
+		if (d1_b1p4y_p != d1_b1p4y)
+			FreeDoubles(d1_b1p4y);
+		if (d1_b1p4x_p != d1_b1p4x)
+			FreeDoubles(d1_b1p4x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orient3D_IEEE_exact<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
+		                                   p4y, p4z);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IEEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
+                   double p2z, double p3x, double p3y, double p3z, double p4x,
+                   double p4y, double p4z, PntArr3 arr)
+{
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orient3D_IEEE_filtered<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
+		                                     p4y, p4z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+	}
+	ret = orient3D_IEEE_interval<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
+	                                     p4y, p4z);
+	if (is_sign_reliable(ret))
+		return ret;
+	return orient3D_IEEE_expansion<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
+	                                       p4y, p4z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IEEE(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2,
+                   const GenericPoint3T<IT, ET> &p3,
+                   const GenericPoint3T<IT, ET> &p4, PntArr3 arr)
+{
+	return orient3D_IEEE<IT, ET, WithSSFilter>(p1, p2.x(), p2.y(), p2.z(), p3.x(),
+	                                           p3.y(), p3.z(), p4.x(), p4.y(),
+	                                           p4.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, double p3x,
+                            double p3y, double p3z, double p4x, double p4y,
+                            double p4z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p4x    = b1x - p4x;
+	double b1p4y    = b1y - p4y;
+	double b1p4z    = b1z - p4z;
+	double b2p4x    = b2x - p4x;
+	double b2p4y    = b2y - p4y;
+	double b2p4z    = b2z - p4z;
+	double d1_b1p4x = d1 * b1p4x;
+	double d1_b1p4y = d1 * b1p4y;
+	double d1_b1p4z = d1 * b1p4z;
+	double d2_b2p4x = d2 * b2p4x;
+	double d2_b2p4y = d2 * b2p4y;
+	double d2_b2p4z = d2 * b2p4z;
+	double p1p4x    = l1x + d1_b1p4x;
+	double p1p4y    = l1y + d1_b1p4y;
+	double p1p4z    = l1z + d1_b1p4z;
+	double p2p4x    = l2x + d2_b2p4x;
+	double p2p4y    = l2y + d2_b2p4y;
+	double p2p4z    = l2z + d2_b2p4z;
+	double p3p4x    = p3x - p4x;
+	double p3p4y    = p3y - p4y;
+	double p3p4z    = p3z - p4z;
+	double tmc_a    = p1p4x * p2p4y;
+	double tmc_b    = p1p4y * p2p4x;
+	double m01      = tmc_a - tmc_b;
+	double tmi_a    = p1p4x * p2p4z;
+	double tmi_b    = p1p4z * p2p4x;
+	double m02      = tmi_a - tmi_b;
+	double tma_a    = p1p4y * p2p4z;
+	double tma_b    = p1p4z * p2p4y;
+	double m12      = tma_a - tma_b;
+	double mt1      = m01 * p3p4z;
+	double mt2      = m02 * p3p4y;
+	double mt3      = m12 * p3p4x;
+	double mtt      = mt2 - mt1;
+	double m012     = mtt - mt3;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p3p4z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.0605739337042936e-13;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 6.714967124010773e-13;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.7543300145916922e-11;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 2.3201249949034204e-12;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.8031851893347754e-11;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.3534560139305596e-09;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(m012, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIEE_interval(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, IT p3x, IT p3y,
+                            IT p3z, IT p4x, IT p4y, IT p4z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p4x    = b1x - p4x;
+	IT b1p4y    = b1y - p4y;
+	IT b1p4z    = b1z - p4z;
+	IT b2p4x    = b2x - p4x;
+	IT b2p4y    = b2y - p4y;
+	IT b2p4z    = b2z - p4z;
+	IT d1_b1p4x = d1 * b1p4x;
+	IT d1_b1p4y = d1 * b1p4y;
+	IT d1_b1p4z = d1 * b1p4z;
+	IT d2_b2p4x = d2 * b2p4x;
+	IT d2_b2p4y = d2 * b2p4y;
+	IT d2_b2p4z = d2 * b2p4z;
+	IT p1p4x    = l1x + d1_b1p4x;
+	IT p1p4y    = l1y + d1_b1p4y;
+	IT p1p4z    = l1z + d1_b1p4z;
+	IT p2p4x    = l2x + d2_b2p4x;
+	IT p2p4y    = l2y + d2_b2p4y;
+	IT p2p4z    = l2z + d2_b2p4z;
+	IT p3p4x    = p3x - p4x;
+	IT p3p4y    = p3y - p4y;
+	IT p3p4z    = p3z - p4z;
+	IT tmc_a    = p1p4x * p2p4y;
+	IT tmc_b    = p1p4y * p2p4x;
+	IT m01      = tmc_a - tmc_b;
+	IT tmi_a    = p1p4x * p2p4z;
+	IT tmi_b    = p1p4z * p2p4x;
+	IT m02      = tmi_a - tmi_b;
+	IT tma_a    = p1p4y * p2p4z;
+	IT tma_b    = p1p4z * p2p4y;
+	IT m12      = tma_a - tma_b;
+	IT mt1      = m01 * p3p4z;
+	IT mt2      = m02 * p3p4y;
+	IT mt3      = m12 * p3p4x;
+	IT mtt      = mt2 - mt1;
+	IT m012     = mtt - mt3;
+	if (!m012.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIEE_exact(const GenericPoint3T<IT, ET> &p1,
+                         const GenericPoint3T<IT, ET> &p2, ET p3x, ET p3y,
+                         ET p3z, ET p4x, ET p4y, ET p4z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET b1p4x    = b1x - p4x;
+	ET b1p4y    = b1y - p4y;
+	ET b1p4z    = b1z - p4z;
+	ET b2p4x    = b2x - p4x;
+	ET b2p4y    = b2y - p4y;
+	ET b2p4z    = b2z - p4z;
+	ET d1_b1p4x = d1 * b1p4x;
+	ET d1_b1p4y = d1 * b1p4y;
+	ET d1_b1p4z = d1 * b1p4z;
+	ET d2_b2p4x = d2 * b2p4x;
+	ET d2_b2p4y = d2 * b2p4y;
+	ET d2_b2p4z = d2 * b2p4z;
+	ET p1p4x    = l1x + d1_b1p4x;
+	ET p1p4y    = l1y + d1_b1p4y;
+	ET p1p4z    = l1z + d1_b1p4z;
+	ET p2p4x    = l2x + d2_b2p4x;
+	ET p2p4y    = l2y + d2_b2p4y;
+	ET p2p4z    = l2z + d2_b2p4z;
+	ET p3p4x    = p3x - p4x;
+	ET p3p4y    = p3y - p4y;
+	ET p3p4z    = p3z - p4z;
+	ET tmc_a    = p1p4x * p2p4y;
+	ET tmc_b    = p1p4y * p2p4x;
+	ET m01      = tmc_a - tmc_b;
+	ET tmi_a    = p1p4x * p2p4z;
+	ET tmi_b    = p1p4z * p2p4x;
+	ET m02      = tmi_a - tmi_b;
+	ET tma_a    = p1p4y * p2p4z;
+	ET tma_b    = p1p4z * p2p4y;
+	ET m12      = tma_a - tma_b;
+	ET mt1      = m01 * p3p4z;
+	ET mt2      = m02 * p3p4y;
+	ET mt3      = m12 * p3p4x;
+	ET mtt      = mt2 - mt1;
+	ET m012     = mtt - mt3;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2, double p3x,
+                             double p3y, double p3z, double p4x, double p4y,
+                             double p4z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[32], *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32],
+	                  *l1z = l1z_p, d1_p[32], *d1 = d1_p, b1x, b1y, b1z,
+	                  l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p, l2z_p[32],
+	                  *l2z = l2z_p, d2_p[32], *d2 = d2_p, b2x, b2y, b2z;
+	int l1x_len = 32, l1y_len = 32, l1z_len = 32, d1_len = 32, l2x_len = 32,
+	    l2y_len = 32, l2z_len = 32, d2_len = 32;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p4x[2];
+		o.two_Diff(b1x, p4x, b1p4x);
+		double b1p4y[2];
+		o.two_Diff(b1y, p4y, b1p4y);
+		double b1p4z[2];
+		o.two_Diff(b1z, p4z, b1p4z);
+		double b2p4x[2];
+		o.two_Diff(b2x, p4x, b2p4x);
+		double b2p4y[2];
+		o.two_Diff(b2y, p4y, b2p4y);
+		double b2p4z[2];
+		o.two_Diff(b2z, p4z, b2p4z);
+		double d1_b1p4x_p[32], *d1_b1p4x = d1_b1p4x_p;
+		int    d1_b1p4x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 32);
+		double d1_b1p4y_p[32], *d1_b1p4y = d1_b1p4y_p;
+		int    d1_b1p4y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4y, &d1_b1p4y, 32);
+		double d1_b1p4z_p[32], *d1_b1p4z = d1_b1p4z_p;
+		int    d1_b1p4z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4z, &d1_b1p4z, 32);
+		double d2_b2p4x_p[32], *d2_b2p4x = d2_b2p4x_p;
+		int    d2_b2p4x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4x, &d2_b2p4x, 32);
+		double d2_b2p4y_p[32], *d2_b2p4y = d2_b2p4y_p;
+		int    d2_b2p4y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4y, &d2_b2p4y, 32);
+		double d2_b2p4z_p[32], *d2_b2p4z = d2_b2p4z_p;
+		int    d2_b2p4z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4z, &d2_b2p4z, 32);
+		double p1p4x_p[32], *p1p4x = p1p4x_p;
+		int    p1p4x_len =
+		  o.Gen_Sum_With_PreAlloc(l1x_len, l1x, d1_b1p4x_len, d1_b1p4x, &p1p4x, 32);
+		double p1p4y_p[32], *p1p4y = p1p4y_p;
+		int    p1p4y_len =
+		  o.Gen_Sum_With_PreAlloc(l1y_len, l1y, d1_b1p4y_len, d1_b1p4y, &p1p4y, 32);
+		double p1p4z_p[32], *p1p4z = p1p4z_p;
+		int    p1p4z_len =
+		  o.Gen_Sum_With_PreAlloc(l1z_len, l1z, d1_b1p4z_len, d1_b1p4z, &p1p4z, 32);
+		double p2p4x_p[32], *p2p4x = p2p4x_p;
+		int    p2p4x_len =
+		  o.Gen_Sum_With_PreAlloc(l2x_len, l2x, d2_b2p4x_len, d2_b2p4x, &p2p4x, 32);
+		double p2p4y_p[32], *p2p4y = p2p4y_p;
+		int    p2p4y_len =
+		  o.Gen_Sum_With_PreAlloc(l2y_len, l2y, d2_b2p4y_len, d2_b2p4y, &p2p4y, 32);
+		double p2p4z_p[32], *p2p4z = p2p4z_p;
+		int    p2p4z_len =
+		  o.Gen_Sum_With_PreAlloc(l2z_len, l2z, d2_b2p4z_len, d2_b2p4z, &p2p4z, 32);
+		double p3p4x[2];
+		o.two_Diff(p3x, p4x, p3p4x);
+		double p3p4y[2];
+		o.two_Diff(p3y, p4y, p3p4y);
+		double p3p4z[2];
+		o.two_Diff(p3z, p4z, p3p4z);
+		double tmc_a_p[32], *tmc_a = tmc_a_p;
+		int    tmc_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4y_len,
+		                                               p2p4y, &tmc_a, 32);
+		double tmc_b_p[32], *tmc_b = tmc_b_p;
+		int    tmc_b_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4x_len,
+		                                               p2p4x, &tmc_b, 32);
+		double m01_p[32], *m01 = m01_p;
+		int    m01_len =
+		  o.Gen_Diff_With_PreAlloc(tmc_a_len, tmc_a, tmc_b_len, tmc_b, &m01, 32);
+		double tmi_a_p[32], *tmi_a = tmi_a_p;
+		int    tmi_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4z_len,
+		                                               p2p4z, &tmi_a, 32);
+		double tmi_b_p[32], *tmi_b = tmi_b_p;
+		int    tmi_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4x_len,
+		                                               p2p4x, &tmi_b, 32);
+		double m02_p[32], *m02 = m02_p;
+		int    m02_len =
+		  o.Gen_Diff_With_PreAlloc(tmi_a_len, tmi_a, tmi_b_len, tmi_b, &m02, 32);
+		double tma_a_p[32], *tma_a = tma_a_p;
+		int    tma_a_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4z_len,
+		                                               p2p4z, &tma_a, 32);
+		double tma_b_p[32], *tma_b = tma_b_p;
+		int    tma_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4y_len,
+		                                               p2p4y, &tma_b, 32);
+		double m12_p[32], *m12 = m12_p;
+		int    m12_len =
+		  o.Gen_Diff_With_PreAlloc(tma_a_len, tma_a, tma_b_len, tma_b, &m12, 32);
+		double mt1_p[32], *mt1 = mt1_p;
+		int mt1_len = o.Gen_Product_With_PreAlloc(m01_len, m01, 2, p3p4z, &mt1, 32);
+		double mt2_p[32], *mt2 = mt2_p;
+		int mt2_len = o.Gen_Product_With_PreAlloc(m02_len, m02, 2, p3p4y, &mt2, 32);
+		double mt3_p[32], *mt3 = mt3_p;
+		int mt3_len = o.Gen_Product_With_PreAlloc(m12_len, m12, 2, p3p4x, &mt3, 32);
+		double mtt_p[32], *mtt = mtt_p;
+		int    mtt_len =
+		  o.Gen_Diff_With_PreAlloc(mt2_len, mt2, mt1_len, mt1, &mtt, 32);
+		double m012_p[32], *m012 = m012_p;
+		int    m012_len =
+		  o.Gen_Diff_With_PreAlloc(mtt_len, mtt, mt3_len, mt3, &m012, 32);
+
+		return_value = m012[m012_len - 1];
+		if (m012_p != m012)
+			FreeDoubles(m012);
+		if (mtt_p != mtt)
+			FreeDoubles(mtt);
+		if (mt3_p != mt3)
+			FreeDoubles(mt3);
+		if (mt2_p != mt2)
+			FreeDoubles(mt2);
+		if (mt1_p != mt1)
+			FreeDoubles(mt1);
+		if (m12_p != m12)
+			FreeDoubles(m12);
+		if (tma_b_p != tma_b)
+			FreeDoubles(tma_b);
+		if (tma_a_p != tma_a)
+			FreeDoubles(tma_a);
+		if (m02_p != m02)
+			FreeDoubles(m02);
+		if (tmi_b_p != tmi_b)
+			FreeDoubles(tmi_b);
+		if (tmi_a_p != tmi_a)
+			FreeDoubles(tmi_a);
+		if (m01_p != m01)
+			FreeDoubles(m01);
+		if (tmc_b_p != tmc_b)
+			FreeDoubles(tmc_b);
+		if (tmc_a_p != tmc_a)
+			FreeDoubles(tmc_a);
+		if (p2p4z_p != p2p4z)
+			FreeDoubles(p2p4z);
+		if (p2p4y_p != p2p4y)
+			FreeDoubles(p2p4y);
+		if (p2p4x_p != p2p4x)
+			FreeDoubles(p2p4x);
+		if (p1p4z_p != p1p4z)
+			FreeDoubles(p1p4z);
+		if (p1p4y_p != p1p4y)
+			FreeDoubles(p1p4y);
+		if (p1p4x_p != p1p4x)
+			FreeDoubles(p1p4x);
+		if (d2_b2p4z_p != d2_b2p4z)
+			FreeDoubles(d2_b2p4z);
+		if (d2_b2p4y_p != d2_b2p4y)
+			FreeDoubles(d2_b2p4y);
+		if (d2_b2p4x_p != d2_b2p4x)
+			FreeDoubles(d2_b2p4x);
+		if (d1_b1p4z_p != d1_b1p4z)
+			FreeDoubles(d1_b1p4z);
+		if (d1_b1p4y_p != d1_b1p4y)
+			FreeDoubles(d1_b1p4y);
+		if (d1_b1p4x_p != d1_b1p4x)
+			FreeDoubles(d1_b1p4x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orient3D_IIEE_exact<IT, ET>(p1, p2, p3x, p3y, p3z, p4x, p4y, p4z);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IIEE(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2, double p3x, double p3y,
+                   double p3z, double p4x, double p4y, double p4z, PntArr3 arr)
+{
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret =
+		  orient3D_IIEE_filtered<IT, ET>(p1, p2, p3x, p3y, p3z, p4x, p4y, p4z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+	}
+	ret = orient3D_IIEE_interval<IT, ET>(p1, p2, p3x, p3y, p3z, p4x, p4y, p4z);
+	if (is_sign_reliable(ret))
+		return ret;
+	return orient3D_IIEE_expansion<IT, ET>(p1, p2, p3x, p3y, p3z, p4x, p4y, p4z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IIEE(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2,
+                   const GenericPoint3T<IT, ET> &p3,
+                   const GenericPoint3T<IT, ET> &p4, PntArr3 arr)
+{
+	return orient3D_IIEE<IT, ET, WithSSFilter>(p1, p2, p3.x(), p3.y(), p3.z(),
+	                                           p4.x(), p4.y(), p4.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3, double p4x,
+                            double p4y, double p4z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var) ||
+	    !p3.getFilteredLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p4x    = b1x - p4x;
+	double b1p4y    = b1y - p4y;
+	double b1p4z    = b1z - p4z;
+	double b2p4x    = b2x - p4x;
+	double b2p4y    = b2y - p4y;
+	double b2p4z    = b2z - p4z;
+	double b3p4x    = b3x - p4x;
+	double b3p4y    = b3y - p4y;
+	double b3p4z    = b3z - p4z;
+	double d1_b1p4x = d1 * b1p4x;
+	double d1_b1p4y = d1 * b1p4y;
+	double d1_b1p4z = d1 * b1p4z;
+	double d2_b2p4x = d2 * b2p4x;
+	double d2_b2p4y = d2 * b2p4y;
+	double d2_b2p4z = d2 * b2p4z;
+	double d3_b3p4x = d3 * b3p4x;
+	double d3_b3p4y = d3 * b3p4y;
+	double d3_b3p4z = d3 * b3p4z;
+	double p1p4x    = l1x + d1_b1p4x;
+	double p1p4y    = l1y + d1_b1p4y;
+	double p1p4z    = l1z + d1_b1p4z;
+	double p2p4x    = l2x + d2_b2p4x;
+	double p2p4y    = l2y + d2_b2p4y;
+	double p2p4z    = l2z + d2_b2p4z;
+	double p3p4x    = l3x + d3_b3p4x;
+	double p3p4y    = l3y + d3_b3p4y;
+	double p3p4z    = l3z + d3_b3p4z;
+	double tmc_a    = p1p4x * p2p4y;
+	double tmc_b    = p1p4y * p2p4x;
+	double m01      = tmc_a - tmc_b;
+	double tmi_a    = p1p4x * p2p4z;
+	double tmi_b    = p1p4z * p2p4x;
+	double m02      = tmi_a - tmi_b;
+	double tma_a    = p1p4y * p2p4z;
+	double tma_b    = p1p4z * p2p4y;
+	double m12      = tma_a - tma_b;
+	double mt1      = m01 * p3p4z;
+	double mt2      = m02 * p3p4y;
+	double mt3      = m12 * p3p4x;
+	double mtt      = mt2 - mt1;
+	double m012     = mtt - mt3;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3p4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3p4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3p4z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.0800249583553551e-12;
+	}
+	break;
+	case PntArr3::SSL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.538638132516435e-12;
+	}
+	break;
+	case PntArr3::SST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.586198418925086e-11;
+	}
+	break;
+	case PntArr3::SLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1412128186894e-11;
+	}
+	break;
+	case PntArr3::SLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.7186095735709623e-10;
+	}
+	break;
+	case PntArr3::STT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 6.132438556960583e-09;
+	}
+	break;
+	case PntArr3::LLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.747767721162821e-11;
+	}
+	break;
+	case PntArr3::LLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.746082608146503e-10;
+	}
+	break;
+	case PntArr3::LTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.956868465879957e-08;
+	}
+	break;
+	case PntArr3::TTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.155571105002337e-07;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(m012, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIIE_interval(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3, IT p4x, IT p4y,
+                            IT p4z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z) ||
+	    !p3.getIntervalLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p4x    = b1x - p4x;
+	IT b1p4y    = b1y - p4y;
+	IT b1p4z    = b1z - p4z;
+	IT b2p4x    = b2x - p4x;
+	IT b2p4y    = b2y - p4y;
+	IT b2p4z    = b2z - p4z;
+	IT b3p4x    = b3x - p4x;
+	IT b3p4y    = b3y - p4y;
+	IT b3p4z    = b3z - p4z;
+	IT d1_b1p4x = d1 * b1p4x;
+	IT d1_b1p4y = d1 * b1p4y;
+	IT d1_b1p4z = d1 * b1p4z;
+	IT d2_b2p4x = d2 * b2p4x;
+	IT d2_b2p4y = d2 * b2p4y;
+	IT d2_b2p4z = d2 * b2p4z;
+	IT d3_b3p4x = d3 * b3p4x;
+	IT d3_b3p4y = d3 * b3p4y;
+	IT d3_b3p4z = d3 * b3p4z;
+	IT p1p4x    = l1x + d1_b1p4x;
+	IT p1p4y    = l1y + d1_b1p4y;
+	IT p1p4z    = l1z + d1_b1p4z;
+	IT p2p4x    = l2x + d2_b2p4x;
+	IT p2p4y    = l2y + d2_b2p4y;
+	IT p2p4z    = l2z + d2_b2p4z;
+	IT p3p4x    = l3x + d3_b3p4x;
+	IT p3p4y    = l3y + d3_b3p4y;
+	IT p3p4z    = l3z + d3_b3p4z;
+	IT tmc_a    = p1p4x * p2p4y;
+	IT tmc_b    = p1p4y * p2p4x;
+	IT m01      = tmc_a - tmc_b;
+	IT tmi_a    = p1p4x * p2p4z;
+	IT tmi_b    = p1p4z * p2p4x;
+	IT m02      = tmi_a - tmi_b;
+	IT tma_a    = p1p4y * p2p4z;
+	IT tma_b    = p1p4z * p2p4y;
+	IT m12      = tma_a - tma_b;
+	IT mt1      = m01 * p3p4z;
+	IT mt2      = m02 * p3p4y;
+	IT mt3      = m12 * p3p4x;
+	IT mtt      = mt2 - mt1;
+	IT m012     = mtt - mt3;
+	if (!m012.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIIE_exact(const GenericPoint3T<IT, ET> &p1,
+                         const GenericPoint3T<IT, ET> &p2,
+                         const GenericPoint3T<IT, ET> &p3, ET p4x, ET p4y,
+                         ET p4z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	p3.getExactLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z);
+	ET b1p4x    = b1x - p4x;
+	ET b1p4y    = b1y - p4y;
+	ET b1p4z    = b1z - p4z;
+	ET b2p4x    = b2x - p4x;
+	ET b2p4y    = b2y - p4y;
+	ET b2p4z    = b2z - p4z;
+	ET b3p4x    = b3x - p4x;
+	ET b3p4y    = b3y - p4y;
+	ET b3p4z    = b3z - p4z;
+	ET d1_b1p4x = d1 * b1p4x;
+	ET d1_b1p4y = d1 * b1p4y;
+	ET d1_b1p4z = d1 * b1p4z;
+	ET d2_b2p4x = d2 * b2p4x;
+	ET d2_b2p4y = d2 * b2p4y;
+	ET d2_b2p4z = d2 * b2p4z;
+	ET d3_b3p4x = d3 * b3p4x;
+	ET d3_b3p4y = d3 * b3p4y;
+	ET d3_b3p4z = d3 * b3p4z;
+	ET p1p4x    = l1x + d1_b1p4x;
+	ET p1p4y    = l1y + d1_b1p4y;
+	ET p1p4z    = l1z + d1_b1p4z;
+	ET p2p4x    = l2x + d2_b2p4x;
+	ET p2p4y    = l2y + d2_b2p4y;
+	ET p2p4z    = l2z + d2_b2p4z;
+	ET p3p4x    = l3x + d3_b3p4x;
+	ET p3p4y    = l3y + d3_b3p4y;
+	ET p3p4z    = l3z + d3_b3p4z;
+	ET tmc_a    = p1p4x * p2p4y;
+	ET tmc_b    = p1p4y * p2p4x;
+	ET m01      = tmc_a - tmc_b;
+	ET tmi_a    = p1p4x * p2p4z;
+	ET tmi_b    = p1p4z * p2p4x;
+	ET m02      = tmi_a - tmi_b;
+	ET tma_a    = p1p4y * p2p4z;
+	ET tma_b    = p1p4z * p2p4y;
+	ET m12      = tma_a - tma_b;
+	ET mt1      = m01 * p3p4z;
+	ET mt2      = m02 * p3p4y;
+	ET mt3      = m12 * p3p4x;
+	ET mtt      = mt2 - mt1;
+	ET m012     = mtt - mt3;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2,
+                             const GenericPoint3T<IT, ET> &p3, double p4x,
+                             double p4y, double p4z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[32],
+	  *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32], *l1z = l1z_p, d1_p[32],
+	  *d1 = d1_p, b1x, b1y, b1z, l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p,
+	  l2z_p[32], *l2z = l2z_p, d2_p[32], *d2 = d2_p, b2x, b2y, b2z, l3x_p[32],
+	  *l3x = l3x_p, l3y_p[32], *l3y = l3y_p, l3z_p[32], *l3z = l3z_p, d3_p[32],
+	  *d3       = d3_p, b3x, b3y, b3z;
+	int l1x_len = 32, l1y_len = 32, l1z_len = 32, d1_len = 32, l2x_len = 32,
+	    l2y_len = 32, l2z_len = 32, d2_len = 32, l3x_len = 32, l3y_len = 32,
+	    l3z_len = 32, d3_len = 32;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
+	                      d3_len, b3x, b3y, b3z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p4x[2];
+		o.two_Diff(b1x, p4x, b1p4x);
+		double b1p4y[2];
+		o.two_Diff(b1y, p4y, b1p4y);
+		double b1p4z[2];
+		o.two_Diff(b1z, p4z, b1p4z);
+		double b2p4x[2];
+		o.two_Diff(b2x, p4x, b2p4x);
+		double b2p4y[2];
+		o.two_Diff(b2y, p4y, b2p4y);
+		double b2p4z[2];
+		o.two_Diff(b2z, p4z, b2p4z);
+		double b3p4x[2];
+		o.two_Diff(b3x, p4x, b3p4x);
+		double b3p4y[2];
+		o.two_Diff(b3y, p4y, b3p4y);
+		double b3p4z[2];
+		o.two_Diff(b3z, p4z, b3p4z);
+		double d1_b1p4x_p[32], *d1_b1p4x = d1_b1p4x_p;
+		int    d1_b1p4x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 32);
+		double d1_b1p4y_p[32], *d1_b1p4y = d1_b1p4y_p;
+		int    d1_b1p4y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4y, &d1_b1p4y, 32);
+		double d1_b1p4z_p[32], *d1_b1p4z = d1_b1p4z_p;
+		int    d1_b1p4z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4z, &d1_b1p4z, 32);
+		double d2_b2p4x_p[32], *d2_b2p4x = d2_b2p4x_p;
+		int    d2_b2p4x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4x, &d2_b2p4x, 32);
+		double d2_b2p4y_p[32], *d2_b2p4y = d2_b2p4y_p;
+		int    d2_b2p4y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4y, &d2_b2p4y, 32);
+		double d2_b2p4z_p[32], *d2_b2p4z = d2_b2p4z_p;
+		int    d2_b2p4z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p4z, &d2_b2p4z, 32);
+		double d3_b3p4x_p[32], *d3_b3p4x = d3_b3p4x_p;
+		int    d3_b3p4x_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3p4x, &d3_b3p4x, 32);
+		double d3_b3p4y_p[32], *d3_b3p4y = d3_b3p4y_p;
+		int    d3_b3p4y_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3p4y, &d3_b3p4y, 32);
+		double d3_b3p4z_p[32], *d3_b3p4z = d3_b3p4z_p;
+		int    d3_b3p4z_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3p4z, &d3_b3p4z, 32);
+		double p1p4x_p[32], *p1p4x = p1p4x_p;
+		int    p1p4x_len =
+		  o.Gen_Sum_With_PreAlloc(l1x_len, l1x, d1_b1p4x_len, d1_b1p4x, &p1p4x, 32);
+		double p1p4y_p[32], *p1p4y = p1p4y_p;
+		int    p1p4y_len =
+		  o.Gen_Sum_With_PreAlloc(l1y_len, l1y, d1_b1p4y_len, d1_b1p4y, &p1p4y, 32);
+		double p1p4z_p[32], *p1p4z = p1p4z_p;
+		int    p1p4z_len =
+		  o.Gen_Sum_With_PreAlloc(l1z_len, l1z, d1_b1p4z_len, d1_b1p4z, &p1p4z, 32);
+		double p2p4x_p[32], *p2p4x = p2p4x_p;
+		int    p2p4x_len =
+		  o.Gen_Sum_With_PreAlloc(l2x_len, l2x, d2_b2p4x_len, d2_b2p4x, &p2p4x, 32);
+		double p2p4y_p[32], *p2p4y = p2p4y_p;
+		int    p2p4y_len =
+		  o.Gen_Sum_With_PreAlloc(l2y_len, l2y, d2_b2p4y_len, d2_b2p4y, &p2p4y, 32);
+		double p2p4z_p[32], *p2p4z = p2p4z_p;
+		int    p2p4z_len =
+		  o.Gen_Sum_With_PreAlloc(l2z_len, l2z, d2_b2p4z_len, d2_b2p4z, &p2p4z, 32);
+		double p3p4x_p[32], *p3p4x = p3p4x_p;
+		int    p3p4x_len =
+		  o.Gen_Sum_With_PreAlloc(l3x_len, l3x, d3_b3p4x_len, d3_b3p4x, &p3p4x, 32);
+		double p3p4y_p[32], *p3p4y = p3p4y_p;
+		int    p3p4y_len =
+		  o.Gen_Sum_With_PreAlloc(l3y_len, l3y, d3_b3p4y_len, d3_b3p4y, &p3p4y, 32);
+		double p3p4z_p[32], *p3p4z = p3p4z_p;
+		int    p3p4z_len =
+		  o.Gen_Sum_With_PreAlloc(l3z_len, l3z, d3_b3p4z_len, d3_b3p4z, &p3p4z, 32);
+		double tmc_a_p[32], *tmc_a = tmc_a_p;
+		int    tmc_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4y_len,
+		                                               p2p4y, &tmc_a, 32);
+		double tmc_b_p[32], *tmc_b = tmc_b_p;
+		int    tmc_b_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4x_len,
+		                                               p2p4x, &tmc_b, 32);
+		double m01_p[32], *m01 = m01_p;
+		int    m01_len =
+		  o.Gen_Diff_With_PreAlloc(tmc_a_len, tmc_a, tmc_b_len, tmc_b, &m01, 32);
+		double tmi_a_p[32], *tmi_a = tmi_a_p;
+		int    tmi_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4z_len,
+		                                               p2p4z, &tmi_a, 32);
+		double tmi_b_p[32], *tmi_b = tmi_b_p;
+		int    tmi_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4x_len,
+		                                               p2p4x, &tmi_b, 32);
+		double m02_p[32], *m02 = m02_p;
+		int    m02_len =
+		  o.Gen_Diff_With_PreAlloc(tmi_a_len, tmi_a, tmi_b_len, tmi_b, &m02, 32);
+		double tma_a_p[32], *tma_a = tma_a_p;
+		int    tma_a_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4z_len,
+		                                               p2p4z, &tma_a, 32);
+		double tma_b_p[32], *tma_b = tma_b_p;
+		int    tma_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4y_len,
+		                                               p2p4y, &tma_b, 32);
+		double m12_p[32], *m12 = m12_p;
+		int    m12_len =
+		  o.Gen_Diff_With_PreAlloc(tma_a_len, tma_a, tma_b_len, tma_b, &m12, 32);
+		double mt1_p[32], *mt1 = mt1_p;
+		int    mt1_len =
+		  o.Gen_Product_With_PreAlloc(m01_len, m01, p3p4z_len, p3p4z, &mt1, 32);
+		double mt2_p[32], *mt2 = mt2_p;
+		int    mt2_len =
+		  o.Gen_Product_With_PreAlloc(m02_len, m02, p3p4y_len, p3p4y, &mt2, 32);
+		double mt3_p[32], *mt3 = mt3_p;
+		int    mt3_len =
+		  o.Gen_Product_With_PreAlloc(m12_len, m12, p3p4x_len, p3p4x, &mt3, 32);
+		double mtt_p[32], *mtt = mtt_p;
+		int    mtt_len =
+		  o.Gen_Diff_With_PreAlloc(mt2_len, mt2, mt1_len, mt1, &mtt, 32);
+		double m012_p[32], *m012 = m012_p;
+		int    m012_len =
+		  o.Gen_Diff_With_PreAlloc(mtt_len, mtt, mt3_len, mt3, &m012, 32);
+
+		return_value = m012[m012_len - 1];
+		if (m012_p != m012)
+			FreeDoubles(m012);
+		if (mtt_p != mtt)
+			FreeDoubles(mtt);
+		if (mt3_p != mt3)
+			FreeDoubles(mt3);
+		if (mt2_p != mt2)
+			FreeDoubles(mt2);
+		if (mt1_p != mt1)
+			FreeDoubles(mt1);
+		if (m12_p != m12)
+			FreeDoubles(m12);
+		if (tma_b_p != tma_b)
+			FreeDoubles(tma_b);
+		if (tma_a_p != tma_a)
+			FreeDoubles(tma_a);
+		if (m02_p != m02)
+			FreeDoubles(m02);
+		if (tmi_b_p != tmi_b)
+			FreeDoubles(tmi_b);
+		if (tmi_a_p != tmi_a)
+			FreeDoubles(tmi_a);
+		if (m01_p != m01)
+			FreeDoubles(m01);
+		if (tmc_b_p != tmc_b)
+			FreeDoubles(tmc_b);
+		if (tmc_a_p != tmc_a)
+			FreeDoubles(tmc_a);
+		if (p3p4z_p != p3p4z)
+			FreeDoubles(p3p4z);
+		if (p3p4y_p != p3p4y)
+			FreeDoubles(p3p4y);
+		if (p3p4x_p != p3p4x)
+			FreeDoubles(p3p4x);
+		if (p2p4z_p != p2p4z)
+			FreeDoubles(p2p4z);
+		if (p2p4y_p != p2p4y)
+			FreeDoubles(p2p4y);
+		if (p2p4x_p != p2p4x)
+			FreeDoubles(p2p4x);
+		if (p1p4z_p != p1p4z)
+			FreeDoubles(p1p4z);
+		if (p1p4y_p != p1p4y)
+			FreeDoubles(p1p4y);
+		if (p1p4x_p != p1p4x)
+			FreeDoubles(p1p4x);
+		if (d3_b3p4z_p != d3_b3p4z)
+			FreeDoubles(d3_b3p4z);
+		if (d3_b3p4y_p != d3_b3p4y)
+			FreeDoubles(d3_b3p4y);
+		if (d3_b3p4x_p != d3_b3p4x)
+			FreeDoubles(d3_b3p4x);
+		if (d2_b2p4z_p != d2_b2p4z)
+			FreeDoubles(d2_b2p4z);
+		if (d2_b2p4y_p != d2_b2p4y)
+			FreeDoubles(d2_b2p4y);
+		if (d2_b2p4x_p != d2_b2p4x)
+			FreeDoubles(d2_b2p4x);
+		if (d1_b1p4z_p != d1_b1p4z)
+			FreeDoubles(d1_b1p4z);
+		if (d1_b1p4y_p != d1_b1p4y)
+			FreeDoubles(d1_b1p4y);
+		if (d1_b1p4x_p != d1_b1p4x)
+			FreeDoubles(d1_b1p4x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+		if (l3x_p != l3x)
+			FreeDoubles(l3x);
+		if (l3y_p != l3y)
+			FreeDoubles(l3y);
+		if (l3z_p != l3z)
+			FreeDoubles(l3z);
+		if (d3_p != d3)
+			FreeDoubles(d3);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orient3D_IIIE_exact<IT, ET>(p1, p2, p3, p4x, p4y, p4z);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IIIE(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2,
+                   const GenericPoint3T<IT, ET> &p3, double p4x, double p4y,
+                   double p4z, PntArr3 arr)
+{
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orient3D_IIIE_filtered<IT, ET>(p1, p2, p3, p4x, p4y, p4z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+	}
+	ret = orient3D_IIIE_interval<IT, ET>(p1, p2, p3, p4x, p4y, p4z);
+	if (is_sign_reliable(ret))
+		return ret;
+	return orient3D_IIIE_expansion<IT, ET>(p1, p2, p3, p4x, p4y, p4z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IIIE(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2,
+                   const GenericPoint3T<IT, ET> &p3,
+                   const GenericPoint3T<IT, ET> &p4, PntArr3 arr)
+{
+	return orient3D_IIIE<IT, ET, WithSSFilter>(p1, p2, p3, p4.x(), p4.y(), p4.z(),
+	                                           arr);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3,
+                            const GenericPoint3T<IT, ET> &p4, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  l3x, l3y, l3z, d3, b3x, b3y, b3z, l4x, l4y, l4z, d4, b4x, b4y, b4z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var) ||
+	    !p3.getFilteredLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var) ||
+	    !p4.getFilteredLambda(l4x, l4y, l4z, d4, b4x, b4y, b4z, max_var))
+		return Sign::UNCERTAIN;
+
+	double d1p4x         = d1 * l4x;
+	double d1p4y         = d1 * l4y;
+	double d1p4z         = d1 * l4z;
+	double d2p4x         = d2 * l4x;
+	double d2p4y         = d2 * l4y;
+	double d2p4z         = d2 * l4z;
+	double d3p4x         = d3 * l4x;
+	double d3p4y         = d3 * l4y;
+	double d3p4z         = d3 * l4z;
+	double b1b4x         = b1x - b4x;
+	double b1b4y         = b1y - b4y;
+	double b1b4z         = b1z - b4z;
+	double b2b4x         = b2x - b4x;
+	double b2b4y         = b2y - b4y;
+	double b2b4z         = b2z - b4z;
+	double b3b4x         = b3x - b4x;
+	double b3b4y         = b3y - b4y;
+	double b3b4z         = b3z - b4z;
+	double d1_b1b4x      = d1 * b1b4x;
+	double d1_b1b4y      = d1 * b1b4y;
+	double d1_b1b4z      = d1 * b1b4z;
+	double d2_b2b4x      = d2 * b2b4x;
+	double d2_b2b4y      = d2 * b2b4y;
+	double d2_b2b4z      = d2 * b2b4z;
+	double d3_b3b4x      = d3 * b3b4x;
+	double d3_b3b4y      = d3 * b3b4y;
+	double d3_b3b4z      = d3 * b3b4z;
+	double d1_b1b4_l1x   = d1_b1b4x + l1x;
+	double d1_b1b4_l1y   = d1_b1b4y + l1y;
+	double d1_b1b4_l1z   = d1_b1b4z + l1z;
+	double d2_b2b4_l2x   = d2_b2b4x + l2x;
+	double d2_b2b4_l2y   = d2_b2b4y + l2y;
+	double d2_b2b4_l2z   = d2_b2b4z + l2z;
+	double d3_b3b4_l3x   = d3_b3b4x + l3x;
+	double d3_b3b4_l3y   = d3_b3b4y + l3y;
+	double d3_b3b4_l3z   = d3_b3b4z + l3z;
+	double d4d1_b1b4_l1x = d4 * d1_b1b4_l1x;
+	double d4d1_b1b4_l1y = d4 * d1_b1b4_l1y;
+	double d4d1_b1b4_l1z = d4 * d1_b1b4_l1z;
+	double d4d2_b2b4_l2x = d4 * d2_b2b4_l2x;
+	double d4d2_b2b4_l2y = d4 * d2_b2b4_l2y;
+	double d4d2_b2b4_l2z = d4 * d2_b2b4_l2z;
+	double d4d3_b3b4_l3x = d4 * d3_b3b4_l3x;
+	double d4d3_b3b4_l3y = d4 * d3_b3b4_l3y;
+	double d4d3_b3b4_l3z = d4 * d3_b3b4_l3z;
+	double p1p4x         = d4d1_b1b4_l1x - d1p4x;
+	double p1p4y         = d4d1_b1b4_l1y - d1p4y;
+	double p1p4z         = d4d1_b1b4_l1z - d1p4z;
+	double p2p4x         = d4d2_b2b4_l2x - d2p4x;
+	double p2p4y         = d4d2_b2b4_l2y - d2p4y;
+	double p2p4z         = d4d2_b2b4_l2z - d2p4z;
+	double p3p4x         = d4d3_b3b4_l3x - d3p4x;
+	double p3p4y         = d4d3_b3b4_l3y - d3p4y;
+	double p3p4z         = d4d3_b3b4_l3z - d3p4z;
+	double tmc_a         = p1p4x * p2p4y;
+	double tmc_b         = p1p4y * p2p4x;
+	double m01           = tmc_a - tmc_b;
+	double tmi_a         = p1p4x * p2p4z;
+	double tmi_b         = p1p4z * p2p4x;
+	double m02           = tmi_a - tmi_b;
+	double tma_a         = p1p4y * p2p4z;
+	double tma_b         = p1p4z * p2p4y;
+	double m12           = tma_a - tma_b;
+	double mt1           = m01 * p3p4z;
+	double mt2           = m02 * p3p4y;
+	double mt3           = m12 * p3p4x;
+	double mtt           = mt2 - mt1;
+	double m012          = mtt - mt3;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b4z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3b4x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3b4y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b3b4z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SSSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.668265773943881e-11;
+	}
+	break;
+	case PntArr3::SSSL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.554727971364587e-09;
+	}
+	break;
+	case PntArr3::SSST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.0059331543743702e-05;
+	}
+	break;
+	case PntArr3::SSLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.934037456383351e-09;
+	}
+	break;
+	case PntArr3::SSLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.112779300096265e-05;
+	}
+	break;
+	case PntArr3::SSTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 0.0005226793582551237;
+	}
+	break;
+	case PntArr3::SLLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.535519549011886e-08;
+	}
+	break;
+	case PntArr3::SLLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.51822422479163e-05;
+	}
+	break;
+	case PntArr3::SLTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 0.0015946633955721441;
+	}
+	break;
+	case PntArr3::STTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 0.026444148039445593;
+	}
+	break;
+	case PntArr3::LLLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.8781668676723156e-08;
+	}
+	break;
+	case PntArr3::LLLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 0.0002952721038056467;
+	}
+	break;
+	case PntArr3::LLTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 0.004930109261224001;
+	}
+	break;
+	case PntArr3::LTTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 0.08154614984406648;
+	}
+	break;
+	case PntArr3::TTTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.327523517713434;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(m012, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIII_interval(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3,
+                            const GenericPoint3T<IT, ET> &p4)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z, l4x, l4y, l4z, d4, b4x, b4y, b4z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z) ||
+	    !p3.getIntervalLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z) ||
+	    !p4.getIntervalLambda(l4x, l4y, l4z, d4, b4x, b4y, b4z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT d1p4x         = d1 * l4x;
+	IT d1p4y         = d1 * l4y;
+	IT d1p4z         = d1 * l4z;
+	IT d2p4x         = d2 * l4x;
+	IT d2p4y         = d2 * l4y;
+	IT d2p4z         = d2 * l4z;
+	IT d3p4x         = d3 * l4x;
+	IT d3p4y         = d3 * l4y;
+	IT d3p4z         = d3 * l4z;
+	IT b1b4x         = b1x - b4x;
+	IT b1b4y         = b1y - b4y;
+	IT b1b4z         = b1z - b4z;
+	IT b2b4x         = b2x - b4x;
+	IT b2b4y         = b2y - b4y;
+	IT b2b4z         = b2z - b4z;
+	IT b3b4x         = b3x - b4x;
+	IT b3b4y         = b3y - b4y;
+	IT b3b4z         = b3z - b4z;
+	IT d1_b1b4x      = d1 * b1b4x;
+	IT d1_b1b4y      = d1 * b1b4y;
+	IT d1_b1b4z      = d1 * b1b4z;
+	IT d2_b2b4x      = d2 * b2b4x;
+	IT d2_b2b4y      = d2 * b2b4y;
+	IT d2_b2b4z      = d2 * b2b4z;
+	IT d3_b3b4x      = d3 * b3b4x;
+	IT d3_b3b4y      = d3 * b3b4y;
+	IT d3_b3b4z      = d3 * b3b4z;
+	IT d1_b1b4_l1x   = d1_b1b4x + l1x;
+	IT d1_b1b4_l1y   = d1_b1b4y + l1y;
+	IT d1_b1b4_l1z   = d1_b1b4z + l1z;
+	IT d2_b2b4_l2x   = d2_b2b4x + l2x;
+	IT d2_b2b4_l2y   = d2_b2b4y + l2y;
+	IT d2_b2b4_l2z   = d2_b2b4z + l2z;
+	IT d3_b3b4_l3x   = d3_b3b4x + l3x;
+	IT d3_b3b4_l3y   = d3_b3b4y + l3y;
+	IT d3_b3b4_l3z   = d3_b3b4z + l3z;
+	IT d4d1_b1b4_l1x = d4 * d1_b1b4_l1x;
+	IT d4d1_b1b4_l1y = d4 * d1_b1b4_l1y;
+	IT d4d1_b1b4_l1z = d4 * d1_b1b4_l1z;
+	IT d4d2_b2b4_l2x = d4 * d2_b2b4_l2x;
+	IT d4d2_b2b4_l2y = d4 * d2_b2b4_l2y;
+	IT d4d2_b2b4_l2z = d4 * d2_b2b4_l2z;
+	IT d4d3_b3b4_l3x = d4 * d3_b3b4_l3x;
+	IT d4d3_b3b4_l3y = d4 * d3_b3b4_l3y;
+	IT d4d3_b3b4_l3z = d4 * d3_b3b4_l3z;
+	IT p1p4x         = d4d1_b1b4_l1x - d1p4x;
+	IT p1p4y         = d4d1_b1b4_l1y - d1p4y;
+	IT p1p4z         = d4d1_b1b4_l1z - d1p4z;
+	IT p2p4x         = d4d2_b2b4_l2x - d2p4x;
+	IT p2p4y         = d4d2_b2b4_l2y - d2p4y;
+	IT p2p4z         = d4d2_b2b4_l2z - d2p4z;
+	IT p3p4x         = d4d3_b3b4_l3x - d3p4x;
+	IT p3p4y         = d4d3_b3b4_l3y - d3p4y;
+	IT p3p4z         = d4d3_b3b4_l3z - d3p4z;
+	IT tmc_a         = p1p4x * p2p4y;
+	IT tmc_b         = p1p4y * p2p4x;
+	IT m01           = tmc_a - tmc_b;
+	IT tmi_a         = p1p4x * p2p4z;
+	IT tmi_b         = p1p4z * p2p4x;
+	IT m02           = tmi_a - tmi_b;
+	IT tma_a         = p1p4y * p2p4z;
+	IT tma_b         = p1p4z * p2p4y;
+	IT m12           = tma_a - tma_b;
+	IT mt1           = m01 * p3p4z;
+	IT mt2           = m02 * p3p4y;
+	IT mt3           = m12 * p3p4x;
+	IT mtt           = mt2 - mt1;
+	IT m012          = mtt - mt3;
+	if (!m012.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIII_exact(const GenericPoint3T<IT, ET> &p1,
+                         const GenericPoint3T<IT, ET> &p2,
+                         const GenericPoint3T<IT, ET> &p3,
+                         const GenericPoint3T<IT, ET> &p4)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z, l4x, l4y, l4z, d4, b4x, b4y, b4z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	p3.getExactLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z);
+	p4.getExactLambda(l4x, l4y, l4z, d4, b4x, b4y, b4z);
+	ET d1p4x         = d1 * l4x;
+	ET d1p4y         = d1 * l4y;
+	ET d1p4z         = d1 * l4z;
+	ET d2p4x         = d2 * l4x;
+	ET d2p4y         = d2 * l4y;
+	ET d2p4z         = d2 * l4z;
+	ET d3p4x         = d3 * l4x;
+	ET d3p4y         = d3 * l4y;
+	ET d3p4z         = d3 * l4z;
+	ET b1b4x         = b1x - b4x;
+	ET b1b4y         = b1y - b4y;
+	ET b1b4z         = b1z - b4z;
+	ET b2b4x         = b2x - b4x;
+	ET b2b4y         = b2y - b4y;
+	ET b2b4z         = b2z - b4z;
+	ET b3b4x         = b3x - b4x;
+	ET b3b4y         = b3y - b4y;
+	ET b3b4z         = b3z - b4z;
+	ET d1_b1b4x      = d1 * b1b4x;
+	ET d1_b1b4y      = d1 * b1b4y;
+	ET d1_b1b4z      = d1 * b1b4z;
+	ET d2_b2b4x      = d2 * b2b4x;
+	ET d2_b2b4y      = d2 * b2b4y;
+	ET d2_b2b4z      = d2 * b2b4z;
+	ET d3_b3b4x      = d3 * b3b4x;
+	ET d3_b3b4y      = d3 * b3b4y;
+	ET d3_b3b4z      = d3 * b3b4z;
+	ET d1_b1b4_l1x   = d1_b1b4x + l1x;
+	ET d1_b1b4_l1y   = d1_b1b4y + l1y;
+	ET d1_b1b4_l1z   = d1_b1b4z + l1z;
+	ET d2_b2b4_l2x   = d2_b2b4x + l2x;
+	ET d2_b2b4_l2y   = d2_b2b4y + l2y;
+	ET d2_b2b4_l2z   = d2_b2b4z + l2z;
+	ET d3_b3b4_l3x   = d3_b3b4x + l3x;
+	ET d3_b3b4_l3y   = d3_b3b4y + l3y;
+	ET d3_b3b4_l3z   = d3_b3b4z + l3z;
+	ET d4d1_b1b4_l1x = d4 * d1_b1b4_l1x;
+	ET d4d1_b1b4_l1y = d4 * d1_b1b4_l1y;
+	ET d4d1_b1b4_l1z = d4 * d1_b1b4_l1z;
+	ET d4d2_b2b4_l2x = d4 * d2_b2b4_l2x;
+	ET d4d2_b2b4_l2y = d4 * d2_b2b4_l2y;
+	ET d4d2_b2b4_l2z = d4 * d2_b2b4_l2z;
+	ET d4d3_b3b4_l3x = d4 * d3_b3b4_l3x;
+	ET d4d3_b3b4_l3y = d4 * d3_b3b4_l3y;
+	ET d4d3_b3b4_l3z = d4 * d3_b3b4_l3z;
+	ET p1p4x         = d4d1_b1b4_l1x - d1p4x;
+	ET p1p4y         = d4d1_b1b4_l1y - d1p4y;
+	ET p1p4z         = d4d1_b1b4_l1z - d1p4z;
+	ET p2p4x         = d4d2_b2b4_l2x - d2p4x;
+	ET p2p4y         = d4d2_b2b4_l2y - d2p4y;
+	ET p2p4z         = d4d2_b2b4_l2z - d2p4z;
+	ET p3p4x         = d4d3_b3b4_l3x - d3p4x;
+	ET p3p4y         = d4d3_b3b4_l3y - d3p4y;
+	ET p3p4z         = d4d3_b3b4_l3z - d3p4z;
+	ET tmc_a         = p1p4x * p2p4y;
+	ET tmc_b         = p1p4y * p2p4x;
+	ET m01           = tmc_a - tmc_b;
+	ET tmi_a         = p1p4x * p2p4z;
+	ET tmi_b         = p1p4z * p2p4x;
+	ET m02           = tmi_a - tmi_b;
+	ET tma_a         = p1p4y * p2p4z;
+	ET tma_b         = p1p4z * p2p4y;
+	ET m12           = tma_a - tma_b;
+	ET mt1           = m01 * p3p4z;
+	ET mt2           = m02 * p3p4y;
+	ET mt3           = m12 * p3p4x;
+	ET mtt           = mt2 - mt1;
+	ET m012          = mtt - mt3;
+	return OMC::sign(m012);
+}
+
+template <typename IT, typename ET>
+Sign orient3D_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2,
+                             const GenericPoint3T<IT, ET> &p3,
+                             const GenericPoint3T<IT, ET> &p4)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[16],
+	  *l1x = l1x_p, l1y_p[16], *l1y = l1y_p, l1z_p[16], *l1z = l1z_p, d1_p[16],
+	  *d1 = d1_p, b1x, b1y, b1z, l2x_p[16], *l2x = l2x_p, l2y_p[16], *l2y = l2y_p,
+	  l2z_p[16], *l2z = l2z_p, d2_p[16], *d2 = d2_p, b2x, b2y, b2z, l3x_p[16],
+	  *l3x = l3x_p, l3y_p[16], *l3y = l3y_p, l3z_p[16], *l3z = l3z_p, d3_p[16],
+	  *d3 = d3_p, b3x, b3y, b3z, l4x_p[16], *l4x = l4x_p, l4y_p[16], *l4y = l4y_p,
+	  l4z_p[16], *l4z = l4z_p, d4_p[16], *d4 = d4_p, b4x, b4y, b4z;
+	int l1x_len = 16, l1y_len = 16, l1z_len = 16, d1_len = 16, l2x_len = 16,
+	    l2y_len = 16, l2z_len = 16, d2_len = 16, l3x_len = 16, l3y_len = 16,
+	    l3z_len = 16, d3_len = 16, l4x_len = 16, l4y_len = 16, l4z_len = 16,
+	    d4_len = 16;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
+	                      d3_len, b3x, b3y, b3z);
+	p4.getExpansionLambda(&l4x, l4x_len, &l4y, l4y_len, &l4z, l4z_len, &d4,
+	                      d4_len, b4x, b4y, b4z);
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0) &&
+	    (d4[d4_len - 1] != 0))
+	{
+		expansionObject o;
+		double          d1p4x_p[16], *d1p4x = d1p4x_p;
+		int             d1p4x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, l4x_len, l4x, &d1p4x, 16);
+		double d1p4y_p[16], *d1p4y = d1p4y_p;
+		int    d1p4y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, l4y_len, l4y, &d1p4y, 16);
+		double d1p4z_p[16], *d1p4z = d1p4z_p;
+		int    d1p4z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, l4z_len, l4z, &d1p4z, 16);
+		double d2p4x_p[16], *d2p4x = d2p4x_p;
+		int    d2p4x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, l4x_len, l4x, &d2p4x, 16);
+		double d2p4y_p[16], *d2p4y = d2p4y_p;
+		int    d2p4y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, l4y_len, l4y, &d2p4y, 16);
+		double d2p4z_p[16], *d2p4z = d2p4z_p;
+		int    d2p4z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, l4z_len, l4z, &d2p4z, 16);
+		double d3p4x_p[16], *d3p4x = d3p4x_p;
+		int    d3p4x_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, l4x_len, l4x, &d3p4x, 16);
+		double d3p4y_p[16], *d3p4y = d3p4y_p;
+		int    d3p4y_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, l4y_len, l4y, &d3p4y, 16);
+		double d3p4z_p[16], *d3p4z = d3p4z_p;
+		int    d3p4z_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, l4z_len, l4z, &d3p4z, 16);
+		double b1b4x[2];
+		o.two_Diff(b1x, b4x, b1b4x);
+		double b1b4y[2];
+		o.two_Diff(b1y, b4y, b1b4y);
+		double b1b4z[2];
+		o.two_Diff(b1z, b4z, b1b4z);
+		double b2b4x[2];
+		o.two_Diff(b2x, b4x, b2b4x);
+		double b2b4y[2];
+		o.two_Diff(b2y, b4y, b2b4y);
+		double b2b4z[2];
+		o.two_Diff(b2z, b4z, b2b4z);
+		double b3b4x[2];
+		o.two_Diff(b3x, b4x, b3b4x);
+		double b3b4y[2];
+		o.two_Diff(b3y, b4y, b3b4y);
+		double b3b4z[2];
+		o.two_Diff(b3z, b4z, b3b4z);
+		double d1_b1b4x_p[16], *d1_b1b4x = d1_b1b4x_p;
+		int    d1_b1b4x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b4x, &d1_b1b4x, 16);
+		double d1_b1b4y_p[16], *d1_b1b4y = d1_b1b4y_p;
+		int    d1_b1b4y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b4y, &d1_b1b4y, 16);
+		double d1_b1b4z_p[16], *d1_b1b4z = d1_b1b4z_p;
+		int    d1_b1b4z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b4z, &d1_b1b4z, 16);
+		double d2_b2b4x_p[16], *d2_b2b4x = d2_b2b4x_p;
+		int    d2_b2b4x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b4x, &d2_b2b4x, 16);
+		double d2_b2b4y_p[16], *d2_b2b4y = d2_b2b4y_p;
+		int    d2_b2b4y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b4y, &d2_b2b4y, 16);
+		double d2_b2b4z_p[16], *d2_b2b4z = d2_b2b4z_p;
+		int    d2_b2b4z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b4z, &d2_b2b4z, 16);
+		double d3_b3b4x_p[16], *d3_b3b4x = d3_b3b4x_p;
+		int    d3_b3b4x_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3b4x, &d3_b3b4x, 16);
+		double d3_b3b4y_p[16], *d3_b3b4y = d3_b3b4y_p;
+		int    d3_b3b4y_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3b4y, &d3_b3b4y, 16);
+		double d3_b3b4z_p[16], *d3_b3b4z = d3_b3b4z_p;
+		int    d3_b3b4z_len =
+		  o.Gen_Product_With_PreAlloc(d3_len, d3, 2, b3b4z, &d3_b3b4z, 16);
+		double d1_b1b4_l1x_p[16], *d1_b1b4_l1x = d1_b1b4_l1x_p;
+		int    d1_b1b4_l1x_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b4x_len, d1_b1b4x, l1x_len, l1x, &d1_b1b4_l1x, 16);
+		double d1_b1b4_l1y_p[16], *d1_b1b4_l1y = d1_b1b4_l1y_p;
+		int    d1_b1b4_l1y_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b4y_len, d1_b1b4y, l1y_len, l1y, &d1_b1b4_l1y, 16);
+		double d1_b1b4_l1z_p[16], *d1_b1b4_l1z = d1_b1b4_l1z_p;
+		int    d1_b1b4_l1z_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b4z_len, d1_b1b4z, l1z_len, l1z, &d1_b1b4_l1z, 16);
+		double d2_b2b4_l2x_p[16], *d2_b2b4_l2x = d2_b2b4_l2x_p;
+		int    d2_b2b4_l2x_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b4x_len, d2_b2b4x, l2x_len, l2x, &d2_b2b4_l2x, 16);
+		double d2_b2b4_l2y_p[16], *d2_b2b4_l2y = d2_b2b4_l2y_p;
+		int    d2_b2b4_l2y_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b4y_len, d2_b2b4y, l2y_len, l2y, &d2_b2b4_l2y, 16);
+		double d2_b2b4_l2z_p[16], *d2_b2b4_l2z = d2_b2b4_l2z_p;
+		int    d2_b2b4_l2z_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b4z_len, d2_b2b4z, l2z_len, l2z, &d2_b2b4_l2z, 16);
+		double d3_b3b4_l3x_p[16], *d3_b3b4_l3x = d3_b3b4_l3x_p;
+		int    d3_b3b4_l3x_len = o.Gen_Sum_With_PreAlloc(
+      d3_b3b4x_len, d3_b3b4x, l3x_len, l3x, &d3_b3b4_l3x, 16);
+		double d3_b3b4_l3y_p[16], *d3_b3b4_l3y = d3_b3b4_l3y_p;
+		int    d3_b3b4_l3y_len = o.Gen_Sum_With_PreAlloc(
+      d3_b3b4y_len, d3_b3b4y, l3y_len, l3y, &d3_b3b4_l3y, 16);
+		double d3_b3b4_l3z_p[16], *d3_b3b4_l3z = d3_b3b4_l3z_p;
+		int    d3_b3b4_l3z_len = o.Gen_Sum_With_PreAlloc(
+      d3_b3b4z_len, d3_b3b4z, l3z_len, l3z, &d3_b3b4_l3z, 16);
+		double d4d1_b1b4_l1x_p[16], *d4d1_b1b4_l1x = d4d1_b1b4_l1x_p;
+		int    d4d1_b1b4_l1x_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d1_b1b4_l1x_len, d1_b1b4_l1x, &d4d1_b1b4_l1x, 16);
+		double d4d1_b1b4_l1y_p[16], *d4d1_b1b4_l1y = d4d1_b1b4_l1y_p;
+		int    d4d1_b1b4_l1y_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d1_b1b4_l1y_len, d1_b1b4_l1y, &d4d1_b1b4_l1y, 16);
+		double d4d1_b1b4_l1z_p[16], *d4d1_b1b4_l1z = d4d1_b1b4_l1z_p;
+		int    d4d1_b1b4_l1z_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d1_b1b4_l1z_len, d1_b1b4_l1z, &d4d1_b1b4_l1z, 16);
+		double d4d2_b2b4_l2x_p[16], *d4d2_b2b4_l2x = d4d2_b2b4_l2x_p;
+		int    d4d2_b2b4_l2x_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d2_b2b4_l2x_len, d2_b2b4_l2x, &d4d2_b2b4_l2x, 16);
+		double d4d2_b2b4_l2y_p[16], *d4d2_b2b4_l2y = d4d2_b2b4_l2y_p;
+		int    d4d2_b2b4_l2y_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d2_b2b4_l2y_len, d2_b2b4_l2y, &d4d2_b2b4_l2y, 16);
+		double d4d2_b2b4_l2z_p[16], *d4d2_b2b4_l2z = d4d2_b2b4_l2z_p;
+		int    d4d2_b2b4_l2z_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d2_b2b4_l2z_len, d2_b2b4_l2z, &d4d2_b2b4_l2z, 16);
+		double d4d3_b3b4_l3x_p[16], *d4d3_b3b4_l3x = d4d3_b3b4_l3x_p;
+		int    d4d3_b3b4_l3x_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d3_b3b4_l3x_len, d3_b3b4_l3x, &d4d3_b3b4_l3x, 16);
+		double d4d3_b3b4_l3y_p[16], *d4d3_b3b4_l3y = d4d3_b3b4_l3y_p;
+		int    d4d3_b3b4_l3y_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d3_b3b4_l3y_len, d3_b3b4_l3y, &d4d3_b3b4_l3y, 16);
+		double d4d3_b3b4_l3z_p[16], *d4d3_b3b4_l3z = d4d3_b3b4_l3z_p;
+		int    d4d3_b3b4_l3z_len = o.Gen_Product_With_PreAlloc(
+      d4_len, d4, d3_b3b4_l3z_len, d3_b3b4_l3z, &d4d3_b3b4_l3z, 16);
+		double p1p4x_p[16], *p1p4x = p1p4x_p;
+		int p1p4x_len = o.Gen_Diff_With_PreAlloc(d4d1_b1b4_l1x_len, d4d1_b1b4_l1x,
+		                                         d1p4x_len, d1p4x, &p1p4x, 16);
+		double p1p4y_p[16], *p1p4y = p1p4y_p;
+		int p1p4y_len = o.Gen_Diff_With_PreAlloc(d4d1_b1b4_l1y_len, d4d1_b1b4_l1y,
+		                                         d1p4y_len, d1p4y, &p1p4y, 16);
+		double p1p4z_p[16], *p1p4z = p1p4z_p;
+		int p1p4z_len = o.Gen_Diff_With_PreAlloc(d4d1_b1b4_l1z_len, d4d1_b1b4_l1z,
+		                                         d1p4z_len, d1p4z, &p1p4z, 16);
+		double p2p4x_p[16], *p2p4x = p2p4x_p;
+		int p2p4x_len = o.Gen_Diff_With_PreAlloc(d4d2_b2b4_l2x_len, d4d2_b2b4_l2x,
+		                                         d2p4x_len, d2p4x, &p2p4x, 16);
+		double p2p4y_p[16], *p2p4y = p2p4y_p;
+		int p2p4y_len = o.Gen_Diff_With_PreAlloc(d4d2_b2b4_l2y_len, d4d2_b2b4_l2y,
+		                                         d2p4y_len, d2p4y, &p2p4y, 16);
+		double p2p4z_p[16], *p2p4z = p2p4z_p;
+		int p2p4z_len = o.Gen_Diff_With_PreAlloc(d4d2_b2b4_l2z_len, d4d2_b2b4_l2z,
+		                                         d2p4z_len, d2p4z, &p2p4z, 16);
+		double p3p4x_p[16], *p3p4x = p3p4x_p;
+		int p3p4x_len = o.Gen_Diff_With_PreAlloc(d4d3_b3b4_l3x_len, d4d3_b3b4_l3x,
+		                                         d3p4x_len, d3p4x, &p3p4x, 16);
+		double p3p4y_p[16], *p3p4y = p3p4y_p;
+		int p3p4y_len = o.Gen_Diff_With_PreAlloc(d4d3_b3b4_l3y_len, d4d3_b3b4_l3y,
+		                                         d3p4y_len, d3p4y, &p3p4y, 16);
+		double p3p4z_p[16], *p3p4z = p3p4z_p;
+		int p3p4z_len = o.Gen_Diff_With_PreAlloc(d4d3_b3b4_l3z_len, d4d3_b3b4_l3z,
+		                                         d3p4z_len, d3p4z, &p3p4z, 16);
+		double tmc_a_p[16], *tmc_a = tmc_a_p;
+		int    tmc_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4y_len,
+		                                               p2p4y, &tmc_a, 16);
+		double tmc_b_p[16], *tmc_b = tmc_b_p;
+		int    tmc_b_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4x_len,
+		                                               p2p4x, &tmc_b, 16);
+		double m01_p[16], *m01 = m01_p;
+		int    m01_len =
+		  o.Gen_Diff_With_PreAlloc(tmc_a_len, tmc_a, tmc_b_len, tmc_b, &m01, 16);
+		double tmi_a_p[16], *tmi_a = tmi_a_p;
+		int    tmi_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4z_len,
+		                                               p2p4z, &tmi_a, 16);
+		double tmi_b_p[16], *tmi_b = tmi_b_p;
+		int    tmi_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4x_len,
+		                                               p2p4x, &tmi_b, 16);
+		double m02_p[16], *m02 = m02_p;
+		int    m02_len =
+		  o.Gen_Diff_With_PreAlloc(tmi_a_len, tmi_a, tmi_b_len, tmi_b, &m02, 16);
+		double tma_a_p[16], *tma_a = tma_a_p;
+		int    tma_a_len = o.Gen_Product_With_PreAlloc(p1p4y_len, p1p4y, p2p4z_len,
+		                                               p2p4z, &tma_a, 16);
+		double tma_b_p[16], *tma_b = tma_b_p;
+		int    tma_b_len = o.Gen_Product_With_PreAlloc(p1p4z_len, p1p4z, p2p4y_len,
+		                                               p2p4y, &tma_b, 16);
+		double m12_p[16], *m12 = m12_p;
+		int    m12_len =
+		  o.Gen_Diff_With_PreAlloc(tma_a_len, tma_a, tma_b_len, tma_b, &m12, 16);
+		double mt1_p[16], *mt1 = mt1_p;
+		int    mt1_len =
+		  o.Gen_Product_With_PreAlloc(m01_len, m01, p3p4z_len, p3p4z, &mt1, 16);
+		double mt2_p[16], *mt2 = mt2_p;
+		int    mt2_len =
+		  o.Gen_Product_With_PreAlloc(m02_len, m02, p3p4y_len, p3p4y, &mt2, 16);
+		double mt3_p[16], *mt3 = mt3_p;
+		int    mt3_len =
+		  o.Gen_Product_With_PreAlloc(m12_len, m12, p3p4x_len, p3p4x, &mt3, 16);
+		double mtt_p[16], *mtt = mtt_p;
+		int    mtt_len =
+		  o.Gen_Diff_With_PreAlloc(mt2_len, mt2, mt1_len, mt1, &mtt, 16);
+		double m012_p[16], *m012 = m012_p;
+		int    m012_len =
+		  o.Gen_Diff_With_PreAlloc(mtt_len, mtt, mt3_len, mt3, &m012, 16);
+
+		return_value = m012[m012_len - 1];
+		if (m012_p != m012)
+			FreeDoubles(m012);
+		if (mtt_p != mtt)
+			FreeDoubles(mtt);
+		if (mt3_p != mt3)
+			FreeDoubles(mt3);
+		if (mt2_p != mt2)
+			FreeDoubles(mt2);
+		if (mt1_p != mt1)
+			FreeDoubles(mt1);
+		if (m12_p != m12)
+			FreeDoubles(m12);
+		if (tma_b_p != tma_b)
+			FreeDoubles(tma_b);
+		if (tma_a_p != tma_a)
+			FreeDoubles(tma_a);
+		if (m02_p != m02)
+			FreeDoubles(m02);
+		if (tmi_b_p != tmi_b)
+			FreeDoubles(tmi_b);
+		if (tmi_a_p != tmi_a)
+			FreeDoubles(tmi_a);
+		if (m01_p != m01)
+			FreeDoubles(m01);
+		if (tmc_b_p != tmc_b)
+			FreeDoubles(tmc_b);
+		if (tmc_a_p != tmc_a)
+			FreeDoubles(tmc_a);
+		if (p3p4z_p != p3p4z)
+			FreeDoubles(p3p4z);
+		if (p3p4y_p != p3p4y)
+			FreeDoubles(p3p4y);
+		if (p3p4x_p != p3p4x)
+			FreeDoubles(p3p4x);
+		if (p2p4z_p != p2p4z)
+			FreeDoubles(p2p4z);
+		if (p2p4y_p != p2p4y)
+			FreeDoubles(p2p4y);
+		if (p2p4x_p != p2p4x)
+			FreeDoubles(p2p4x);
+		if (p1p4z_p != p1p4z)
+			FreeDoubles(p1p4z);
+		if (p1p4y_p != p1p4y)
+			FreeDoubles(p1p4y);
+		if (p1p4x_p != p1p4x)
+			FreeDoubles(p1p4x);
+		if (d4d3_b3b4_l3z_p != d4d3_b3b4_l3z)
+			FreeDoubles(d4d3_b3b4_l3z);
+		if (d4d3_b3b4_l3y_p != d4d3_b3b4_l3y)
+			FreeDoubles(d4d3_b3b4_l3y);
+		if (d4d3_b3b4_l3x_p != d4d3_b3b4_l3x)
+			FreeDoubles(d4d3_b3b4_l3x);
+		if (d4d2_b2b4_l2z_p != d4d2_b2b4_l2z)
+			FreeDoubles(d4d2_b2b4_l2z);
+		if (d4d2_b2b4_l2y_p != d4d2_b2b4_l2y)
+			FreeDoubles(d4d2_b2b4_l2y);
+		if (d4d2_b2b4_l2x_p != d4d2_b2b4_l2x)
+			FreeDoubles(d4d2_b2b4_l2x);
+		if (d4d1_b1b4_l1z_p != d4d1_b1b4_l1z)
+			FreeDoubles(d4d1_b1b4_l1z);
+		if (d4d1_b1b4_l1y_p != d4d1_b1b4_l1y)
+			FreeDoubles(d4d1_b1b4_l1y);
+		if (d4d1_b1b4_l1x_p != d4d1_b1b4_l1x)
+			FreeDoubles(d4d1_b1b4_l1x);
+		if (d3_b3b4_l3z_p != d3_b3b4_l3z)
+			FreeDoubles(d3_b3b4_l3z);
+		if (d3_b3b4_l3y_p != d3_b3b4_l3y)
+			FreeDoubles(d3_b3b4_l3y);
+		if (d3_b3b4_l3x_p != d3_b3b4_l3x)
+			FreeDoubles(d3_b3b4_l3x);
+		if (d2_b2b4_l2z_p != d2_b2b4_l2z)
+			FreeDoubles(d2_b2b4_l2z);
+		if (d2_b2b4_l2y_p != d2_b2b4_l2y)
+			FreeDoubles(d2_b2b4_l2y);
+		if (d2_b2b4_l2x_p != d2_b2b4_l2x)
+			FreeDoubles(d2_b2b4_l2x);
+		if (d1_b1b4_l1z_p != d1_b1b4_l1z)
+			FreeDoubles(d1_b1b4_l1z);
+		if (d1_b1b4_l1y_p != d1_b1b4_l1y)
+			FreeDoubles(d1_b1b4_l1y);
+		if (d1_b1b4_l1x_p != d1_b1b4_l1x)
+			FreeDoubles(d1_b1b4_l1x);
+		if (d3_b3b4z_p != d3_b3b4z)
+			FreeDoubles(d3_b3b4z);
+		if (d3_b3b4y_p != d3_b3b4y)
+			FreeDoubles(d3_b3b4y);
+		if (d3_b3b4x_p != d3_b3b4x)
+			FreeDoubles(d3_b3b4x);
+		if (d2_b2b4z_p != d2_b2b4z)
+			FreeDoubles(d2_b2b4z);
+		if (d2_b2b4y_p != d2_b2b4y)
+			FreeDoubles(d2_b2b4y);
+		if (d2_b2b4x_p != d2_b2b4x)
+			FreeDoubles(d2_b2b4x);
+		if (d1_b1b4z_p != d1_b1b4z)
+			FreeDoubles(d1_b1b4z);
+		if (d1_b1b4y_p != d1_b1b4y)
+			FreeDoubles(d1_b1b4y);
+		if (d1_b1b4x_p != d1_b1b4x)
+			FreeDoubles(d1_b1b4x);
+		if (d3p4z_p != d3p4z)
+			FreeDoubles(d3p4z);
+		if (d3p4y_p != d3p4y)
+			FreeDoubles(d3p4y);
+		if (d3p4x_p != d3p4x)
+			FreeDoubles(d3p4x);
+		if (d2p4z_p != d2p4z)
+			FreeDoubles(d2p4z);
+		if (d2p4y_p != d2p4y)
+			FreeDoubles(d2p4y);
+		if (d2p4x_p != d2p4x)
+			FreeDoubles(d2p4x);
+		if (d1p4z_p != d1p4z)
+			FreeDoubles(d1p4z);
+		if (d1p4y_p != d1p4y)
+			FreeDoubles(d1p4y);
+		if (d1p4x_p != d1p4x)
+			FreeDoubles(d1p4x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+		if (l3x_p != l3x)
+			FreeDoubles(l3x);
+		if (l3y_p != l3y)
+			FreeDoubles(l3y);
+		if (l3z_p != l3z)
+			FreeDoubles(l3z);
+		if (d3_p != d3)
+			FreeDoubles(d3);
+		if (l4x_p != l4x)
+			FreeDoubles(l4x);
+		if (l4y_p != l4y)
+			FreeDoubles(l4y);
+		if (l4z_p != l4z)
+			FreeDoubles(l4z);
+		if (d4_p != d4)
+			FreeDoubles(d4);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orient3D_IIII_exact<IT, ET>(p1, p2, p3, p4);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orient3D_IIII(const GenericPoint3T<IT, ET> &p1,
+                   const GenericPoint3T<IT, ET> &p2,
+                   const GenericPoint3T<IT, ET> &p3,
+                   const GenericPoint3T<IT, ET> &p4, PntArr3 arr)
+{
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orient3D_IIII_filtered<IT, ET>(p1, p2, p3, p4, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+	}
+	ret = orient3D_IIII_interval<IT, ET>(p1, p2, p3, p4);
+	if (is_sign_reliable(ret))
+		return ret;
+	return orient3D_IIII_expansion<IT, ET>(p1, p2, p3, p4);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IEE_filtered(const GenericPoint3T<IT, ET> &p1, double p2x,
+                               double p2y, double p3x, double p3y, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3x    = b1x - p3x;
+	double b1p3y    = b1y - p3y;
+	double d1_b1p3x = d1 * b1p3x;
+	double d1_b1p3y = d1 * b1p3y;
+	double ix       = d1_b1p3x + l1x;
+	double iy       = d1_b1p3y + l1y;
+	double p2p3x    = p2x - p3x;
+	double p2p3y    = p2y - p3y;
+	double t0       = ix * p2p3y;
+	double t1       = iy * p2p3x;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3y)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 8.881784197001255e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.197724203485299e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.0409451078885486e-12;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IEE_interval(const GenericPoint3T<IT, ET> &p1, IT p2x, IT p2y,
+                               IT p3x, IT p3y)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3x    = b1x - p3x;
+	IT b1p3y    = b1y - p3y;
+	IT d1_b1p3x = d1 * b1p3x;
+	IT d1_b1p3y = d1 * b1p3y;
+	IT ix       = d1_b1p3x + l1x;
+	IT iy       = d1_b1p3y + l1y;
+	IT p2p3x    = p2x - p3x;
+	IT p2p3y    = p2y - p3y;
+	IT t0       = ix * p2p3y;
+	IT t1       = iy * p2p3x;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IEE_exact(const GenericPoint3T<IT, ET> &p1, ET p2x, ET p2y,
+                            ET p3x, ET p3y)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET b1p3x    = b1x - p3x;
+	ET b1p3y    = b1y - p3y;
+	ET d1_b1p3x = d1 * b1p3x;
+	ET d1_b1p3y = d1 * b1p3y;
+	ET ix       = d1_b1p3x + l1x;
+	ET iy       = d1_b1p3y + l1y;
+	ET p2p3x    = p2x - p3x;
+	ET p2p3y    = p2y - p3y;
+	ET t0       = ix * p2p3y;
+	ET t1       = iy * p2p3x;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
+                                double p2y, double p3x, double p3y)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3x[2];
+		o.two_Diff(b1x, p3x, b1p3x);
+		double b1p3y[2];
+		o.two_Diff(b1y, p3y, b1p3y);
+		double d1_b1p3x_p[128], *d1_b1p3x = d1_b1p3x_p;
+		int    d1_b1p3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 128);
+		double d1_b1p3y_p[128], *d1_b1p3y = d1_b1p3y_p;
+		int    d1_b1p3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 128);
+		double ix_p[128], *ix = ix_p;
+		int    ix_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3x_len, d1_b1p3x, l1x_len, l1x, &ix, 128);
+		double iy_p[128], *iy = iy_p;
+		int    iy_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3y_len, d1_b1p3y, l1y_len, l1y, &iy, 128);
+		double p2p3x[2];
+		o.two_Diff(p2x, p3x, p2p3x);
+		double p2p3y[2];
+		o.two_Diff(p2y, p3y, p2p3y);
+		double t0_p[128], *t0 = t0_p;
+		int    t0_len = o.Gen_Product_With_PreAlloc(ix_len, ix, 2, p2p3y, &t0, 128);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(iy_len, iy, 2, p2p3x, &t1, 128);
+		double det_p[128], *det = det_p;
+		int det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 128);
+
+		return_value = det[det_len - 1];
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (iy_p != iy)
+			FreeDoubles(iy);
+		if (ix_p != ix)
+			FreeDoubles(ix);
+		if (d1_b1p3y_p != d1_b1p3y)
+			FreeDoubles(d1_b1p3y);
+		if (d1_b1p3x_p != d1_b1p3x)
+			FreeDoubles(d1_b1p3x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dxy_IEE_exact<IT, ET>(p1, p2x, p2y, p3x, p3y);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
+                      double p3x, double p3y, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IEE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dxy_IEE_filtered<IT, ET>(p1, p2x, p2y, p3x, p3y, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_IEE, arr);
+	}
+	ret = orientOn2Dxy_IEE_interval<IT, ET>(p1, p2x, p2y, p3x, p3y);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IEE, arr);
+	return orientOn2Dxy_IEE_expansion<IT, ET>(p1, p2x, p2y, p3x, p3y);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dxy_IEE<IT, ET, WithSSFilter>(p1, p2.x(), p2.y(), p3.x(),
+	                                              p3.y(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, double p3x,
+                               double p3y, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3x    = b1x - p3x;
+	double b1p3y    = b1y - p3y;
+	double b2p3x    = b2x - p3x;
+	double b2p3y    = b2y - p3y;
+	double d1_b1p3x = d1 * b1p3x;
+	double d1_b1p3y = d1 * b1p3y;
+	double i1x      = d1_b1p3x + l1x;
+	double i1y      = d1_b1p3y + l1y;
+	double d2_b2p3x = d2 * b2p3x;
+	double d2_b2p3y = d2 * b2p3y;
+	double i2x      = d2_b2p3x + l2x;
+	double i2y      = d2_b2p3y + l2y;
+	double t0       = i1x * i2y;
+	double t1       = i1y * i2x;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3y)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.684341886080809e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.918578143578212e-13;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.314859663485564e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 6.750832531876594e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.7707333863081813e-11;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.189644187135872e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IIE_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, IT p3x, IT p3y)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3x    = b1x - p3x;
+	IT b1p3y    = b1y - p3y;
+	IT b2p3x    = b2x - p3x;
+	IT b2p3y    = b2y - p3y;
+	IT d1_b1p3x = d1 * b1p3x;
+	IT d1_b1p3y = d1 * b1p3y;
+	IT i1x      = d1_b1p3x + l1x;
+	IT i1y      = d1_b1p3y + l1y;
+	IT d2_b2p3x = d2 * b2p3x;
+	IT d2_b2p3y = d2 * b2p3y;
+	IT i2x      = d2_b2p3x + l2x;
+	IT i2y      = d2_b2p3y + l2y;
+	IT t0       = i1x * i2y;
+	IT t1       = i1y * i2x;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IIE_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, ET p3x, ET p3y)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET b1p3x    = b1x - p3x;
+	ET b1p3y    = b1y - p3y;
+	ET b2p3x    = b2x - p3x;
+	ET b2p3y    = b2y - p3y;
+	ET d1_b1p3x = d1 * b1p3x;
+	ET d1_b1p3y = d1 * b1p3y;
+	ET i1x      = d1_b1p3x + l1x;
+	ET i1y      = d1_b1p3y + l1y;
+	ET d2_b2p3x = d2 * b2p3x;
+	ET d2_b2p3y = d2 * b2p3y;
+	ET i2x      = d2_b2p3x + l2x;
+	ET i2y      = d2_b2p3y + l2y;
+	ET t0       = i1x * i2y;
+	ET t1       = i1y * i2x;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2, double p3x, double p3y,
+                      PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IIE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dxy_IIE_filtered<IT, ET>(p1, p2, p3x, p3y, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
+	}
+	ret = orientOn2Dxy_IIE_interval<IT, ET>(p1, p2, p3x, p3y);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
+	return orientOn2Dxy_IIE_expansion<IT, ET>(p1, p2, p3x, p3y);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dxy_IIE<IT, ET, WithSSFilter>(p1, p2, p3.x(), p3.y(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var) ||
+	    !p3.getFilteredLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1b3x         = b1x - b3x;
+	double b1b3y         = b1y - b3y;
+	double b2b3x         = b2x - b3x;
+	double b2b3y         = b2y - b3y;
+	double d1_b1b3x      = d1 * b1b3x;
+	double d1_b1b3y      = d1 * b1b3y;
+	double d1_b1b3_l1x   = d1_b1b3x + l1x;
+	double d1_b1b3_l1y   = d1_b1b3y + l1y;
+	double d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	double d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	double d2_b2b3x      = d2 * b2b3x;
+	double d2_b2b3y      = d2 * b2b3y;
+	double d2_b2b3_l2x   = d2_b2b3x + l2x;
+	double d2_b2b3_l2y   = d2_b2b3y + l2y;
+	double d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	double d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	double l3d1x         = l3x * d1;
+	double l3d1y         = l3y * d1;
+	double l3d2x         = l3x * d2;
+	double l3d2y         = l3y * d2;
+	double i1x           = d3d1_b1b3_l1x - l3d1x;
+	double i1y           = d3d1_b1b3_l1y - l3d1y;
+	double i2x           = d3d2_b2b3_l2x - l3d2x;
+	double i2y           = d3d2_b2b3_l2y - l3d2y;
+	double t0            = i1x * i2y;
+	double t1            = i1y * i2x;
+	double det           = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3y)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.455458555545215e-13;
+	}
+	break;
+	case PntArr3::SSL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.344448825832107e-12;
+	}
+	break;
+	case PntArr3::SST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.816239768639228e-09;
+	}
+	break;
+	case PntArr3::SLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.000987305878955e-11;
+	}
+	break;
+	case PntArr3::SLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1864709104081397e-08;
+	}
+	break;
+	case PntArr3::STT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.0999050320824756e-07;
+	}
+	break;
+	case PntArr3::LLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.823293567468065e-11;
+	}
+	break;
+	case PntArr3::LLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.742417331587001e-08;
+	}
+	break;
+	case PntArr3::LTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.576550303227838e-07;
+	}
+	break;
+	case PntArr3::TTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1310143236187382e-05;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_III_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z) ||
+	    !p3.getIntervalLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1b3x         = b1x - b3x;
+	IT b1b3y         = b1y - b3y;
+	IT b2b3x         = b2x - b3x;
+	IT b2b3y         = b2y - b3y;
+	IT d1_b1b3x      = d1 * b1b3x;
+	IT d1_b1b3y      = d1 * b1b3y;
+	IT d1_b1b3_l1x   = d1_b1b3x + l1x;
+	IT d1_b1b3_l1y   = d1_b1b3y + l1y;
+	IT d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	IT d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	IT d2_b2b3x      = d2 * b2b3x;
+	IT d2_b2b3y      = d2 * b2b3y;
+	IT d2_b2b3_l2x   = d2_b2b3x + l2x;
+	IT d2_b2b3_l2y   = d2_b2b3y + l2y;
+	IT d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	IT d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	IT l3d1x         = l3x * d1;
+	IT l3d1y         = l3y * d1;
+	IT l3d2x         = l3x * d2;
+	IT l3d2y         = l3y * d2;
+	IT i1x           = d3d1_b1b3_l1x - l3d1x;
+	IT i1y           = d3d1_b1b3_l1y - l3d1y;
+	IT i2x           = d3d2_b2b3_l2x - l3d2x;
+	IT i2y           = d3d2_b2b3_l2y - l3d2y;
+	IT t0            = i1x * i2y;
+	IT t1            = i1y * i2x;
+	IT det           = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_III_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	p3.getExactLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z);
+	ET b1b3x         = b1x - b3x;
+	ET b1b3y         = b1y - b3y;
+	ET b2b3x         = b2x - b3x;
+	ET b2b3y         = b2y - b3y;
+	ET d1_b1b3x      = d1 * b1b3x;
+	ET d1_b1b3y      = d1 * b1b3y;
+	ET d1_b1b3_l1x   = d1_b1b3x + l1x;
+	ET d1_b1b3_l1y   = d1_b1b3y + l1y;
+	ET d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	ET d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	ET d2_b2b3x      = d2 * b2b3x;
+	ET d2_b2b3y      = d2 * b2b3y;
+	ET d2_b2b3_l2x   = d2_b2b3x + l2x;
+	ET d2_b2b3_l2y   = d2_b2b3y + l2y;
+	ET d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	ET d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	ET l3d1x         = l3x * d1;
+	ET l3d1y         = l3y * d1;
+	ET l3d2x         = l3x * d2;
+	ET l3d2y         = l3y * d2;
+	ET i1x           = d3d1_b1b3_l1x - l3d1x;
+	ET i1y           = d3d1_b1b3_l1y - l3d1y;
+	ET i2x           = d3d2_b2b3_l2x - l3d2x;
+	ET i2y           = d3d2_b2b3_l2y - l3d2y;
+	ET t0            = i1x * i2y;
+	ET t1            = i1y * i2x;
+	ET det           = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dxy_III(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_III, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dxy_III_filtered<IT, ET>(p1, p2, p3, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dxy_III, arr);
+	}
+	ret = orientOn2Dxy_III_interval<IT, ET>(p1, p2, p3);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_III, arr);
+	return orientOn2Dxy_III_expansion<IT, ET>(p1, p2, p3);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IEE_filtered(const GenericPoint3T<IT, ET> &p1, double p2y,
+                               double p2z, double p3y, double p3z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3y    = b1y - p3y;
+	double b1p3z    = b1z - p3z;
+	double d1_b1p3y = d1 * b1p3y;
+	double d1_b1p3z = d1 * b1p3z;
+	double iy       = d1_b1p3y + l1y;
+	double iz       = d1_b1p3z + l1z;
+	double p2p3y    = p2y - p3y;
+	double p2p3z    = p2z - p3z;
+	double t0       = iy * p2p3z;
+	double t1       = iz * p2p3y;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 8.881784197001255e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.197724203485299e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.0409451078885486e-12;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IEE_interval(const GenericPoint3T<IT, ET> &p1, IT p2y, IT p2z,
+                               IT p3y, IT p3z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3y    = b1y - p3y;
+	IT b1p3z    = b1z - p3z;
+	IT d1_b1p3y = d1 * b1p3y;
+	IT d1_b1p3z = d1 * b1p3z;
+	IT iy       = d1_b1p3y + l1y;
+	IT iz       = d1_b1p3z + l1z;
+	IT p2p3y    = p2y - p3y;
+	IT p2p3z    = p2z - p3z;
+	IT t0       = iy * p2p3z;
+	IT t1       = iz * p2p3y;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IEE_exact(const GenericPoint3T<IT, ET> &p1, ET p2y, ET p2z,
+                            ET p3y, ET p3z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET b1p3y    = b1y - p3y;
+	ET b1p3z    = b1z - p3z;
+	ET d1_b1p3y = d1 * b1p3y;
+	ET d1_b1p3z = d1 * b1p3z;
+	ET iy       = d1_b1p3y + l1y;
+	ET iz       = d1_b1p3z + l1z;
+	ET p2p3y    = p2y - p3y;
+	ET p2p3z    = p2z - p3z;
+	ET t0       = iy * p2p3z;
+	ET t1       = iz * p2p3y;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
+                                double p2z, double p3y, double p3z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3y[2];
+		o.two_Diff(b1y, p3y, b1p3y);
+		double b1p3z[2];
+		o.two_Diff(b1z, p3z, b1p3z);
+		double d1_b1p3y_p[128], *d1_b1p3y = d1_b1p3y_p;
+		int    d1_b1p3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 128);
+		double d1_b1p3z_p[128], *d1_b1p3z = d1_b1p3z_p;
+		int    d1_b1p3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 128);
+		double iy_p[128], *iy = iy_p;
+		int    iy_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3y_len, d1_b1p3y, l1y_len, l1y, &iy, 128);
+		double iz_p[128], *iz = iz_p;
+		int    iz_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3z_len, d1_b1p3z, l1z_len, l1z, &iz, 128);
+		double p2p3y[2];
+		o.two_Diff(p2y, p3y, p2p3y);
+		double p2p3z[2];
+		o.two_Diff(p2z, p3z, p2p3z);
+		double t0_p[128], *t0 = t0_p;
+		int    t0_len = o.Gen_Product_With_PreAlloc(iy_len, iy, 2, p2p3z, &t0, 128);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(iz_len, iz, 2, p2p3y, &t1, 128);
+		double det_p[128], *det = det_p;
+		int det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 128);
+
+		return_value = det[det_len - 1];
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (iz_p != iz)
+			FreeDoubles(iz);
+		if (iy_p != iy)
+			FreeDoubles(iy);
+		if (d1_b1p3z_p != d1_b1p3z)
+			FreeDoubles(d1_b1p3z);
+		if (d1_b1p3y_p != d1_b1p3y)
+			FreeDoubles(d1_b1p3y);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dyz_IEE_exact<IT, ET>(p1, p2y, p2z, p3y, p3z);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1, double p2y, double p2z,
+                      double p3y, double p3z, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IEE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dyz_IEE_filtered<IT, ET>(p1, p2y, p2z, p3y, p3z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_IEE, arr);
+	}
+	ret = orientOn2Dyz_IEE_interval<IT, ET>(p1, p2y, p2z, p3y, p3z);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IEE, arr);
+	return orientOn2Dyz_IEE_expansion<IT, ET>(p1, p2y, p2z, p3y, p3z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dyz_IEE<IT, ET, WithSSFilter>(p1, p2.y(), p2.z(), p3.y(),
+	                                              p3.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, double p3y,
+                               double p3z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3y    = b1y - p3y;
+	double b1p3z    = b1z - p3z;
+	double b2p3y    = b2y - p3y;
+	double b2p3z    = b2z - p3z;
+	double d1_b1p3y = d1 * b1p3y;
+	double d1_b1p3z = d1 * b1p3z;
+	double i1y      = d1_b1p3y + l1y;
+	double i1z      = d1_b1p3z + l1z;
+	double d2_b2p3y = d2 * b2p3y;
+	double d2_b2p3z = d2 * b2p3z;
+	double i2y      = d2_b2p3y + l2y;
+	double i2z      = d2_b2p3z + l2z;
+	double t0       = i1y * i2z;
+	double t1       = i1z * i2y;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.684341886080809e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.918578143578212e-13;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.314859663485564e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 6.750832531876594e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.7707333863081813e-11;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.189644187135872e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IIE_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, IT p3y, IT p3z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3y    = b1y - p3y;
+	IT b1p3z    = b1z - p3z;
+	IT b2p3y    = b2y - p3y;
+	IT b2p3z    = b2z - p3z;
+	IT d1_b1p3y = d1 * b1p3y;
+	IT d1_b1p3z = d1 * b1p3z;
+	IT i1y      = d1_b1p3y + l1y;
+	IT i1z      = d1_b1p3z + l1z;
+	IT d2_b2p3y = d2 * b2p3y;
+	IT d2_b2p3z = d2 * b2p3z;
+	IT i2y      = d2_b2p3y + l2y;
+	IT i2z      = d2_b2p3z + l2z;
+	IT t0       = i1y * i2z;
+	IT t1       = i1z * i2y;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IIE_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, ET p3y, ET p3z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET b1p3y    = b1y - p3y;
+	ET b1p3z    = b1z - p3z;
+	ET b2p3y    = b2y - p3y;
+	ET b2p3z    = b2z - p3z;
+	ET d1_b1p3y = d1 * b1p3y;
+	ET d1_b1p3z = d1 * b1p3z;
+	ET i1y      = d1_b1p3y + l1y;
+	ET i1z      = d1_b1p3z + l1z;
+	ET d2_b2p3y = d2 * b2p3y;
+	ET d2_b2p3z = d2 * b2p3z;
+	ET i2y      = d2_b2p3y + l2y;
+	ET i2z      = d2_b2p3z + l2z;
+	ET t0       = i1y * i2z;
+	ET t1       = i1z * i2y;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2, double p3y, double p3z,
+                      PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IIE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dyz_IIE_filtered<IT, ET>(p1, p2, p3y, p3z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_IIE, arr);
+	}
+	ret = orientOn2Dyz_IIE_interval<IT, ET>(p1, p2, p3y, p3z);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IIE, arr);
+	return orientOn2Dyz_IIE_expansion<IT, ET>(p1, p2, p3y, p3z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dyz_IIE<IT, ET, WithSSFilter>(p1, p2, p3.y(), p3.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var) ||
+	    !p3.getFilteredLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1b3y         = b1y - b3y;
+	double b1b3z         = b1z - b3z;
+	double b2b3y         = b2y - b3y;
+	double b2b3z         = b2z - b3z;
+	double d1_b1b3y      = d1 * b1b3y;
+	double d1_b1b3z      = d1 * b1b3z;
+	double d1_b1b3_l1y   = d1_b1b3y + l1y;
+	double d1_b1b3_l1z   = d1_b1b3z + l1z;
+	double d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	double d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	double d2_b2b3y      = d2 * b2b3y;
+	double d2_b2b3z      = d2 * b2b3z;
+	double d2_b2b3_l2y   = d2_b2b3y + l2y;
+	double d2_b2b3_l2z   = d2_b2b3z + l2z;
+	double d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	double d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	double l3d1y         = l3y * d1;
+	double l3d1z         = l3z * d1;
+	double l3d2y         = l3y * d2;
+	double l3d2z         = l3z * d2;
+	double i1y           = d3d1_b1b3_l1y - l3d1y;
+	double i1z           = d3d1_b1b3_l1z - l3d1z;
+	double i2y           = d3d2_b2b3_l2y - l3d2y;
+	double i2z           = d3d2_b2b3_l2z - l3d2z;
+	double t0            = i1y * i2z;
+	double t1            = i1z * i2y;
+	double det           = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3z)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.455458555545215e-13;
+	}
+	break;
+	case PntArr3::SSL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.344448825832107e-12;
+	}
+	break;
+	case PntArr3::SST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.816239768639228e-09;
+	}
+	break;
+	case PntArr3::SLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.000987305878955e-11;
+	}
+	break;
+	case PntArr3::SLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1864709104081397e-08;
+	}
+	break;
+	case PntArr3::STT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.0999050320824756e-07;
+	}
+	break;
+	case PntArr3::LLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.823293567468065e-11;
+	}
+	break;
+	case PntArr3::LLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.742417331587001e-08;
+	}
+	break;
+	case PntArr3::LTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.576550303227838e-07;
+	}
+	break;
+	case PntArr3::TTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1310143236187382e-05;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_III_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z) ||
+	    !p3.getIntervalLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1b3y         = b1y - b3y;
+	IT b1b3z         = b1z - b3z;
+	IT b2b3y         = b2y - b3y;
+	IT b2b3z         = b2z - b3z;
+	IT d1_b1b3y      = d1 * b1b3y;
+	IT d1_b1b3z      = d1 * b1b3z;
+	IT d1_b1b3_l1y   = d1_b1b3y + l1y;
+	IT d1_b1b3_l1z   = d1_b1b3z + l1z;
+	IT d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	IT d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	IT d2_b2b3y      = d2 * b2b3y;
+	IT d2_b2b3z      = d2 * b2b3z;
+	IT d2_b2b3_l2y   = d2_b2b3y + l2y;
+	IT d2_b2b3_l2z   = d2_b2b3z + l2z;
+	IT d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	IT d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	IT l3d1y         = l3y * d1;
+	IT l3d1z         = l3z * d1;
+	IT l3d2y         = l3y * d2;
+	IT l3d2z         = l3z * d2;
+	IT i1y           = d3d1_b1b3_l1y - l3d1y;
+	IT i1z           = d3d1_b1b3_l1z - l3d1z;
+	IT i2y           = d3d2_b2b3_l2y - l3d2y;
+	IT i2z           = d3d2_b2b3_l2z - l3d2z;
+	IT t0            = i1y * i2z;
+	IT t1            = i1z * i2y;
+	IT det           = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_III_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	p3.getExactLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z);
+	ET b1b3y         = b1y - b3y;
+	ET b1b3z         = b1z - b3z;
+	ET b2b3y         = b2y - b3y;
+	ET b2b3z         = b2z - b3z;
+	ET d1_b1b3y      = d1 * b1b3y;
+	ET d1_b1b3z      = d1 * b1b3z;
+	ET d1_b1b3_l1y   = d1_b1b3y + l1y;
+	ET d1_b1b3_l1z   = d1_b1b3z + l1z;
+	ET d3d1_b1b3_l1y = d1_b1b3_l1y * d3;
+	ET d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	ET d2_b2b3y      = d2 * b2b3y;
+	ET d2_b2b3z      = d2 * b2b3z;
+	ET d2_b2b3_l2y   = d2_b2b3y + l2y;
+	ET d2_b2b3_l2z   = d2_b2b3z + l2z;
+	ET d3d2_b2b3_l2y = d2_b2b3_l2y * d3;
+	ET d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	ET l3d1y         = l3y * d1;
+	ET l3d1z         = l3z * d1;
+	ET l3d2y         = l3y * d2;
+	ET l3d2z         = l3z * d2;
+	ET i1y           = d3d1_b1b3_l1y - l3d1y;
+	ET i1z           = d3d1_b1b3_l1z - l3d1z;
+	ET i2y           = d3d2_b2b3_l2y - l3d2y;
+	ET i2z           = d3d2_b2b3_l2z - l3d2z;
+	ET t0            = i1y * i2z;
+	ET t1            = i1z * i2y;
+	ET det           = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dyz_III(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_III, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dyz_III_filtered<IT, ET>(p1, p2, p3, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dyz_III, arr);
+	}
+	ret = orientOn2Dyz_III_interval<IT, ET>(p1, p2, p3);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_III, arr);
+	return orientOn2Dyz_III_expansion<IT, ET>(p1, p2, p3);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IEE_filtered(const GenericPoint3T<IT, ET> &p1, double p2x,
+                               double p2z, double p3x, double p3z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3z    = b1z - p3z;
+	double b1p3x    = b1x - p3x;
+	double d1_b1p3z = d1 * b1p3z;
+	double d1_b1p3x = d1 * b1p3x;
+	double iz       = d1_b1p3z + l1z;
+	double ix       = d1_b1p3x + l1x;
+	double p2p3z    = p2z - p3z;
+	double p2p3x    = p2x - p3x;
+	double t0       = iz * p2p3x;
+	double t1       = ix * p2p3z;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(p2p3x)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 8.881784197001255e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.197724203485299e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.0409451078885486e-12;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IEE_interval(const GenericPoint3T<IT, ET> &p1, IT p2x, IT p2z,
+                               IT p3x, IT p3z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3z    = b1z - p3z;
+	IT b1p3x    = b1x - p3x;
+	IT d1_b1p3z = d1 * b1p3z;
+	IT d1_b1p3x = d1 * b1p3x;
+	IT iz       = d1_b1p3z + l1z;
+	IT ix       = d1_b1p3x + l1x;
+	IT p2p3z    = p2z - p3z;
+	IT p2p3x    = p2x - p3x;
+	IT t0       = iz * p2p3x;
+	IT t1       = ix * p2p3z;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IEE_exact(const GenericPoint3T<IT, ET> &p1, ET p2x, ET p2z,
+                            ET p3x, ET p3z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	ET b1p3z    = b1z - p3z;
+	ET b1p3x    = b1x - p3x;
+	ET d1_b1p3z = d1 * b1p3z;
+	ET d1_b1p3x = d1 * b1p3x;
+	ET iz       = d1_b1p3z + l1z;
+	ET ix       = d1_b1p3x + l1x;
+	ET p2p3z    = p2z - p3z;
+	ET p2p3x    = p2x - p3x;
+	ET t0       = iz * p2p3x;
+	ET t1       = ix * p2p3z;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
+                                double p2z, double p3x, double p3z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3z[2];
+		o.two_Diff(b1z, p3z, b1p3z);
+		double b1p3x[2];
+		o.two_Diff(b1x, p3x, b1p3x);
+		double d1_b1p3z_p[128], *d1_b1p3z = d1_b1p3z_p;
+		int    d1_b1p3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 128);
+		double d1_b1p3x_p[128], *d1_b1p3x = d1_b1p3x_p;
+		int    d1_b1p3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 128);
+		double iz_p[128], *iz = iz_p;
+		int    iz_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3z_len, d1_b1p3z, l1z_len, l1z, &iz, 128);
+		double ix_p[128], *ix = ix_p;
+		int    ix_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3x_len, d1_b1p3x, l1x_len, l1x, &ix, 128);
+		double p2p3z[2];
+		o.two_Diff(p2z, p3z, p2p3z);
+		double p2p3x[2];
+		o.two_Diff(p2x, p3x, p2p3x);
+		double t0_p[128], *t0 = t0_p;
+		int    t0_len = o.Gen_Product_With_PreAlloc(iz_len, iz, 2, p2p3x, &t0, 128);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(ix_len, ix, 2, p2p3z, &t1, 128);
+		double det_p[128], *det = det_p;
+		int det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 128);
+
+		return_value = det[det_len - 1];
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (ix_p != ix)
+			FreeDoubles(ix);
+		if (iz_p != iz)
+			FreeDoubles(iz);
+		if (d1_b1p3x_p != d1_b1p3x)
+			FreeDoubles(d1_b1p3x);
+		if (d1_b1p3z_p != d1_b1p3z)
+			FreeDoubles(d1_b1p3z);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dzx_IEE_exact<IT, ET>(p1, p2x, p2z, p3x, p3z);
+	#endif
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2z,
+                      double p3x, double p3z, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IEE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dzx_IEE_filtered<IT, ET>(p1, p2x, p2z, p3x, p3z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_IEE, arr);
+	}
+	ret = orientOn2Dzx_IEE_interval<IT, ET>(p1, p2x, p2z, p3x, p3z);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IEE, arr);
+	return orientOn2Dzx_IEE_expansion<IT, ET>(p1, p2x, p2z, p3x, p3z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dzx_IEE<IT, ET, WithSSFilter>(p1, p2.x(), p2.z(), p3.x(),
+	                                              p3.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, double p3x,
+                               double p3z, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1p3z    = b1z - p3z;
+	double b1p3x    = b1x - p3x;
+	double b2p3z    = b2z - p3z;
+	double b2p3x    = b2x - p3x;
+	double d1_b1p3z = d1 * b1p3z;
+	double d1_b1p3x = d1 * b1p3x;
+	double i1z      = d1_b1p3z + l1z;
+	double i1x      = d1_b1p3x + l1x;
+	double d2_b2p3z = d2 * b2p3z;
+	double d2_b2p3x = d2 * b2p3x;
+	double i2z      = d2_b2p3z + l2z;
+	double i2x      = d2_b2p3x + l2x;
+	double t0       = i1z * i2x;
+	double t1       = i1x * i2z;
+	double det      = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1p3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2p3x)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.684341886080809e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.918578143578212e-13;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.314859663485564e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 6.750832531876594e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.7707333863081813e-11;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.189644187135872e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IIE_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2, IT p3x, IT p3z)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1p3z    = b1z - p3z;
+	IT b1p3x    = b1x - p3x;
+	IT b2p3z    = b2z - p3z;
+	IT b2p3x    = b2x - p3x;
+	IT d1_b1p3z = d1 * b1p3z;
+	IT d1_b1p3x = d1 * b1p3x;
+	IT i1z      = d1_b1p3z + l1z;
+	IT i1x      = d1_b1p3x + l1x;
+	IT d2_b2p3z = d2 * b2p3z;
+	IT d2_b2p3x = d2 * b2p3x;
+	IT i2z      = d2_b2p3z + l2z;
+	IT i2x      = d2_b2p3x + l2x;
+	IT t0       = i1z * i2x;
+	IT t1       = i1x * i2z;
+	IT det      = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IIE_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, ET p3x, ET p3z)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	ET b1p3z    = b1z - p3z;
+	ET b1p3x    = b1x - p3x;
+	ET b2p3z    = b2z - p3z;
+	ET b2p3x    = b2x - p3x;
+	ET d1_b1p3z = d1 * b1p3z;
+	ET d1_b1p3x = d1 * b1p3x;
+	ET i1z      = d1_b1p3z + l1z;
+	ET i1x      = d1_b1p3x + l1x;
+	ET d2_b2p3z = d2 * b2p3z;
+	ET d2_b2p3x = d2 * b2p3x;
+	ET i2z      = d2_b2p3z + l2z;
+	ET i2x      = d2_b2p3x + l2x;
+	ET t0       = i1z * i2x;
+	ET t1       = i1x * i2z;
+	ET det      = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2, double p3x, double p3z,
+                      PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IIE, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dzx_IIE_filtered<IT, ET>(p1, p2, p3x, p3z, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_IIE, arr);
+	}
+	ret = orientOn2Dzx_IIE_interval<IT, ET>(p1, p2, p3x, p3z);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IIE, arr);
+	return orientOn2Dzx_IIE_expansion<IT, ET>(p1, p2, p3x, p3z);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	return orientOn2Dzx_IIE<IT, ET, WithSSFilter>(p1, p2, p3.x(), p3.z(), arr);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var) ||
+	    !p3.getFilteredLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z, max_var))
+		return Sign::UNCERTAIN;
+
+	double b1b3z         = b1z - b3z;
+	double b1b3x         = b1x - b3x;
+	double b2b3z         = b2z - b3z;
+	double b2b3x         = b2x - b3x;
+	double d1_b1b3z      = d1 * b1b3z;
+	double d1_b1b3x      = d1 * b1b3x;
+	double d1_b1b3_l1z   = d1_b1b3z + l1z;
+	double d1_b1b3_l1x   = d1_b1b3x + l1x;
+	double d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	double d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	double d2_b2b3z      = d2 * b2b3z;
+	double d2_b2b3x      = d2 * b2b3x;
+	double d2_b2b3_l2z   = d2_b2b3z + l2z;
+	double d2_b2b3_l2x   = d2_b2b3x + l2x;
+	double d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	double d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	double l3d1z         = l3z * d1;
+	double l3d1x         = l3x * d1;
+	double l3d2z         = l3z * d2;
+	double l3d2x         = l3x * d2;
+	double i1z           = d3d1_b1b3_l1z - l3d1z;
+	double i1x           = d3d1_b1b3_l1x - l3d1x;
+	double i2z           = d3d2_b2b3_l2z - l3d2z;
+	double i2x           = d3d2_b2b3_l2x - l3d2x;
+	double t0            = i1z * i2x;
+	double t1            = i1x * i2z;
+	double det           = t0 - t1;
+
+	double _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b1b3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(b2b3x)) > max_var)
+		max_var = _tmp_fabs;
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.455458555545215e-13;
+	}
+	break;
+	case PntArr3::SSL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.344448825832107e-12;
+	}
+	break;
+	case PntArr3::SST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.816239768639228e-09;
+	}
+	break;
+	case PntArr3::SLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.000987305878955e-11;
+	}
+	break;
+	case PntArr3::SLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1864709104081397e-08;
+	}
+	break;
+	case PntArr3::STT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.0999050320824756e-07;
+	}
+	break;
+	case PntArr3::LLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.823293567468065e-11;
+	}
+	break;
+	case PntArr3::LLT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.742417331587001e-08;
+	}
+	break;
+	case PntArr3::LTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.576550303227838e-07;
+	}
+	break;
+	case PntArr3::TTT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.1310143236187382e-05;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(det, epsilon);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_III_interval(const GenericPoint3T<IT, ET> &p1,
+                               const GenericPoint3T<IT, ET> &p2,
+                               const GenericPoint3T<IT, ET> &p3)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z) ||
+	    !p3.getIntervalLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z))
+		return Sign::UNCERTAIN;
+
+	typename IT::Protector P;
+
+	IT b1b3z         = b1z - b3z;
+	IT b1b3x         = b1x - b3x;
+	IT b2b3z         = b2z - b3z;
+	IT b2b3x         = b2x - b3x;
+	IT d1_b1b3z      = d1 * b1b3z;
+	IT d1_b1b3x      = d1 * b1b3x;
+	IT d1_b1b3_l1z   = d1_b1b3z + l1z;
+	IT d1_b1b3_l1x   = d1_b1b3x + l1x;
+	IT d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	IT d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	IT d2_b2b3z      = d2 * b2b3z;
+	IT d2_b2b3x      = d2 * b2b3x;
+	IT d2_b2b3_l2z   = d2_b2b3z + l2z;
+	IT d2_b2b3_l2x   = d2_b2b3x + l2x;
+	IT d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	IT d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	IT l3d1z         = l3z * d1;
+	IT l3d1x         = l3x * d1;
+	IT l3d2z         = l3z * d2;
+	IT l3d2x         = l3x * d2;
+	IT i1z           = d3d1_b1b3_l1z - l3d1z;
+	IT i1x           = d3d1_b1b3_l1x - l3d1x;
+	IT i2z           = d3d2_b2b3_l2z - l3d2z;
+	IT i2x           = d3d2_b2b3_l2x - l3d2x;
+	IT t0            = i1z * i2x;
+	IT t1            = i1x * i2z;
+	IT det           = t0 - t1;
+	if (!det.is_sign_reliable())
+		return Sign::UNCERTAIN;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_III_exact(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2,
+                            const GenericPoint3T<IT, ET> &p3)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z, l3x,
+	  l3y, l3z, d3, b3x, b3y, b3z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+	p3.getExactLambda(l3x, l3y, l3z, d3, b3x, b3y, b3z);
+	ET b1b3z         = b1z - b3z;
+	ET b1b3x         = b1x - b3x;
+	ET b2b3z         = b2z - b3z;
+	ET b2b3x         = b2x - b3x;
+	ET d1_b1b3z      = d1 * b1b3z;
+	ET d1_b1b3x      = d1 * b1b3x;
+	ET d1_b1b3_l1z   = d1_b1b3z + l1z;
+	ET d1_b1b3_l1x   = d1_b1b3x + l1x;
+	ET d3d1_b1b3_l1z = d1_b1b3_l1z * d3;
+	ET d3d1_b1b3_l1x = d1_b1b3_l1x * d3;
+	ET d2_b2b3z      = d2 * b2b3z;
+	ET d2_b2b3x      = d2 * b2b3x;
+	ET d2_b2b3_l2z   = d2_b2b3z + l2z;
+	ET d2_b2b3_l2x   = d2_b2b3x + l2x;
+	ET d3d2_b2b3_l2z = d2_b2b3_l2z * d3;
+	ET d3d2_b2b3_l2x = d2_b2b3_l2x * d3;
+	ET l3d1z         = l3z * d1;
+	ET l3d1x         = l3x * d1;
+	ET l3d2z         = l3z * d2;
+	ET l3d2x         = l3x * d2;
+	ET i1z           = d3d1_b1b3_l1z - l3d1z;
+	ET i1x           = d3d1_b1b3_l1x - l3d1x;
+	ET i2z           = d3d2_b2b3_l2z - l3d2z;
+	ET i2x           = d3d2_b2b3_l2x - l3d2x;
+	ET t0            = i1z * i2x;
+	ET t1            = i1x * i2z;
+	ET det           = t0 - t1;
+	return OMC::sign(det);
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+Sign orientOn2Dzx_III(const GenericPoint3T<IT, ET> &p1,
+                      const GenericPoint3T<IT, ET> &p2,
+                      const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
+{
+	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_III, arr);
+	Sign ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = orientOn2Dzx_III_filtered<IT, ET>(p1, p2, p3, arr);
+		if (is_sign_reliable(ret))
+			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orientOn2Dzx_III, arr);
+	}
+	ret = orientOn2Dzx_III_interval<IT, ET>(p1, p2, p3);
+	if (is_sign_reliable(ret))
+		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_III, arr);
+	return orientOn2Dzx_III_expansion<IT, ET>(p1, p2, p3);
+}
+
+#endif
 
 } // namespace OMC

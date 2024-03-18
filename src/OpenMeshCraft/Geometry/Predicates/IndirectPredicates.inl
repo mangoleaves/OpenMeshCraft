@@ -1,12 +1,7 @@
 #pragma once
 
-#include "IndirectPredicates.inl"
-
 #include "IndirectPredicateDetails.h"
 #include "IndirectPredicateDetailsHand.h"
-
-#include "OpenMeshCraft/NumberTypes/IntervalNumber.h"
-#include "OpenMeshCraft/NumberTypes/LazyNumber.h"
 
 #include "OpenMeshCraft/Utils/Exception.h"
 

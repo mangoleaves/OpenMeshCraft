@@ -2,8 +2,9 @@
 
 #include "IndirectPredicateDetailsHand.h"
 
-#include "OpenMeshCraft/NumberTypes/BigNumbers.h"
 #include "OpenMeshCraft/NumberTypes/ExpansionObject.h"
+#include "OpenMeshCraft/NumberTypes/IntervalNumber.h"
+#include "OpenMeshCraft/NumberTypes/LazyNumber.h"
 
 // Uncomment the following to activate overflow/underflow checks
 #define CHECK_FOR_XYZERFLOWS
@@ -497,9 +498,8 @@ inline Sign orient3d_with_cached_minors(const double *pa, const double *pb,
 
 	const double det = dax * minor[0] + day * minor[1] + daz * minor[2];
 
-	const double permanent = OMC::abs(adx) * perm[0] +
-	                         OMC::abs(ady) * perm[1] +
-	                         OMC::abs(adz) * perm[2];
+	const double permanent =
+	  OMC::abs(adx) * perm[0] + OMC::abs(ady) * perm[1] + OMC::abs(adz) * perm[2];
 
 	const double errbound = 7.7715611723761027e-16 * permanent;
 	if ((det > errbound) || (-det > errbound))
@@ -573,8 +573,7 @@ Sign orient2dyz(const GenericPoint3T<IT, ET> &p1,
 #ifdef OMC_NO_SHEWCHUK
 	return orient2dyz(p1.y(), p1.z(), p2.y(), p2.z(), p3.y(), p3.z());
 #else
-	return OMC::sign(
-	  ::orient2d(p1.data() + 1, p2.data() + 1, p3.data() + 1));
+	return OMC::sign(::orient2d(p1.data() + 1, p2.data() + 1, p3.data() + 1));
 #endif
 }
 
@@ -837,15 +836,17 @@ Sign lessThan_II(const GenericPoint3T<IT, ET> &p1,
 
 #define OrientOn2D_LengthThreshold 100
 
+#if defined(INDIRECT_PREDICATES)
+
 template <typename IT, typename ET>
 Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2, double op3x,
                                 double op3y)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -947,10 +948,10 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, op3x, op3y);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, op3x, op3y);
 
@@ -969,9 +970,9 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p3)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -1097,10 +1098,10 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
 
@@ -1119,9 +1120,9 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 double op3z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -1223,10 +1224,10 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, op3y, op3z);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, op3y, op3z);
 
@@ -1245,9 +1246,9 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p3)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -1373,10 +1374,10 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
 
@@ -1395,9 +1396,9 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 double op3z)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -1499,10 +1500,10 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d2);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, op3x, op3z);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, op3x, op3z);
 
@@ -1521,9 +1522,9 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p3)
 {
 	double return_value = NAN;
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
-#endif
+	#endif
 	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
 	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, l2x_p[64], *l2x = l2x_p,
 	                  l2y_p[64], *l2y = l2y_p, l2z_p[64], *l2z = l2z_p, d2_p[64],
@@ -1649,10 +1650,10 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 			FreeDoubles(d3);
 	}
 
-#ifdef CHECK_FOR_XYZERFLOWS
+	#ifdef CHECK_FOR_XYZERFLOWS
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
-#endif
+	#endif
 	if (!expansion_calculated)
 		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
 
@@ -1664,5 +1665,1022 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::ZERO;
 	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
 }
+
+#elif defined(OFFSET_PREDICATES)
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2, double p3x,
+                                double p3y)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
+	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, b1x, b1y, b1z,
+	                  l2x_p[64], *l2x = l2x_p, l2y_p[64], *l2y = l2y_p, l2z_p[64],
+	                  *l2z = l2z_p, d2_p[64], *d2 = d2_p, b2x, b2y, b2z;
+	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64, l2x_len = 64,
+	    l2y_len = 64, l2z_len = 64, d2_len = 64;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3x[2];
+		o.two_Diff(b1x, p3x, b1p3x);
+		double b1p3y[2];
+		o.two_Diff(b1y, p3y, b1p3y);
+		double b2p3x[2];
+		o.two_Diff(b2x, p3x, b2p3x);
+		double b2p3y[2];
+		o.two_Diff(b2y, p3y, b2p3y);
+		double d1_b1p3x_p[64], *d1_b1p3x = d1_b1p3x_p;
+		int    d1_b1p3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 64);
+		double d1_b1p3y_p[64], *d1_b1p3y = d1_b1p3y_p;
+		int    d1_b1p3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 64);
+		double i1x_p[64], *i1x = i1x_p;
+		int    i1x_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3x_len, d1_b1p3x, l1x_len, l1x, &i1x, 64);
+		double i1y_p[64], *i1y = i1y_p;
+		int    i1y_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3y_len, d1_b1p3y, l1y_len, l1y, &i1y, 64);
+		double d2_b2p3x_p[64], *d2_b2p3x = d2_b2p3x_p;
+		int    d2_b2p3x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3x, &d2_b2p3x, 64);
+		double d2_b2p3y_p[64], *d2_b2p3y = d2_b2p3y_p;
+		int    d2_b2p3y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3y, &d2_b2p3y, 64);
+		double i2x_p[64], *i2x = i2x_p;
+		int    i2x_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3x_len, d2_b2p3x, l2x_len, l2x, &i2x, 64);
+		double i2y_p[64], *i2y = i2y_p;
+		int    i2y_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3y_len, d2_b2p3y, l2y_len, l2y, &i2y, 64);
+
+		double t0_p[64], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[64], *t1 = t1_p;
+		int    t1_len;
+		double det_p[64], *det = det_p;
+		int    det_len;
+
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
+		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 64);
+			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 64);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2y_p != i2y)
+			FreeDoubles(i2y);
+		if (i2x_p != i2x)
+			FreeDoubles(i2x);
+		if (d2_b2p3y_p != d2_b2p3y)
+			FreeDoubles(d2_b2p3y);
+		if (d2_b2p3x_p != d2_b2p3x)
+			FreeDoubles(d2_b2p3x);
+		if (i1y_p != i1y)
+			FreeDoubles(i1y);
+		if (i1x_p != i1x)
+			FreeDoubles(i1x);
+		if (d1_b1p3y_p != d1_b1p3y)
+			FreeDoubles(d1_b1p3y);
+		if (d1_b1p3x_p != d1_b1p3x)
+			FreeDoubles(d1_b1p3x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, p3x, p3y);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, p3x, p3y);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2,
+                                const GenericPoint3T<IT, ET> &p3)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[32],
+	  *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32], *l1z = l1z_p, d1_p[32],
+	  *d1 = d1_p, b1x, b1y, b1z, l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p,
+	  l2z_p[32], *l2z = l2z_p, d2_p[32], *d2 = d2_p, b2x, b2y, b2z, l3x_p[32],
+	  *l3x = l3x_p, l3y_p[32], *l3y = l3y_p, l3z_p[32], *l3z = l3z_p, d3_p[32],
+	  *d3       = d3_p, b3x, b3y, b3z;
+	int l1x_len = 32, l1y_len = 32, l1z_len = 32, d1_len = 32, l2x_len = 32,
+	    l2y_len = 32, l2z_len = 32, d2_len = 32, l3x_len = 32, l3y_len = 32,
+	    l3z_len = 32, d3_len = 32;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
+	                      d3_len, b3x, b3y, b3z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1b3x[2];
+		o.two_Diff(b1x, b3x, b1b3x);
+		double b1b3y[2];
+		o.two_Diff(b1y, b3y, b1b3y);
+		double b2b3x[2];
+		o.two_Diff(b2x, b3x, b2b3x);
+		double b2b3y[2];
+		o.two_Diff(b2y, b3y, b2b3y);
+		double d1_b1b3x_p[32], *d1_b1b3x = d1_b1b3x_p;
+		int    d1_b1b3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3x, &d1_b1b3x, 32);
+		double d1_b1b3y_p[32], *d1_b1b3y = d1_b1b3y_p;
+		int    d1_b1b3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3y, &d1_b1b3y, 32);
+		double d1_b1b3_l1x_p[32], *d1_b1b3_l1x = d1_b1b3_l1x_p;
+		int    d1_b1b3_l1x_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3x_len, d1_b1b3x, l1x_len, l1x, &d1_b1b3_l1x, 32);
+		double d1_b1b3_l1y_p[32], *d1_b1b3_l1y = d1_b1b3_l1y_p;
+		int    d1_b1b3_l1y_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3y_len, d1_b1b3y, l1y_len, l1y, &d1_b1b3_l1y, 32);
+		double d3d1_b1b3_l1x_p[32], *d3d1_b1b3_l1x = d3d1_b1b3_l1x_p;
+		int    d3d1_b1b3_l1x_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1x_len, d1_b1b3_l1x, d3_len, d3, &d3d1_b1b3_l1x, 32);
+		double d3d1_b1b3_l1y_p[32], *d3d1_b1b3_l1y = d3d1_b1b3_l1y_p;
+		int    d3d1_b1b3_l1y_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1y_len, d1_b1b3_l1y, d3_len, d3, &d3d1_b1b3_l1y, 32);
+		double d2_b2b3x_p[32], *d2_b2b3x = d2_b2b3x_p;
+		int    d2_b2b3x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3x, &d2_b2b3x, 32);
+		double d2_b2b3y_p[32], *d2_b2b3y = d2_b2b3y_p;
+		int    d2_b2b3y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3y, &d2_b2b3y, 32);
+		double d2_b2b3_l2x_p[32], *d2_b2b3_l2x = d2_b2b3_l2x_p;
+		int    d2_b2b3_l2x_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3x_len, d2_b2b3x, l2x_len, l2x, &d2_b2b3_l2x, 32);
+		double d2_b2b3_l2y_p[32], *d2_b2b3_l2y = d2_b2b3_l2y_p;
+		int    d2_b2b3_l2y_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3y_len, d2_b2b3y, l2y_len, l2y, &d2_b2b3_l2y, 32);
+		double d3d2_b2b3_l2x_p[32], *d3d2_b2b3_l2x = d3d2_b2b3_l2x_p;
+		int    d3d2_b2b3_l2x_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2x_len, d2_b2b3_l2x, d3_len, d3, &d3d2_b2b3_l2x, 32);
+		double d3d2_b2b3_l2y_p[32], *d3d2_b2b3_l2y = d3d2_b2b3_l2y_p;
+		int    d3d2_b2b3_l2y_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2y_len, d2_b2b3_l2y, d3_len, d3, &d3d2_b2b3_l2y, 32);
+		double l3d1x_p[32], *l3d1x = l3d1x_p;
+		int    l3d1x_len =
+		  o.Gen_Product_With_PreAlloc(l3x_len, l3x, d1_len, d1, &l3d1x, 32);
+		double l3d1y_p[32], *l3d1y = l3d1y_p;
+		int    l3d1y_len =
+		  o.Gen_Product_With_PreAlloc(l3y_len, l3y, d1_len, d1, &l3d1y, 32);
+		double l3d2x_p[32], *l3d2x = l3d2x_p;
+		int    l3d2x_len =
+		  o.Gen_Product_With_PreAlloc(l3x_len, l3x, d2_len, d2, &l3d2x, 32);
+		double l3d2y_p[32], *l3d2y = l3d2y_p;
+		int    l3d2y_len =
+		  o.Gen_Product_With_PreAlloc(l3y_len, l3y, d2_len, d2, &l3d2y, 32);
+		double i1x_p[32], *i1x = i1x_p;
+		int    i1x_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1x_len, d3d1_b1b3_l1x,
+		                                          l3d1x_len, l3d1x, &i1x, 32);
+		double i1y_p[32], *i1y = i1y_p;
+		int    i1y_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1y_len, d3d1_b1b3_l1y,
+		                                          l3d1y_len, l3d1y, &i1y, 32);
+		double i2x_p[32], *i2x = i2x_p;
+		int    i2x_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2x_len, d3d2_b2b3_l2x,
+		                                          l3d2x_len, l3d2x, &i2x, 32);
+		double i2y_p[32], *i2y = i2y_p;
+		int    i2y_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2y_len, d3d2_b2b3_l2y,
+		                                          l3d2y_len, l3d2y, &i2y, 32);
+		double t0_p[32], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[32], *t1 = t1_p;
+		int    t1_len;
+		double det_p[32], *det = det_p;
+		int    det_len;
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
+		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 32);
+			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 32);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2y_p != i2y)
+			FreeDoubles(i2y);
+		if (i2x_p != i2x)
+			FreeDoubles(i2x);
+		if (i1y_p != i1y)
+			FreeDoubles(i1y);
+		if (i1x_p != i1x)
+			FreeDoubles(i1x);
+		if (l3d2y_p != l3d2y)
+			FreeDoubles(l3d2y);
+		if (l3d2x_p != l3d2x)
+			FreeDoubles(l3d2x);
+		if (l3d1y_p != l3d1y)
+			FreeDoubles(l3d1y);
+		if (l3d1x_p != l3d1x)
+			FreeDoubles(l3d1x);
+		if (d3d2_b2b3_l2y_p != d3d2_b2b3_l2y)
+			FreeDoubles(d3d2_b2b3_l2y);
+		if (d3d2_b2b3_l2x_p != d3d2_b2b3_l2x)
+			FreeDoubles(d3d2_b2b3_l2x);
+		if (d2_b2b3_l2y_p != d2_b2b3_l2y)
+			FreeDoubles(d2_b2b3_l2y);
+		if (d2_b2b3_l2x_p != d2_b2b3_l2x)
+			FreeDoubles(d2_b2b3_l2x);
+		if (d2_b2b3y_p != d2_b2b3y)
+			FreeDoubles(d2_b2b3y);
+		if (d2_b2b3x_p != d2_b2b3x)
+			FreeDoubles(d2_b2b3x);
+		if (d3d1_b1b3_l1y_p != d3d1_b1b3_l1y)
+			FreeDoubles(d3d1_b1b3_l1y);
+		if (d3d1_b1b3_l1x_p != d3d1_b1b3_l1x)
+			FreeDoubles(d3d1_b1b3_l1x);
+		if (d1_b1b3_l1y_p != d1_b1b3_l1y)
+			FreeDoubles(d1_b1b3_l1y);
+		if (d1_b1b3_l1x_p != d1_b1b3_l1x)
+			FreeDoubles(d1_b1b3_l1x);
+		if (d1_b1b3y_p != d1_b1b3y)
+			FreeDoubles(d1_b1b3y);
+		if (d1_b1b3x_p != d1_b1b3x)
+			FreeDoubles(d1_b1b3x);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+		if (l3x_p != l3x)
+			FreeDoubles(l3x);
+		if (l3y_p != l3y)
+			FreeDoubles(l3y);
+		if (l3z_p != l3z)
+			FreeDoubles(l3z);
+		if (d3_p != d3)
+			FreeDoubles(d3);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2, double p3y,
+                                double p3z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
+	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, b1x, b1y, b1z,
+	                  l2x_p[64], *l2x = l2x_p, l2y_p[64], *l2y = l2y_p, l2z_p[64],
+	                  *l2z = l2z_p, d2_p[64], *d2 = d2_p, b2x, b2y, b2z;
+	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64, l2x_len = 64,
+	    l2y_len = 64, l2z_len = 64, d2_len = 64;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3y[2];
+		o.two_Diff(b1y, p3y, b1p3y);
+		double b1p3z[2];
+		o.two_Diff(b1z, p3z, b1p3z);
+		double b2p3y[2];
+		o.two_Diff(b2y, p3y, b2p3y);
+		double b2p3z[2];
+		o.two_Diff(b2z, p3z, b2p3z);
+		double d1_b1p3y_p[64], *d1_b1p3y = d1_b1p3y_p;
+		int    d1_b1p3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 64);
+		double d1_b1p3z_p[64], *d1_b1p3z = d1_b1p3z_p;
+		int    d1_b1p3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 64);
+		double i1y_p[64], *i1y = i1y_p;
+		int    i1y_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3y_len, d1_b1p3y, l1y_len, l1y, &i1y, 64);
+		double i1z_p[64], *i1z = i1z_p;
+		int    i1z_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3z_len, d1_b1p3z, l1z_len, l1z, &i1z, 64);
+		double d2_b2p3y_p[64], *d2_b2p3y = d2_b2p3y_p;
+		int    d2_b2p3y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3y, &d2_b2p3y, 64);
+		double d2_b2p3z_p[64], *d2_b2p3z = d2_b2p3z_p;
+		int    d2_b2p3z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3z, &d2_b2p3z, 64);
+		double i2y_p[64], *i2y = i2y_p;
+		int    i2y_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3y_len, d2_b2p3y, l2y_len, l2y, &i2y, 64);
+		double i2z_p[64], *i2z = i2z_p;
+		int    i2z_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3z_len, d2_b2p3z, l2z_len, l2z, &i2z, 64);
+
+		double t0_p[64], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[64], *t1 = t1_p;
+		int    t1_len;
+		double det_p[64], *det = det_p;
+		int    det_len;
+
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
+		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 64);
+			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 64);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2z_p != i2z)
+			FreeDoubles(i2z);
+		if (i2y_p != i2y)
+			FreeDoubles(i2y);
+		if (d2_b2p3z_p != d2_b2p3z)
+			FreeDoubles(d2_b2p3z);
+		if (d2_b2p3y_p != d2_b2p3y)
+			FreeDoubles(d2_b2p3y);
+		if (i1z_p != i1z)
+			FreeDoubles(i1z);
+		if (i1y_p != i1y)
+			FreeDoubles(i1y);
+		if (d1_b1p3z_p != d1_b1p3z)
+			FreeDoubles(d1_b1p3z);
+		if (d1_b1p3y_p != d1_b1p3y)
+			FreeDoubles(d1_b1p3y);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, p3y, p3z);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, p3y, p3z);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2,
+                                const GenericPoint3T<IT, ET> &p3)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[32],
+	  *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32], *l1z = l1z_p, d1_p[32],
+	  *d1 = d1_p, b1x, b1y, b1z, l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p,
+	  l2z_p[32], *l2z = l2z_p, d2_p[32], *d2 = d2_p, b2x, b2y, b2z, l3x_p[32],
+	  *l3x = l3x_p, l3y_p[32], *l3y = l3y_p, l3z_p[32], *l3z = l3z_p, d3_p[32],
+	  *d3       = d3_p, b3x, b3y, b3z;
+	int l1x_len = 32, l1y_len = 32, l1z_len = 32, d1_len = 32, l2x_len = 32,
+	    l2y_len = 32, l2z_len = 32, d2_len = 32, l3x_len = 32, l3y_len = 32,
+	    l3z_len = 32, d3_len = 32;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
+	                      d3_len, b3x, b3y, b3z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1b3y[2];
+		o.two_Diff(b1y, b3y, b1b3y);
+		double b1b3z[2];
+		o.two_Diff(b1z, b3z, b1b3z);
+		double b2b3y[2];
+		o.two_Diff(b2y, b3y, b2b3y);
+		double b2b3z[2];
+		o.two_Diff(b2z, b3z, b2b3z);
+		double d1_b1b3y_p[32], *d1_b1b3y = d1_b1b3y_p;
+		int    d1_b1b3y_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3y, &d1_b1b3y, 32);
+		double d1_b1b3z_p[32], *d1_b1b3z = d1_b1b3z_p;
+		int    d1_b1b3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3z, &d1_b1b3z, 32);
+		double d1_b1b3_l1y_p[32], *d1_b1b3_l1y = d1_b1b3_l1y_p;
+		int    d1_b1b3_l1y_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3y_len, d1_b1b3y, l1y_len, l1y, &d1_b1b3_l1y, 32);
+		double d1_b1b3_l1z_p[32], *d1_b1b3_l1z = d1_b1b3_l1z_p;
+		int    d1_b1b3_l1z_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3z_len, d1_b1b3z, l1z_len, l1z, &d1_b1b3_l1z, 32);
+		double d3d1_b1b3_l1y_p[32], *d3d1_b1b3_l1y = d3d1_b1b3_l1y_p;
+		int    d3d1_b1b3_l1y_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1y_len, d1_b1b3_l1y, d3_len, d3, &d3d1_b1b3_l1y, 32);
+		double d3d1_b1b3_l1z_p[32], *d3d1_b1b3_l1z = d3d1_b1b3_l1z_p;
+		int    d3d1_b1b3_l1z_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1z_len, d1_b1b3_l1z, d3_len, d3, &d3d1_b1b3_l1z, 32);
+		double d2_b2b3y_p[32], *d2_b2b3y = d2_b2b3y_p;
+		int    d2_b2b3y_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3y, &d2_b2b3y, 32);
+		double d2_b2b3z_p[32], *d2_b2b3z = d2_b2b3z_p;
+		int    d2_b2b3z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3z, &d2_b2b3z, 32);
+		double d2_b2b3_l2y_p[32], *d2_b2b3_l2y = d2_b2b3_l2y_p;
+		int    d2_b2b3_l2y_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3y_len, d2_b2b3y, l2y_len, l2y, &d2_b2b3_l2y, 32);
+		double d2_b2b3_l2z_p[32], *d2_b2b3_l2z = d2_b2b3_l2z_p;
+		int    d2_b2b3_l2z_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3z_len, d2_b2b3z, l2z_len, l2z, &d2_b2b3_l2z, 32);
+		double d3d2_b2b3_l2y_p[32], *d3d2_b2b3_l2y = d3d2_b2b3_l2y_p;
+		int    d3d2_b2b3_l2y_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2y_len, d2_b2b3_l2y, d3_len, d3, &d3d2_b2b3_l2y, 32);
+		double d3d2_b2b3_l2z_p[32], *d3d2_b2b3_l2z = d3d2_b2b3_l2z_p;
+		int    d3d2_b2b3_l2z_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2z_len, d2_b2b3_l2z, d3_len, d3, &d3d2_b2b3_l2z, 32);
+		double l3d1y_p[32], *l3d1y = l3d1y_p;
+		int    l3d1y_len =
+		  o.Gen_Product_With_PreAlloc(l3y_len, l3y, d1_len, d1, &l3d1y, 32);
+		double l3d1z_p[32], *l3d1z = l3d1z_p;
+		int    l3d1z_len =
+		  o.Gen_Product_With_PreAlloc(l3z_len, l3z, d1_len, d1, &l3d1z, 32);
+		double l3d2y_p[32], *l3d2y = l3d2y_p;
+		int    l3d2y_len =
+		  o.Gen_Product_With_PreAlloc(l3y_len, l3y, d2_len, d2, &l3d2y, 32);
+		double l3d2z_p[32], *l3d2z = l3d2z_p;
+		int    l3d2z_len =
+		  o.Gen_Product_With_PreAlloc(l3z_len, l3z, d2_len, d2, &l3d2z, 32);
+		double i1y_p[32], *i1y = i1y_p;
+		int    i1y_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1y_len, d3d1_b1b3_l1y,
+		                                          l3d1y_len, l3d1y, &i1y, 32);
+		double i1z_p[32], *i1z = i1z_p;
+		int    i1z_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1z_len, d3d1_b1b3_l1z,
+		                                          l3d1z_len, l3d1z, &i1z, 32);
+		double i2y_p[32], *i2y = i2y_p;
+		int    i2y_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2y_len, d3d2_b2b3_l2y,
+		                                          l3d2y_len, l3d2y, &i2y, 32);
+		double i2z_p[32], *i2z = i2z_p;
+		int    i2z_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2z_len, d3d2_b2b3_l2z,
+		                                          l3d2z_len, l3d2z, &i2z, 32);
+		double t0_p[32], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[32], *t1 = t1_p;
+		int    t1_len;
+		double det_p[32], *det = det_p;
+		int    det_len;
+
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
+		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 32);
+			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 32);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2z_p != i2z)
+			FreeDoubles(i2z);
+		if (i2y_p != i2y)
+			FreeDoubles(i2y);
+		if (i1z_p != i1z)
+			FreeDoubles(i1z);
+		if (i1y_p != i1y)
+			FreeDoubles(i1y);
+		if (l3d2z_p != l3d2z)
+			FreeDoubles(l3d2z);
+		if (l3d2y_p != l3d2y)
+			FreeDoubles(l3d2y);
+		if (l3d1z_p != l3d1z)
+			FreeDoubles(l3d1z);
+		if (l3d1y_p != l3d1y)
+			FreeDoubles(l3d1y);
+		if (d3d2_b2b3_l2z_p != d3d2_b2b3_l2z)
+			FreeDoubles(d3d2_b2b3_l2z);
+		if (d3d2_b2b3_l2y_p != d3d2_b2b3_l2y)
+			FreeDoubles(d3d2_b2b3_l2y);
+		if (d2_b2b3_l2z_p != d2_b2b3_l2z)
+			FreeDoubles(d2_b2b3_l2z);
+		if (d2_b2b3_l2y_p != d2_b2b3_l2y)
+			FreeDoubles(d2_b2b3_l2y);
+		if (d2_b2b3z_p != d2_b2b3z)
+			FreeDoubles(d2_b2b3z);
+		if (d2_b2b3y_p != d2_b2b3y)
+			FreeDoubles(d2_b2b3y);
+		if (d3d1_b1b3_l1z_p != d3d1_b1b3_l1z)
+			FreeDoubles(d3d1_b1b3_l1z);
+		if (d3d1_b1b3_l1y_p != d3d1_b1b3_l1y)
+			FreeDoubles(d3d1_b1b3_l1y);
+		if (d1_b1b3_l1z_p != d1_b1b3_l1z)
+			FreeDoubles(d1_b1b3_l1z);
+		if (d1_b1b3_l1y_p != d1_b1b3_l1y)
+			FreeDoubles(d1_b1b3_l1y);
+		if (d1_b1b3z_p != d1_b1b3z)
+			FreeDoubles(d1_b1b3z);
+		if (d1_b1b3y_p != d1_b1b3y)
+			FreeDoubles(d1_b1b3y);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+		if (l3x_p != l3x)
+			FreeDoubles(l3x);
+		if (l3y_p != l3y)
+			FreeDoubles(l3y);
+		if (l3z_p != l3z)
+			FreeDoubles(l3z);
+		if (d3_p != d3)
+			FreeDoubles(d3);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2, double p3x,
+                                double p3z)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[64], *l1x = l1x_p, l1y_p[64], *l1y = l1y_p, l1z_p[64],
+	                  *l1z = l1z_p, d1_p[64], *d1 = d1_p, b1x, b1y, b1z,
+	                  l2x_p[64], *l2x = l2x_p, l2y_p[64], *l2y = l2y_p, l2z_p[64],
+	                  *l2z = l2z_p, d2_p[64], *d2 = d2_p, b2x, b2y, b2z;
+	int l1x_len = 64, l1y_len = 64, l1z_len = 64, d1_len = 64, l2x_len = 64,
+	    l2y_len = 64, l2z_len = 64, d2_len = 64;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1p3z[2];
+		o.two_Diff(b1z, p3z, b1p3z);
+		double b1p3x[2];
+		o.two_Diff(b1x, p3x, b1p3x);
+		double b2p3z[2];
+		o.two_Diff(b2z, p3z, b2p3z);
+		double b2p3x[2];
+		o.two_Diff(b2x, p3x, b2p3x);
+		double d1_b1p3z_p[64], *d1_b1p3z = d1_b1p3z_p;
+		int    d1_b1p3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 64);
+		double d1_b1p3x_p[64], *d1_b1p3x = d1_b1p3x_p;
+		int    d1_b1p3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 64);
+		double i1z_p[64], *i1z = i1z_p;
+		int    i1z_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3z_len, d1_b1p3z, l1z_len, l1z, &i1z, 64);
+		double i1x_p[64], *i1x = i1x_p;
+		int    i1x_len =
+		  o.Gen_Sum_With_PreAlloc(d1_b1p3x_len, d1_b1p3x, l1x_len, l1x, &i1x, 64);
+		double d2_b2p3z_p[64], *d2_b2p3z = d2_b2p3z_p;
+		int    d2_b2p3z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3z, &d2_b2p3z, 64);
+		double d2_b2p3x_p[64], *d2_b2p3x = d2_b2p3x_p;
+		int    d2_b2p3x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2p3x, &d2_b2p3x, 64);
+		double i2z_p[64], *i2z = i2z_p;
+		int    i2z_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3z_len, d2_b2p3z, l2z_len, l2z, &i2z, 64);
+		double i2x_p[64], *i2x = i2x_p;
+		int    i2x_len =
+		  o.Gen_Sum_With_PreAlloc(d2_b2p3x_len, d2_b2p3x, l2x_len, l2x, &i2x, 64);
+
+		double t0_p[64], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[64], *t1 = t1_p;
+		int    t1_len;
+		double det_p[64], *det = det_p;
+		int    det_len;
+
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
+		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 64);
+			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 64);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2x_p != i2x)
+			FreeDoubles(i2x);
+		if (i2z_p != i2z)
+			FreeDoubles(i2z);
+		if (d2_b2p3x_p != d2_b2p3x)
+			FreeDoubles(d2_b2p3x);
+		if (d2_b2p3z_p != d2_b2p3z)
+			FreeDoubles(d2_b2p3z);
+		if (i1x_p != i1x)
+			FreeDoubles(i1x);
+		if (i1z_p != i1z)
+			FreeDoubles(i1z);
+		if (d1_b1p3x_p != d1_b1p3x)
+			FreeDoubles(d1_b1p3x);
+		if (d1_b1p3z_p != d1_b1p3z)
+			FreeDoubles(d1_b1p3z);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, p3x, p3z);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, p3x, p3z);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+template <typename IT, typename ET>
+Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
+                                const GenericPoint3T<IT, ET> &p2,
+                                const GenericPoint3T<IT, ET> &p3)
+{
+	double return_value = NAN;
+	#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+	#endif
+	double l1x_p[32],
+	  *l1x = l1x_p, l1y_p[32], *l1y = l1y_p, l1z_p[32], *l1z = l1z_p, d1_p[32],
+	  *d1 = d1_p, b1x, b1y, b1z, l2x_p[32], *l2x = l2x_p, l2y_p[32], *l2y = l2y_p,
+	  l2z_p[32], *l2z = l2z_p, d2_p[32], *d2 = d2_p, b2x, b2y, b2z, l3x_p[32],
+	  *l3x = l3x_p, l3y_p[32], *l3y = l3y_p, l3z_p[32], *l3z = l3z_p, d3_p[32],
+	  *d3       = d3_p, b3x, b3y, b3z;
+	int l1x_len = 32, l1y_len = 32, l1z_len = 32, d1_len = 32, l2x_len = 32,
+	    l2y_len = 32, l2z_len = 32, d2_len = 32, l3x_len = 32, l3y_len = 32,
+	    l3z_len = 32, d3_len = 32;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
+	                      d3_len, b3x, b3y, b3z);
+	bool expansion_calculated = false;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
+	{
+		expansionObject o;
+		double          b1b3z[2];
+		o.two_Diff(b1z, b3z, b1b3z);
+		double b1b3x[2];
+		o.two_Diff(b1x, b3x, b1b3x);
+		double b2b3z[2];
+		o.two_Diff(b2z, b3z, b2b3z);
+		double b2b3x[2];
+		o.two_Diff(b2x, b3x, b2b3x);
+		double d1_b1b3z_p[32], *d1_b1b3z = d1_b1b3z_p;
+		int    d1_b1b3z_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3z, &d1_b1b3z, 32);
+		double d1_b1b3x_p[32], *d1_b1b3x = d1_b1b3x_p;
+		int    d1_b1b3x_len =
+		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3x, &d1_b1b3x, 32);
+		double d1_b1b3_l1z_p[32], *d1_b1b3_l1z = d1_b1b3_l1z_p;
+		int    d1_b1b3_l1z_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3z_len, d1_b1b3z, l1z_len, l1z, &d1_b1b3_l1z, 32);
+		double d1_b1b3_l1x_p[32], *d1_b1b3_l1x = d1_b1b3_l1x_p;
+		int    d1_b1b3_l1x_len = o.Gen_Sum_With_PreAlloc(
+      d1_b1b3x_len, d1_b1b3x, l1x_len, l1x, &d1_b1b3_l1x, 32);
+		double d3d1_b1b3_l1z_p[32], *d3d1_b1b3_l1z = d3d1_b1b3_l1z_p;
+		int    d3d1_b1b3_l1z_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1z_len, d1_b1b3_l1z, d3_len, d3, &d3d1_b1b3_l1z, 32);
+		double d3d1_b1b3_l1x_p[32], *d3d1_b1b3_l1x = d3d1_b1b3_l1x_p;
+		int    d3d1_b1b3_l1x_len = o.Gen_Product_With_PreAlloc(
+      d1_b1b3_l1x_len, d1_b1b3_l1x, d3_len, d3, &d3d1_b1b3_l1x, 32);
+		double d2_b2b3z_p[32], *d2_b2b3z = d2_b2b3z_p;
+		int    d2_b2b3z_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3z, &d2_b2b3z, 32);
+		double d2_b2b3x_p[32], *d2_b2b3x = d2_b2b3x_p;
+		int    d2_b2b3x_len =
+		  o.Gen_Product_With_PreAlloc(d2_len, d2, 2, b2b3x, &d2_b2b3x, 32);
+		double d2_b2b3_l2z_p[32], *d2_b2b3_l2z = d2_b2b3_l2z_p;
+		int    d2_b2b3_l2z_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3z_len, d2_b2b3z, l2z_len, l2z, &d2_b2b3_l2z, 32);
+		double d2_b2b3_l2x_p[32], *d2_b2b3_l2x = d2_b2b3_l2x_p;
+		int    d2_b2b3_l2x_len = o.Gen_Sum_With_PreAlloc(
+      d2_b2b3x_len, d2_b2b3x, l2x_len, l2x, &d2_b2b3_l2x, 32);
+		double d3d2_b2b3_l2z_p[32], *d3d2_b2b3_l2z = d3d2_b2b3_l2z_p;
+		int    d3d2_b2b3_l2z_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2z_len, d2_b2b3_l2z, d3_len, d3, &d3d2_b2b3_l2z, 32);
+		double d3d2_b2b3_l2x_p[32], *d3d2_b2b3_l2x = d3d2_b2b3_l2x_p;
+		int    d3d2_b2b3_l2x_len = o.Gen_Product_With_PreAlloc(
+      d2_b2b3_l2x_len, d2_b2b3_l2x, d3_len, d3, &d3d2_b2b3_l2x, 32);
+		double l3d1z_p[32], *l3d1z = l3d1z_p;
+		int    l3d1z_len =
+		  o.Gen_Product_With_PreAlloc(l3z_len, l3z, d1_len, d1, &l3d1z, 32);
+		double l3d1x_p[32], *l3d1x = l3d1x_p;
+		int    l3d1x_len =
+		  o.Gen_Product_With_PreAlloc(l3x_len, l3x, d1_len, d1, &l3d1x, 32);
+		double l3d2z_p[32], *l3d2z = l3d2z_p;
+		int    l3d2z_len =
+		  o.Gen_Product_With_PreAlloc(l3z_len, l3z, d2_len, d2, &l3d2z, 32);
+		double l3d2x_p[32], *l3d2x = l3d2x_p;
+		int    l3d2x_len =
+		  o.Gen_Product_With_PreAlloc(l3x_len, l3x, d2_len, d2, &l3d2x, 32);
+		double i1z_p[32], *i1z = i1z_p;
+		int    i1z_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1z_len, d3d1_b1b3_l1z,
+		                                          l3d1z_len, l3d1z, &i1z, 32);
+		double i1x_p[32], *i1x = i1x_p;
+		int    i1x_len = o.Gen_Diff_With_PreAlloc(d3d1_b1b3_l1x_len, d3d1_b1b3_l1x,
+		                                          l3d1x_len, l3d1x, &i1x, 32);
+		double i2z_p[32], *i2z = i2z_p;
+		int    i2z_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2z_len, d3d2_b2b3_l2z,
+		                                          l3d2z_len, l3d2z, &i2z, 32);
+		double i2x_p[32], *i2x = i2x_p;
+		int    i2x_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2x_len, d3d2_b2b3_l2x,
+		                                          l3d2x_len, l3d2x, &i2x, 32);
+		double t0_p[32], *t0 = t0_p;
+		int    t0_len;
+		double t1_p[32], *t1 = t1_p;
+		int    t1_len;
+		double det_p[32], *det = det_p;
+		int    det_len;
+
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
+		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
+		{
+			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 32);
+			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 32);
+			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			return_value = det[det_len - 1];
+			expansion_calculated = true;
+		}
+
+		if (det_p != det)
+			FreeDoubles(det);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		if (t0_p != t0)
+			FreeDoubles(t0);
+		if (i2x_p != i2x)
+			FreeDoubles(i2x);
+		if (i2z_p != i2z)
+			FreeDoubles(i2z);
+		if (i1x_p != i1x)
+			FreeDoubles(i1x);
+		if (i1z_p != i1z)
+			FreeDoubles(i1z);
+		if (l3d2x_p != l3d2x)
+			FreeDoubles(l3d2x);
+		if (l3d2z_p != l3d2z)
+			FreeDoubles(l3d2z);
+		if (l3d1x_p != l3d1x)
+			FreeDoubles(l3d1x);
+		if (l3d1z_p != l3d1z)
+			FreeDoubles(l3d1z);
+		if (d3d2_b2b3_l2x_p != d3d2_b2b3_l2x)
+			FreeDoubles(d3d2_b2b3_l2x);
+		if (d3d2_b2b3_l2z_p != d3d2_b2b3_l2z)
+			FreeDoubles(d3d2_b2b3_l2z);
+		if (d2_b2b3_l2x_p != d2_b2b3_l2x)
+			FreeDoubles(d2_b2b3_l2x);
+		if (d2_b2b3_l2z_p != d2_b2b3_l2z)
+			FreeDoubles(d2_b2b3_l2z);
+		if (d2_b2b3x_p != d2_b2b3x)
+			FreeDoubles(d2_b2b3x);
+		if (d2_b2b3z_p != d2_b2b3z)
+			FreeDoubles(d2_b2b3z);
+		if (d3d1_b1b3_l1x_p != d3d1_b1b3_l1x)
+			FreeDoubles(d3d1_b1b3_l1x);
+		if (d3d1_b1b3_l1z_p != d3d1_b1b3_l1z)
+			FreeDoubles(d3d1_b1b3_l1z);
+		if (d1_b1b3_l1x_p != d1_b1b3_l1x)
+			FreeDoubles(d1_b1b3_l1x);
+		if (d1_b1b3_l1z_p != d1_b1b3_l1z)
+			FreeDoubles(d1_b1b3_l1z);
+		if (d1_b1b3x_p != d1_b1b3x)
+			FreeDoubles(d1_b1b3x);
+		if (d1_b1b3z_p != d1_b1b3z)
+			FreeDoubles(d1_b1b3z);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+		if (l3x_p != l3x)
+			FreeDoubles(l3x);
+		if (l3y_p != l3y)
+			FreeDoubles(l3y);
+		if (l3z_p != l3z)
+			FreeDoubles(l3z);
+		if (d3_p != d3)
+			FreeDoubles(d3);
+	}
+
+	#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
+	#endif
+	if (!expansion_calculated)
+		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
+
+	if (return_value > 0)
+		return Sign::POSITIVE;
+	if (return_value < 0)
+		return Sign::NEGATIVE;
+	if (return_value == 0)
+		return Sign::ZERO;
+	OMC_EXIT("Should not happen.");
+}
+
+#endif
 
 } // namespace OMC

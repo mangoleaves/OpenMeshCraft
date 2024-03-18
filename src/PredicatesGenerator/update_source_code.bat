@@ -1,7 +1,0 @@
-FOR %%f in (.\Predicates\direct\*.txt) DO ..\..\build\bin\Release\PredicatesGenerator.exe %%f -a -ft -it -et -ex
-FOR %%f in (.\Predicates\indirect\*.txt) DO ..\..\build\bin\Release\PredicatesGenerator.exe %%f -a -ft -it -et -ex
-Rem FOR %%f in (.\Predicates\lambda\*.txt) DO ..\..\build\bin\Release\PredicatesGenerator.exe %%f -a -ft -it -et -ex
-COPY indirect_predicates.h .\Generated
-COPY indirect_predicates.hpp .\Generated
-DEL indirect_predicates.h
-DEL indirect_predicates.hpp

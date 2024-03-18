@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Primitive2.h"
-
-#include "OpenMeshCraft/Utils/Exception.h"
+#include "Vector2T.h"
 
 #include <cassert>
 #include <variant>

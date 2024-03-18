@@ -107,18 +107,17 @@ inline void write_mesh(const std::string &filename, const Points &points,
 		OBJWriter writer;
 		writer.m_points    = std::move(points);
 		writer.m_triangles = std::move(triangles);
-		writer.write(filename, io_options, 15);
+		writer.write(filename, io_options, DBL_DIG);
 	}
 	else if (OMC::ends_with(filename, ".stl"))
 	{
 		/* Precision is not enough, change to obj */
-		// std::string new_fn = OMC::replace_last(filename, ".stl",
-		// ".obj");
-		STLWriter writer;
+		std::string new_fn = OMC::replace_last(filename, ".stl", ".obj");
+		OBJWriter   writer;
 		writer.m_points       = std::move(points);
 		writer.m_triangles    = std::move(triangles);
 		io_options.stl_binary = true;
-		writer.write(filename, io_options, 15);
+		writer.write(new_fn, io_options, DBL_DIG);
 	}
 };
 
@@ -127,7 +126,6 @@ inline void write_mesh(const std::string &filename, const Points &points,
 	  "./data/test_output/" #TEST_SUIT_NAME "/" #TEST_NAME "/"; \
 	make_dir_writable(outdir)
 
-#define TEST_GET_CONFIG(TEST_SUIT_NAME, TEST_NAME)        \
-	boost::property_tree::ptree &config =                   \
-	  omc_test_config.get_child(#TEST_SUIT_NAME) \
-	    .get_child(#TEST_NAME)
+#define TEST_GET_CONFIG(TEST_SUIT_NAME, TEST_NAME) \
+	boost::property_tree::ptree &config =            \
+	  omc_test_config.get_child(#TEST_SUIT_NAME).get_child(#TEST_NAME)

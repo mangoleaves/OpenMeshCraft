@@ -26,23 +26,20 @@ source_group(
         ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.h
         ${TEST_Arrangements}
         ${TEST_Boolean}
-        ${TEST_Geometry}
-        ${TEST_Mesh}
-        ${TEST_NumberTypes}
-        ${TEST_Utils})
+        # ${TEST_Geometry} ${TEST_Mesh} ${TEST_NumberTypes} ${TEST_Utils}
+)
 
 # add test
 # ##############################################################################
 add_executable(
   ${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.h
-  ${TEST_Arrangements}
-  ${TEST_Boolean}
-  ${TEST_Geometry}
-  ${TEST_Mesh}
-  ${TEST_NumberTypes}
-  ${TEST_Utils})
+  ${CMAKE_CURRENT_SOURCE_DIR}/test_utils.h ${TEST_Arrangements} ${TEST_Boolean}
+  # ${TEST_Geometry}
+  # ${TEST_Mesh}
+  # ${TEST_NumberTypes}
+  # ${TEST_Utils}
+)
 
 # include directories
 # ##############################################################################

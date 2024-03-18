@@ -1,0 +1,85 @@
+implicitPoint3D(p1:l1x,l1y,l1z,d1,b1x,b1y,b1z)
+implicitPoint3D(p2:l2x,l2y,l2z,d2,b2x,b2y,b2z)
+implicitPoint3D(p3:l3x,l3y,l3z,d3,b3x,b3y,b3z)
+explicitPoint3D(p4:p4x,p4y,p4z)
+
+errorDefinition(SSI,S,3:lx;3;64;1.332267629550188e-15;2.000000000000002;ly;3;64;1.332267629550188e-15;2.000000000000002;lz;3;64;1.332267629550188e-15;2.000000000000002;d;2;16;8.881784197001253e-16;2.000000000000001)
+errorDefinition(LPI,L,3:lx;4;256;5.995204332975847e-15;6.000000000000008;ly;4;256;5.995204332975847e-15;6.000000000000008;lz;4;256;5.995204332975847e-15;6.000000000000008;d;3;192;4.886390771174922e-015;6.000000000000007)
+errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;256;3.073097332162437e-13;144.0000000000005;lz;7;256;3.073097332162437e-13;144.0000000000005;d;6;256;1.314504061156187e-13;72.00000000000019)
+
+// p1 is query point, p2-p3-p4 is the plane.
+// orient3d: (p1 - p4) dot ((p2 - p4) cross (p3 - p4))
+
+// we calculate determinant
+//   | p1 - p4 |
+//   | p2 - p4 |
+//   | p3 - p4 |
+// expand to (we assume that d1, d2 and d3 are positive)
+//   | d1 * (b1 - p4) + l1 |
+//   | d2 * (b2 - p4) + l2 |
+//   | d3 * (b3 - p4) + l3 |
+
+// -- (b1 - p4)
+b1p4x = b1x - p4x
+b1p4y = b1y - p4y
+b1p4z = b1z - p4z
+
+// -- (b2 - p4)
+b2p4x = b2x - p4x
+b2p4y = b2y - p4y
+b2p4z = b2z - p4z
+
+// -- (b3 - p4)
+b3p4x = b3x - p4x
+b3p4y = b3y - p4y
+b3p4z = b3z - p4z
+
+// -- d1 * (b1 - p4)
+d1_b1p4x = d1 * b1p4x
+d1_b1p4y = d1 * b1p4y
+d1_b1p4z = d1 * b1p4z
+
+// -- d2 * (b2 - p4)
+d2_b2p4x = d2 * b2p4x
+d2_b2p4y = d2 * b2p4y
+d2_b2p4z = d2 * b2p4z
+
+// -- d3 * (b3 - p4)
+d3_b3p4x = d3 * b3p4x
+d3_b3p4y = d3 * b3p4y
+d3_b3p4z = d3 * b3p4z
+
+// -- d1 * (b1 - p4) + l1
+p1p4x = l1x + d1_b1p4x
+p1p4y = l1y + d1_b1p4y
+p1p4z = l1z + d1_b1p4z
+
+// -- d2 * (b2 - p4) + l2
+p2p4x = l2x + d2_b2p4x
+p2p4y = l2y + d2_b2p4y
+p2p4z = l2z + d2_b2p4z
+
+// -- d3 * (b3 - p4) + l3
+p3p4x = l3x + d3_b3p4x
+p3p4y = l3y + d3_b3p4y
+p3p4z = l3z + d3_b3p4z
+
+// -- m = (p1 - p4) cross (p2 - p4)
+tmc_a = p1p4x * p2p4y
+tmc_b = p1p4y * p2p4x
+m01 = tmc_a - tmc_b
+tmi_a = p1p4x * p2p4z
+tmi_b = p1p4z * p2p4x
+m02 = tmi_a - tmi_b
+tma_a = p1p4y * p2p4z
+tma_b = p1p4z * p2p4y
+m12 = tma_a - tma_b
+
+// -- m dot (p3 - p4)
+mt1 = m01 * p3p4z
+mt2 = m02 * p3p4y
+mt3 = m12 * p3p4x
+
+// -- reverse sign because we actually calculate a reversed determinant.
+mtt = mt2 - mt1
+m012 = mtt - mt3

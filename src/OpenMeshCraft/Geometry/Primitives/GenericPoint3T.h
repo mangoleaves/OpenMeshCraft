@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Primitive3.h"
-
-#include "OpenMeshCraft/Utils/Exception.h"
+#include "Vector3T.h"
 
 #include <cassert>
 #include <variant>
@@ -139,8 +138,10 @@ public: /* functions about types **********************************************/
 			LPI().get_Explicit(e);
 		else if (point_type() == PointType::TPI)
 			TPI().get_Explicit(e);
+#if defined(INDIRECT_PREDICATES)
 		else if (point_type() == PointType::LNC)
 			LNC().get_Explicit(e);
+#endif
 	}
 
 	/// @brief approximate this generic point by an explicit point
@@ -181,6 +182,7 @@ public: /* Constructor and Destructor ***************************************/
 	}
 
 public: /* get lambda values from implicit points ****************************/
+#if defined(INDIRECT_PREDICATES)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const
 	{
 		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
@@ -241,6 +243,74 @@ public: /* get lambda values from implicit points ****************************/
 		else /*if (point_type() == PointType::LNC)*/
 			LNC().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
 	}
+#elif defined(OFFSET_PREDICATES)
+	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz,
+	                       FT &mv) const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		if (point_type() == PointType::SSI)
+			return SSI().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
+		else if (point_type() == PointType::LPI)
+			return LPI().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
+		else /*if (point_type() == PointType::TPI)*/
+			return TPI().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
+		// else /*if (point_type() == PointType::LNC)*/
+		//	return LNC().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
+	}
+
+	template <typename _IT = IT,
+	          typename     = std::enable_if_t<!std::is_void_v<_IT>>>
+	bool getIntervalLambda(_IT &lx, _IT &ly, _IT &lz, _IT &d, _IT &bx, _IT &by,
+	                       _IT &bz) const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		if (point_type() == PointType::SSI)
+			return SSI().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+		else if (point_type() == PointType::LPI)
+			return LPI().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+		else /*if (point_type() == PointType::TPI)*/
+			return TPI().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+		// else /*if (point_type() == PointType::LNC)*/
+		//	return LNC().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+	}
+
+	template <typename _ET = ET,
+	          typename     = std::enable_if_t<!std::is_void_v<_ET>>>
+	void getExactLambda(_ET &lx, _ET &ly, _ET &lz, _ET &d, _ET &bx, _ET &by,
+	                    _ET &bz) const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		if (point_type() == PointType::SSI)
+			SSI().getExactLambda(lx, ly, lz, d, bx, by, bz);
+		else if (point_type() == PointType::LPI)
+			LPI().getExactLambda(lx, ly, lz, d, bx, by, bz);
+		else if (point_type() == PointType::TPI)
+			TPI().getExactLambda(lx, ly, lz, d, bx, by, bz);
+		// else /*if (point_type() == PointType::LNC)*/
+		//	LNC().getExactLambda(lx, ly, lz, d, bx, by, bz);
+	}
+
+	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
+	                        int &lz_len, FT **d, int &d_len, FT &bx, FT &by,
+	                        FT &bz) const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		// clang-format off
+		if (point_type() == PointType::SSI)
+			SSI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
+		else if (point_type() == PointType::LPI)
+			LPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
+		else if (point_type() == PointType::TPI)
+			TPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
+		// else /*if (point_type() == PointType::LNC)*/
+		//	LNC().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
+		// clang-format on
+	}
+#endif
 
 public:
 	/***********************************************************************
@@ -367,7 +437,9 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().enable();
 		IP_LPI::gcv().enable();
 		IP_TPI::gcv().enable();
+#if defined(INDIRECT_PREDICATES)
 		IP_LNC::gcv().enable();
+#endif
 		if (s != 0)
 			resize_global_cached_values(s);
 	}
@@ -377,7 +449,9 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().disable();
 		IP_LPI::gcv().disable();
 		IP_TPI::gcv().disable();
+#if defined(INDIRECT_PREDICATES)
 		IP_LNC::gcv().disable();
+#endif
 	}
 
 	static void clear_global_cached_values()
@@ -385,7 +459,9 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().clear_cached_values();
 		IP_LPI::gcv().clear_cached_values();
 		IP_TPI::gcv().clear_cached_values();
+#if defined(INDIRECT_PREDICATES)
 		IP_LNC::gcv().clear_cached_values();
+#endif
 	}
 
 	static void resize_global_cached_values(size_t s)
@@ -393,7 +469,9 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().resize(s);
 		IP_LPI::gcv().resize(s);
 		IP_TPI::gcv().resize(s);
+#if defined(INDIRECT_PREDICATES)
 		IP_LNC::gcv().resize(s);
+#endif
 	}
 
 	static bool global_cached_values_enabled()

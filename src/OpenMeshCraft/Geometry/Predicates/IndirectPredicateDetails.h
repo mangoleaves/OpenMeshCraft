@@ -1,11 +1,6 @@
 #pragma once
 
-#include "OpenMeshCraft/Geometry/Primitives/GenericPoint2T.h"
-#include "OpenMeshCraft/Geometry/Primitives/GenericPoint3T.h"
-
 #include "IndirectDefinitions.h"
-
-#include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 
 namespace OMC {
 
