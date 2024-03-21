@@ -297,26 +297,10 @@ bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const TriangleT &tri,
 	    LessThan3D().coincident(pnt, t2))
 		return true;
 
-	Sign o1, o2, o3;
+	Sign o1 = OrientOn2D()(t0, t1, pnt, n_max);
+	Sign o2 = OrientOn2D()(t1, t2, pnt, n_max);
+	Sign o3 = OrientOn2D()(t2, t0, pnt, n_max);
 
-	if (n_max == 0)
-	{
-		o1 = OrientOn2D().on_yz(t0, t1, pnt);
-		o2 = OrientOn2D().on_yz(t1, t2, pnt);
-		o3 = OrientOn2D().on_yz(t2, t0, pnt);
-	}
-	else if (n_max == 1)
-	{
-		o1 = OrientOn2D().on_zx(t0, t1, pnt);
-		o2 = OrientOn2D().on_zx(t1, t2, pnt);
-		o3 = OrientOn2D().on_zx(t2, t0, pnt);
-	}
-	else // if (n_max == 2)
-	{
-		o1 = OrientOn2D().on_xy(t0, t1, pnt);
-		o2 = OrientOn2D().on_xy(t1, t2, pnt);
-		o3 = OrientOn2D().on_xy(t2, t0, pnt);
-	}
 	return (o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
 	       (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO);
 }
@@ -336,26 +320,10 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
 	// I copy intersection_type here, just ignore checking point in segment.
-	Sign o1, o2, o3;
+	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
+	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
+	Sign o3 = OrientOn2D()(t2, t0, p, n_max);
 
-	if (n_max == 0)
-	{
-		o1 = OrientOn2D().on_yz(t0, t1, p);
-		o2 = OrientOn2D().on_yz(t1, t2, p);
-		o3 = OrientOn2D().on_yz(t2, t0, p);
-	}
-	else if (n_max == 1)
-	{
-		o1 = OrientOn2D().on_zx(t0, t1, p);
-		o2 = OrientOn2D().on_zx(t1, t2, p);
-		o3 = OrientOn2D().on_zx(t2, t0, p);
-	}
-	else // if (n_max == 2)
-	{
-		o1 = OrientOn2D().on_xy(t0, t1, p);
-		o2 = OrientOn2D().on_xy(t1, t2, p);
-		o3 = OrientOn2D().on_xy(t2, t0, p);
-	}
 	return check_inout(o1, o2, o3);
 }
 
@@ -369,26 +337,10 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 	if (vec_equals_3d(p, t0) || vec_equals_3d(p, t1) || vec_equals_3d(p, t2))
 		return PointInType::ON_BOUNDARY;
 
-	Sign o1, o2, o3;
+	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
+	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
+	Sign o3 = OrientOn2D()(t2, t0, p, n_max);
 
-	if (n_max == 0)
-	{
-		o1 = OrientOn2D().on_yz(t0, t1, p);
-		o2 = OrientOn2D().on_yz(t1, t2, p);
-		o3 = OrientOn2D().on_yz(t2, t0, p);
-	}
-	else if (n_max == 1)
-	{
-		o1 = OrientOn2D().on_zx(t0, t1, p);
-		o2 = OrientOn2D().on_zx(t1, t2, p);
-		o3 = OrientOn2D().on_zx(t2, t0, p);
-	}
-	else
-	{
-		o1 = OrientOn2D().on_xy(t0, t1, p);
-		o2 = OrientOn2D().on_xy(t1, t2, p);
-		o3 = OrientOn2D().on_xy(t2, t0, p);
-	}
 	return check_inout(o1, o2, o3);
 }
 
@@ -423,26 +375,9 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	// test for the interior: project t on XYZ and, if the check is never false in
 	// any of the projections, then p must be inside t.
 	// (I copy partial of point_in_triangle_2d here.)
-	Sign o1, o2, o3;
-
-	if (n_max == 0)
-	{
-		o1 = OrientOn2D().on_yz(t0, t1, p);
-		o2 = OrientOn2D().on_yz(t1, t2, p);
-		o3 = OrientOn2D().on_yz(t2, t0, p);
-	}
-	else if (n_max == 1)
-	{
-		o1 = OrientOn2D().on_zx(t0, t1, p);
-		o2 = OrientOn2D().on_zx(t1, t2, p);
-		o3 = OrientOn2D().on_zx(t2, t0, p);
-	}
-	else // if (n_max == 2)
-	{
-		o1 = OrientOn2D().on_xy(t0, t1, p);
-		o2 = OrientOn2D().on_xy(t1, t2, p);
-		o3 = OrientOn2D().on_xy(t2, t0, p);
-	}
+	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
+	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
+	Sign o3 = OrientOn2D()(t2, t0, p, n_max);
 
 	if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
 	    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))

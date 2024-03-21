@@ -213,21 +213,8 @@ bool Segment3_Point3_Do_Intersect<Kernel>::operator()(const SegmentT &seg,
 	const GPointT &s0 = seg.start();
 	const GPointT &s1 = seg.end();
 
-	if (n_max == 2)
-	{
-		if (OrientOn2D().on_xy(s0, s1, pnt) != Sign::ZERO)
-			return false; // strictly outside;
-	}
-	else if (n_max == 1)
-	{
-		if (OrientOn2D().on_zx(s0, s1, pnt) != Sign::ZERO)
-			return false; // strictly outside;
-	}
-	else if (n_max == 0)
-	{
-		if (OrientOn2D().on_yz(s0, s1, pnt) != Sign::ZERO)
-			return false; // strictly outside;
-	}
+	if (OrientOn2D().on_xy(s0, s1, pnt, n_max) != Sign::ZERO)
+		return false; // strictly outside;
 
 	Sign seq_x = LessThan3D().on_x(s0, s1);
 	// clang-format off
@@ -295,21 +282,8 @@ PointInSimplexType Segment3_Point3_Do_Intersect<Kernel>::intersection_type(
 	if (LessThan3D().coincident(p, s1))
 		return PointInSimplexType::ON_VERT1;
 
-	if (n_max == 2)
-	{
-		if (OrientOn2D().on_xy(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
-	else if (n_max == 1)
-	{
-		if (OrientOn2D().on_zx(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
-	else if (n_max == 0)
-	{
-		if (OrientOn2D().on_yz(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
+	if (OrientOn2D()(s0, s1, p, n_max) != Sign::ZERO)
+		return PointInSimplexType::STRICTLY_OUTSIDE;
 
 	// clang-format off
 	Sign seq_x = LessThan3D().on_x(s0, s1);
@@ -355,21 +329,8 @@ PointInSimplexType Segment3_Point3_Do_Intersect<Kernel>::intersection_type(
 	if (vec_equals_3d(p, s1))
 		return PointInSimplexType::ON_VERT1;
 
-	if (n_max == 2)
-	{
-		if (OrientOn2D().on_xy(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
-	else if (n_max == 1)
-	{
-		if (OrientOn2D().on_zx(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
-	else if (n_max == 0)
-	{
-		if (OrientOn2D().on_yz(s0, s1, p) != Sign::ZERO)
-			return PointInSimplexType::STRICTLY_OUTSIDE;
-	}
+	if (OrientOn2D()(s0, s1, p, n_max) != Sign::ZERO)
+		return PointInSimplexType::STRICTLY_OUTSIDE;
 
 	if ((p[0] > std::min(s0[0], s1[0]) && p[0] < std::max(s0[0], s1[0])) ||
 	    (p[1] > std::min(s0[1], s1[1]) && p[1] < std::max(s0[1], s1[1])) ||

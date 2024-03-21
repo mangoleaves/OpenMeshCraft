@@ -642,6 +642,18 @@ Sign OrientOn2D_Indirect<FT, IT, ET>::on_zx(const PointT &a, const PointT &b,
 }
 
 template <typename FT, typename IT, typename ET>
+Sign OrientOn2D_Indirect<FT, IT, ET>::operator()(const FT *a, const FT *b,
+                                                 const FT *c, int n_max)
+{
+	if (n_max == 0)
+		return on_yz(a, b, c);
+	else if (n_max == 1)
+		return on_zx(a, b, c);
+	else
+		return on_xy(a, b, c);
+}
+
+template <typename FT, typename IT, typename ET>
 Sign OrientOn2D_Indirect<FT, IT, ET>::on_xy(const FT *a, const FT *b,
                                             const FT *c)
 {
@@ -982,8 +994,8 @@ Sign LessThan3D_Indirect<FT, IT, ET>::operator()(const PointT &a,
 
 template <typename FT, typename IT, typename ET>
 bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
-                                                       const PointT &B,
-                                                       const PointT &C)
+                                                        const PointT &B,
+                                                        const PointT &C)
 {
 	return (is_sign_posneg(OrientOn2D().on_xy(A, B, C)) ||
 	        is_sign_posneg(OrientOn2D().on_yz(A, B, C)) ||
@@ -991,8 +1003,9 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
 }
 
 template <typename FT, typename IT, typename ET>
-bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const FT *A, const FT *B,
-                                                       const FT *C)
+bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const FT *A,
+                                                        const FT *B,
+                                                        const FT *C)
 {
 	return (is_sign_posneg(orient2dxy(A, B, C)) ||
 	        is_sign_posneg(orient2dyz(A, B, C)) ||
@@ -1001,9 +1014,9 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const FT *A, const FT *B
 
 template <typename FT, typename IT, typename ET>
 bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
-                                                       const PointT &B,
-                                                       const PointT &C,
-                                                       int           n_max)
+                                                        const PointT &B,
+                                                        const PointT &C,
+                                                        int           n_max)
 {
 	return ((n_max == 2 && is_sign_posneg(OrientOn2D().on_xy(A, B, C))) ||
 	        (n_max == 0 && is_sign_posneg(OrientOn2D().on_yz(A, B, C))) ||
@@ -1012,8 +1025,8 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
 
 template <typename FT, typename IT, typename ET>
 auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(const PointT &p,
-                                                     const PointT &q,
-                                                     const PointT &r)
+                                                      const PointT &q,
+                                                      const PointT &r)
   -> std::tuple<const PointT &, const PointT &, const PointT &>
 {
 	using CR = const PointT &;

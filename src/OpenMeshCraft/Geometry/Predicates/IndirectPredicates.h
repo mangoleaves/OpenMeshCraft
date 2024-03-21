@@ -242,6 +242,8 @@ public:
 	Sign on_yz(const PointT &a, const PointT &b, const PointT &c);
 	Sign on_zx(const PointT &a, const PointT &b, const PointT &c);
 
+	Sign operator()(const FT *a, const FT *b, const FT *c, int n_max);
+
 	Sign on_xy(const FT *a, const FT *b, const FT *c);
 	Sign on_yz(const FT *a, const FT *b, const FT *c);
 	Sign on_zx(const FT *a, const FT *b, const FT *c);

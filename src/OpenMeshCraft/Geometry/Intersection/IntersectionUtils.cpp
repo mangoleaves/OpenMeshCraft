@@ -9,11 +9,11 @@ namespace OMC {
 
 #ifdef OMC_INTER_PROFILE
 
-uint32_t IntersectionProfile::total_count[(size_t)IntersectionNames::CNT];
-uint32_t IntersectionProfile::reach_count[(size_t)IntersectionNames::CNT]
-                                         [BRANCH_CNT];
-uint32_t IntersectionProfile::reach_line[(size_t)IntersectionNames::CNT]
-                                        [BRANCH_CNT];
+size_t IntersectionProfile::total_count[(size_t)IntersectionNames::CNT];
+size_t IntersectionProfile::reach_count[(size_t)IntersectionNames::CNT]
+                                       [BRANCH_CNT];
+size_t IntersectionProfile::reach_line[(size_t)IntersectionNames::CNT]
+                                      [BRANCH_CNT];
 
 void IntersectionProfile::initialize()
 {
@@ -63,7 +63,7 @@ void IntersectionProfile::print()
 			}
 		}
 
-		for (int j = 0; j < last_branch_flag; j++)
+		for (int j = 0; j <= last_branch_flag; j++)
 		{
 			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
 			std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j],

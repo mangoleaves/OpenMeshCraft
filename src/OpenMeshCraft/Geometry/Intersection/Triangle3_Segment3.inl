@@ -323,9 +323,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 	if (s0_in_vertices || s1_in_vertices)
 		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
-	Sign vol_s_t01, vol_s_t12;
-	vol_s_t01 = Orient3D()(s0, s1, t0, t1);
-	vol_s_t12 = Orient3D()(s0, s1, t1, t2);
+	Sign vol_s_t01 = Orient3D()(s0, s1, t0, t1);
+	Sign vol_s_t12 = Orient3D()(s0, s1, t1, t2);
 
 	if ((vol_s_t01 > Sign::ZERO && vol_s_t12 < Sign::ZERO) ||
 	    (vol_s_t01 < Sign::ZERO && vol_s_t12 > Sign::ZERO))
