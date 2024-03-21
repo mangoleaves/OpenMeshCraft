@@ -216,6 +216,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
   const NT *t0, const NT *t1, const NT *t2, const NT *s0, const NT *s1,
   int &n_max, const NT *t_min, const NT *t_perm) const
 {
+	OMC_INTER_PROFILE_INC_TOTAL(IntersectionNames::T3S3);
+
 	bool s0_in_vertices =
 	  (vec_equals_3d(s0, t0) || vec_equals_3d(s0, t1) || vec_equals_3d(s0, t2));
 	bool s1_in_vertices =
@@ -238,13 +240,21 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 	}
 
 	if (vol_s0_t > Sign::ZERO && vol_s1_t > Sign::ZERO) // s is above t
+	{
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 0);
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
+	}
 	if (vol_s0_t < Sign::ZERO && vol_s1_t < Sign::ZERO) // s is below t
+	{
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 1);
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
+	}
 	if (vol_s0_t == Sign::ZERO && vol_s1_t == Sign::ZERO) // s and t are coplanar
 	{
 		if (n_max == -1)
 			n_max = MaxCompInTriNormal()(t0, t1, t2);
+
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 2);
 
 		// same code as the 2D version, I just copied it here....
 		if ((Triangle3_Point3_DoInter().in_triangle(t0, t1, t2, s0, n_max) !=
@@ -252,6 +262,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		     Triangle3_Point3_DoInter().in_triangle(t0, t1, t2, s1, n_max) !=
 		       PointInType::STRICTLY_OUTSIDE))
 			return SimplexIntersectionType::INTERSECT;
+
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 3);
 
 		switch (
 		  Segment3_Segment3_DoInter().intersection_type(s0, s1, t0, t1, n_max))
@@ -266,6 +278,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 			break;
 		}
 
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 4);
+
 		switch (
 		  Segment3_Segment3_DoInter().intersection_type(s0, s1, t1, t2, n_max))
 		{
@@ -278,6 +292,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
 			break;
 		}
+
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 5);
 
 		switch (
 		  Segment3_Segment3_DoInter().intersection_type(s0, s1, t2, t0, n_max))
@@ -292,8 +308,12 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 			break;
 		}
 
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 6);
+
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 	}
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 7);
 
 	// s intersects t (borders included), if the signs of the three tetrahedra
 	// obtained combining s with the three edges of t are all equal
@@ -311,6 +331,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 	    (vol_s_t01 < Sign::ZERO && vol_s_t12 > Sign::ZERO))
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 8);
+
 	Sign vol_s_t20 = Orient3D()(s0, s1, t2, t0);
 
 	if ((vol_s_t12 > Sign::ZERO && vol_s_t20 < Sign::ZERO) ||
@@ -319,6 +341,8 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 	if ((vol_s_t20 > Sign::ZERO && vol_s_t01 < Sign::ZERO) ||
 	    (vol_s_t20 < Sign::ZERO && vol_s_t01 > Sign::ZERO))
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 9);
 
 	return SimplexIntersectionType::INTERSECT;
 }

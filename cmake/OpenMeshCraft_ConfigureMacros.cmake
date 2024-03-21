@@ -73,7 +73,14 @@ if(OMC_CMAKE_PRED_PROFILE)
   target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_PRED_PROFILE)
 else()
   # message(STATUS "[OpenMeshCraft] Disable profiling predicates")
-  # target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_DISABLE_AVX)
+endif()
+
+# enable profiling intersections
+if(OMC_CMAKE_INTER_PROFILE)
+  message(STATUS "[OpenMeshCraft] Enable profiling intersections")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_INTER_PROFILE)
+else()
+  # message(STATUS "[OpenMeshCraft] Disable profiling intersections")
 endif()
 
 # generate debug information

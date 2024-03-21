@@ -1,3 +1,4 @@
+#include "OpenMeshCraft/Geometry/Intersection/IntersectionUtils.h"
 #include "OpenMeshCraft/Geometry/Predicates/IndirectDefinitions.h"
 #include "OpenMeshCraft/Utils/Logger.h"
 #include "test_utils.h"
@@ -7,6 +8,7 @@ boost::property_tree::ptree omc_test_config;
 int main(int argc, char **argv)
 {
 	OMC_PRED_PROFILE_INIT;
+	OMC_INTER_PROFILE_INIT;
 
 	::testing::InitGoogleTest(&argc, argv);
 
@@ -32,6 +34,7 @@ int main(int argc, char **argv)
 	int ret = RUN_ALL_TESTS();
 
 	OMC_PRED_PROFILE_PRINT;
+	OMC_INTER_PROFILE_PRINT;
 
 	return ret;
 }

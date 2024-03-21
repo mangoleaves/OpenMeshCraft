@@ -176,6 +176,7 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 	OMC_EXPENSIVE_ASSERT(CollinearPoints3D().misaligned(t00, t01, t02) &&
 	                       CollinearPoints3D().misaligned(t10, t11, t12),
 	                     "degenerate triangle");
+	OMC_INTER_PROFILE_INC_TOTAL(IntersectionNames::T3T3);
 
 	// binary flags to mark coincident vertices in t0 and t1
 	std::bitset<3> t0_shared = {0b000};
@@ -224,6 +225,8 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 		const NT *t0[3] = {t00, t01, t02};
 		const NT *t1[3] = {t10, t11, t12};
 
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 0);
+
 		// if they are not coplanar, then they form a valid complex
 		if (t0_min != nullptr &&
 		    Orient3D().with_cached_minors(t00, t01, t02, t1[opp1], t0_min,
@@ -232,11 +235,15 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 		else if (Orient3D()(t00, t01, t02, t1[opp1]) != Sign::ZERO)
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 1);
+
 		Sign opp0_wrt_e = OrientOn2D().on_xy(t0[e[0]], t0[e[1]], t0[opp0]);
 		Sign opp1_wrt_e = OrientOn2D().on_xy(t0[e[0]], t0[e[1]], t1[opp1]);
 		if ((opp0_wrt_e == Sign::POSITIVE && opp1_wrt_e == Sign::NEGATIVE) ||
 		    (opp0_wrt_e == Sign::NEGATIVE && opp1_wrt_e == Sign::POSITIVE))
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
+
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 2);
 
 		opp0_wrt_e = OrientOn2D().on_yz(t0[e[0]], t0[e[1]], t0[opp0]);
 		opp1_wrt_e = OrientOn2D().on_yz(t0[e[0]], t0[e[1]], t1[opp1]);
@@ -244,11 +251,15 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 		    (opp0_wrt_e == Sign::NEGATIVE && opp1_wrt_e == Sign::POSITIVE))
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 3);
+
 		opp0_wrt_e = OrientOn2D().on_zx(t0[e[0]], t0[e[1]], t0[opp0]);
 		opp1_wrt_e = OrientOn2D().on_zx(t0[e[0]], t0[e[1]], t1[opp1]);
 		if ((opp0_wrt_e == Sign::POSITIVE && opp1_wrt_e == Sign::NEGATIVE) ||
 		    (opp0_wrt_e == Sign::NEGATIVE && opp1_wrt_e == Sign::POSITIVE))
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
+
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 4);
 
 		return SimplexIntersectionType::INTERSECT;
 	}
@@ -281,9 +292,11 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 		if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, opp0[0], opp0[1], n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT ||
 		    Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, opp1[0], opp1[1], n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
 		{
+			OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 5);
 			return SimplexIntersectionType::INTERSECT;
 		}
 		// clang-format on
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 6);
 		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 	}
 
@@ -293,17 +306,32 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 	int n0_max = -1;
 	int n1_max = -1;
 	// clang-format off
-	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t00, t01, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT ||
-	    Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t01, t02, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT ||
-	    Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t02, t00, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT ||
-	    Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t10, t11, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT ||
-	    Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t11, t12, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT ||
-	    Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t12, t10, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
-	{
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 7);
+	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t00, t01, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
-	}
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 8);
+	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t01, t02, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
+		return SimplexIntersectionType::INTERSECT;
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 9);
+	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t02, t00, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
+		return SimplexIntersectionType::INTERSECT;
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 10);
+	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t10, t11, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
+		return SimplexIntersectionType::INTERSECT;
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 11);
+	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t11, t12, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
+		return SimplexIntersectionType::INTERSECT;
+
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 12);
+	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t12, t10, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
+		return SimplexIntersectionType::INTERSECT;
 	// clang-format on
 
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 13);
 	return SimplexIntersectionType::DO_NOT_INTERSECT;
 }
 
