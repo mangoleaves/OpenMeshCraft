@@ -989,10 +989,10 @@ index_t ClassifyIntersections<Traits>::addEdgeCrossNoCoplanarEdgeInters(
 		  ts.edgeVert(e0_id, 0).data(), ts.edgeVert(e0_id, 1).data(),
 		  ts.edgeVert(e1_id, 0).data(), ts.edgeVert(e1_id, 1).data()};
 
-		OMC_ASSERT(Segment3_Segment3_DoIntersect().intersection_type(
-		             _pnts[0], _pnts[1], _pnts[2], _pnts[3]) >=
-		             SimplexIntersectionType::INTERSECT,
-		           "two edges do not intersect.");
+		OMC_EXPENSIVE_ASSERT(Segment3_Segment3_DoIntersect().intersection_type(
+		                       _pnts[0], _pnts[1], _pnts[2], _pnts[3]) >=
+		                       SimplexIntersectionType::INTERSECT,
+		                     "two edges do not intersect.");
 
 		for (size_t i = 0; i < 12; i += 3)
 		{

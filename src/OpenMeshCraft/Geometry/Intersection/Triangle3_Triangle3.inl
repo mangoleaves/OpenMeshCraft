@@ -291,14 +291,18 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 		int n0_max = -1;
 		int n1_max = -1;
 		// clang-format off
-		if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, opp0[0], opp0[1], n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT ||
-		    Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, opp1[0], opp1[1], n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
+		if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, opp0[0], opp0[1], n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
 		{
 			OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 6);
 			return SimplexIntersectionType::INTERSECT;
 		}
+		if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, opp1[0], opp1[1], n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
+		{
+			OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 7);
+			return SimplexIntersectionType::INTERSECT;
+		}
 		// clang-format on
-		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 7);
+		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 8);
 		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 	}
 
@@ -308,32 +312,32 @@ Triangle3_Triangle3_Do_Intersect<Kernel>::intersection_type(
 	int n0_max = -1;
 	int n1_max = -1;
 	// clang-format off
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 8);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 9);
 	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t00, t01, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 9);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 10);
 	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t01, t02, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 10);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 11);
 	if (Triangle3_Segment3_DoInter().intersection_type(t10, t11, t12, t02, t00, n1_max, t1_min, t1_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 11);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 12);
 	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t10, t11, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 12);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 13);
 	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t11, t12, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 13);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 14);
 	if (Triangle3_Segment3_DoInter().intersection_type(t00, t01, t02, t12, t10, n0_max, t0_min, t0_perm) >= SimplexIntersectionType::INTERSECT)
 		return SimplexIntersectionType::INTERSECT;
 	// clang-format on
 
-	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 14);
+	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3T3, 15);
 	return SimplexIntersectionType::DO_NOT_INTERSECT;
 }
 

@@ -25,7 +25,7 @@ DetectIntersections<Traits>::DetectIntersections(
 	intersection_list.clear();
 	intersection_list.reserve(_tris.size() / 3);
 
-#ifndef OMC_Arr_DI_NoCache
+#ifndef OMC_ARR_DI_NO_CACHE
 	cache  = std::vector<ShewchukCache>(tree.size());
 	cached = std::vector<std::once_flag>(tree.size());
 #endif
@@ -76,7 +76,7 @@ void DetectIntersections<Traits>::parallelOnLeafNodes(
 	auto test_tri_tri = [this, &mutex](index_t t0_id, const EPoint *T0_v[],
 	                                   index_t t1_id, const EPoint *T1_v[])
 	{
-#ifndef OMC_Arr_DI_NoCache
+#ifndef OMC_ARR_DI_NO_CACHE
 		std::call_once(cached[t0_id],
 		               [this, &T0_v, &t0_id]()
 		               {
@@ -94,7 +94,7 @@ void DetectIntersections<Traits>::parallelOnLeafNodes(
 #endif
 		if (intersectsTriangle(*T0_v[0], *T0_v[1], *T0_v[2], *T1_v[0], *T1_v[1],
 		                       *T1_v[2]
-#ifndef OMC_Arr_DI_NoCache
+#ifndef OMC_ARR_DI_NO_CACHE
 		                       ,
 		                       cache[t0_id].minor, cache[t0_id].perm,
 		                       cache[t1_id].minor, cache[t1_id].perm
@@ -269,7 +269,7 @@ void DetectIntersections<Traits>::parallelOnUniqPairs(
 		auto test_tri_tri = [this, &mutex](index_t t0_id, const EPoint *T0_v[],
 		                                   index_t t1_id, const EPoint *T1_v[])
 		{
-#ifndef OMC_Arr_DI_NoCache
+#ifndef OMC_ARR_DI_NO_CACHE
 			std::call_once(cached[t0_id],
 			               [this, &T0_v, &t0_id]()
 			               {
@@ -287,7 +287,7 @@ void DetectIntersections<Traits>::parallelOnUniqPairs(
 #endif
 			if (intersectsTriangle(*T0_v[0], *T0_v[1], *T0_v[2], *T1_v[0], *T1_v[1],
 			                       *T1_v[2]
-#ifndef OMC_Arr_DI_NoCache
+#ifndef OMC_ARR_DI_NO_CACHE
 			                       ,
 			                       cache[t0_id].minor, cache[t0_id].perm,
 			                       cache[t1_id].minor, cache[t1_id].perm
