@@ -578,7 +578,8 @@ namespace OMC {
 
 enum class ArrFuncNames : size_t
 {
-	DC_TTI = 0,
+	D_BBI = 0,
+	DC_TTI,
 	CNT
 };
 
@@ -594,6 +595,10 @@ struct ArrProfile
 	static inline void inc_total(ArrFuncNames name);
 	static inline void inc_reach(ArrFuncNames name, uint32_t branch_flag,
 	                             uint32_t branch_line);
+
+	static inline void inc_total(ArrFuncNames name, size_t count);
+	static inline void inc_reach(ArrFuncNames name, uint32_t branch_flag,
+	                             uint32_t branch_line, size_t count);
 
 	static inline void print();
 };
@@ -622,10 +627,23 @@ inline void ArrProfile::inc_reach(ArrFuncNames name, uint32_t branch_flag,
 	reach_line[(size_t)name][branch_flag] = branch_line;
 }
 
+inline void ArrProfile::inc_total(ArrFuncNames name, size_t count)
+{
+	total_count[(size_t)name] += count;
+}
+
+inline void ArrProfile::inc_reach(ArrFuncNames name, uint32_t branch_flag,
+                                  uint32_t branch_line, size_t count)
+{
+	reach_count[(size_t)name][branch_flag] += count;
+	reach_line[(size_t)name][branch_flag] = branch_line;
+}
+
 inline void ArrProfile::print()
 {
 	// clang-format off
   std::vector<std::string> func_names = {
+		"Detect BBI",
 	  "Detect & Classify TTI"
   };
 
@@ -662,6 +680,11 @@ inline void ArrProfile::print()
 	#define OMC_ARR_PROFILE_INC_REACH(func, branch_flag) \
 		OMC::ArrProfile::inc_reach(func, branch_flag, __LINE__)
 
+	#define OMC_ARR_PROFILE_INC_TOTAL_CNT(func, count) OMC::ArrProfile::inc_total(func, count)
+
+	#define OMC_ARR_PROFILE_INC_REACH_CNT(func, branch_flag, count) \
+		OMC::ArrProfile::inc_reach(func, branch_flag, __LINE__, count)
+
 #else
 
 	#define OMC_ARR_PROFILE_INIT
@@ -669,6 +692,9 @@ inline void ArrProfile::print()
 
 	#define OMC_ARR_PROFILE_INC_TOTAL(func)
 	#define OMC_ARR_PROFILE_INC_REACH(func, branch_flag)
+
+	#define OMC_ARR_PROFILE_INC_TOTAL_CNT(func, count)
+	#define OMC_ARR_PROFILE_INC_REACH_CNT(func, branch_flag, count)
 
 #endif
 } // namespace OMC

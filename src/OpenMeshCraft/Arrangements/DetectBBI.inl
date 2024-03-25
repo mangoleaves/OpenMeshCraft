@@ -34,6 +34,8 @@ DetectBBI<Traits>::DetectBBI(const std::vector<GPoint *> &_verts,
 
 	parallel_remove_duplicates(BBI_pairs);
 
+	OMC_ARR_PROFILE_INC_REACH_CNT(ArrFuncNames::D_BBI, 0, BBI_pairs.size());
+
 	if (verbose)
 		Logger::info(std::format("[OpenMeshCraft Arrangements] Detect unique pairs "
 		                         "of box-box intersections {}.",
@@ -135,6 +137,8 @@ void DetectBBI<Traits>::parallelOnLeafNodes(
 		}
 		else
 		{
+			OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
+			                              num_boxes * (num_boxes - 1) / 2);
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
 				const typename Tree::OrBbox &b0 = cache_boxes[bi0];
@@ -153,7 +157,8 @@ void DetectBBI<Traits>::parallelOnLeafNodes(
 		}
 	};
 
-	tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+	// tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+	std::for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
 
 	// Collect unique pairs
 	BBI_pairs.reserve(BBI_pairs.size() +
@@ -178,6 +183,9 @@ void DetectBBI<Traits>::parallelOnUniqPairs(
 		// sort boxes for faster traversal
 		const auto  &boxes     = tree.node(node_idx).boxes();
 		const size_t num_boxes = boxes.size();
+
+		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
+		                              num_boxes * (num_boxes - 1) / 2);
 
 		{ // for better memory cache :>
 			cache_labels.resize(num_boxes);
