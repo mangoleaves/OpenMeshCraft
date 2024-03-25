@@ -9,7 +9,7 @@
 
 // Sub-algorithms of arrangements
 #include "DetectBBI.h"
-#include "DetectClassifyIntersections.h"
+#include "DetectClassifyTTIs.h"
 #include "Triangulation.h"
 
 // Geometry kernel
@@ -277,7 +277,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	// * To keep points unique, a map where the keys are points and the
 	//   values are indices is used.
 	// * More Auxiliary data will also be stored in AuxStruct(g)
-	DetectClassifyIntersections<Traits> DCI(
+	DetectClassifyTTIs<Traits> DCI(
 	  tri_soup, aux_struct,
 	  /*parallel*/ aux_struct.intersection_list.size() > 100, stats, verbose);
 	DCI.checkTriangleTriangleIntersections();

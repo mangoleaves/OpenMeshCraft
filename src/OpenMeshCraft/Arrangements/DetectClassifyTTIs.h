@@ -5,7 +5,7 @@
 namespace OMC {
 
 template <typename Traits>
-class DetectClassifyIntersections
+class DetectClassifyTTIs
 {
 public:
 	using NT         = typename Traits::NT;
@@ -31,7 +31,7 @@ public:
 	using TriSoup   = TriangleSoup<Traits>;
 	using AuxStruct = AuxiliaryStructure<Traits>;
 
-	DetectClassifyIntersections(TriSoup &_ts, AuxStruct &_g,
+	DetectClassifyTTIs(TriSoup &_ts, AuxStruct &_g,
 	                            bool _parallel, MeshArrangements_Stats *_stats,
 	                            bool _verbose);
 
@@ -64,5 +64,5 @@ protected:
 } // namespace OMC
 
 #ifdef OMC_HAS_IMPL
-	#include "DetectClassifyIntersections.inl"
+	#include "DetectClassifyTTIs.inl"
 #endif

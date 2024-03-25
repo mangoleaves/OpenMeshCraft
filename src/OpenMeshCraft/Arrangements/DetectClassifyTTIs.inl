@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DetectClassifyIntersections.h"
+#include "DetectClassifyTTIs.h"
 #include "DetectClassifyTTI.h"
 
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
@@ -11,7 +11,7 @@
 namespace OMC {
 
 template <typename Traits>
-DetectClassifyIntersections<Traits>::DetectClassifyIntersections(
+DetectClassifyTTIs<Traits>::DetectClassifyTTIs(
   TriSoup &_ts, AuxStruct &_g, bool _parallel, MeshArrangements_Stats *_stats,
   bool _verbose)
   : ts(_ts)
@@ -32,7 +32,7 @@ DetectClassifyIntersections<Traits>::DetectClassifyIntersections(
 }
 
 template <typename Traits>
-void DetectClassifyIntersections<Traits>::checkTriangleTriangleIntersections()
+void DetectClassifyTTIs<Traits>::checkTriangleTriangleIntersections()
 {
 	auto check_tt = [this](const UIPair &pair)
 	{
@@ -74,7 +74,7 @@ void DetectClassifyIntersections<Traits>::checkTriangleTriangleIntersections()
 }
 
 template <typename Traits>
-void DetectClassifyIntersections<Traits>::mergeConcurrentAuxStructures()
+void DetectClassifyTTIs<Traits>::mergeConcurrentAuxStructures()
 {
 	auto mergeOneMember = [this](size_t idx)
 	{
@@ -137,7 +137,7 @@ void DetectClassifyIntersections<Traits>::mergeConcurrentAuxStructures()
 }
 
 template <typename Traits>
-void DetectClassifyIntersections<
+void DetectClassifyTTIs<
   Traits>::propagateCoplanarTrianglesIntersections()
 {
 	std::vector<std::pair<index_t, index_t>> coplanar_tris;
@@ -259,7 +259,7 @@ void DetectClassifyIntersections<
 }
 
 template <typename Traits>
-void DetectClassifyIntersections<Traits>::sortEdgePointsList()
+void DetectClassifyTTIs<Traits>::sortEdgePointsList()
 {
 	// sort points on edge
 	tbb::parallel_for(
@@ -302,7 +302,7 @@ void DetectClassifyIntersections<Traits>::sortEdgePointsList()
 }
 
 template <typename Traits>
-bool DetectClassifyIntersections<Traits>::pointInsideTriangle(index_t p_id,
+bool DetectClassifyTTIs<Traits>::pointInsideTriangle(index_t p_id,
                                                               index_t t_id)
 {
 	const GPoint &p   = ts.vert(p_id);
