@@ -95,6 +95,12 @@ public: /* Interfaces ********************************************************/
 	void meshArrangements(bool ignore_intersection_in_same_mesh,
 	                      bool output_explicit_result);
 
+	/// @brief An experimental interface to set parameters.
+	/// @note Don't modify it except you know it.
+	void setParameters(float _tree_enlarge_ratio, float _tree_adaptive_thres,
+	                   size_t _tree_parallel_scale,
+	                   size_t _tree_split_size_thres);
+
 	MeshArrangements_Stats &stats();
 
 private:

@@ -112,11 +112,24 @@ private:
 class Arr_AdapOrthSplitPred
 {
 public:
+	Arr_AdapOrthSplitPred()
+	  : threshold(1000)
+	{
+	}
+
+	Arr_AdapOrthSplitPred(size_t _threshold)
+	  : threshold(_threshold)
+	{
+	}
+
 	template <typename OrthTree, typename OrthNode>
 	bool operator()(OMC_UNUSED const OrthTree &tree, const OrthNode &node)
 	{
-		return node.size() > 1000;
+		return node.size() > threshold;
 	}
+
+private:
+	size_t threshold;
 };
 
 class Arr_AdapOrthShapeRefinePred
@@ -230,7 +243,8 @@ public: /* Constructors ***************************************************/
 public: /* build and refine ***********************************************/
 	void init_from_triangle_soup(const std::vector<GPoint *> &verts,
 	                             const std::vector<index_t>  &tris,
-	                             NT                           enlarge_ratio);
+	                             NT enlarge_ratio, size_t split_size_threshold,
+	                             float adaptive_thres, size_t parallel_scale);
 
 	void shape_refine(size_t num_intersection_pairs);
 

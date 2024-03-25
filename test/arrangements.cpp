@@ -18,12 +18,15 @@ using Triangles = typename TriSoupTraits::Triangles;
 
 using Arrangements = OMC::MeshArrangements<EIAC, TriSoupTraits>;
 
+boost::property_tree::ptree omc_test_config;
+
 int main(int argc, char *argv[])
 {
 	std::string filename;
 	bool        output_stats  = false;
 	bool        output_result = false;
 	bool        verbose       = false;
+	bool        has_config    = false;
 
 	auto print_help = []()
 	{
@@ -40,12 +43,27 @@ int main(int argc, char *argv[])
 		print_help();
 	for (int i = 2; i < argc; i++)
 	{
-		if (std::string(argv[i]) == "-v")
+		std::string param(argv[i]);
+		if (param == "-v")
 			verbose = true;
-		else if (std::string(argv[i]) == "-s")
+		else if (param == "-s")
 			output_stats = true;
-		else if (std::string(argv[i]) == "-r")
+		else if (param == "-r")
 			output_result = true;
+		else if (OMC::starts_with(param, "--config="))
+		{
+			std::string config_path = param.substr(param.find_first_of('=') + 1);
+			if (boost::filesystem::is_regular_file(
+			      boost::filesystem::path(config_path)))
+			{
+				boost::property_tree::read_json(config_path, omc_test_config);
+				has_config = true;
+			}
+			else
+			{
+				OMC_ASSERT(false, "test config file error.");
+			}
+		}
 		else
 			print_help();
 	}
@@ -68,14 +86,35 @@ int main(int argc, char *argv[])
 		fout << filename << ",";
 	}
 
-	auto start = OMC::Logger::elapse_reset();
-
 	Arrangements arrangements(verbose);
+	arrangements.addTriMeshAsInput(input_points, input_triangles);
+	arrangements.setTriMeshAsOutput(result_points, result_triangles);
+
+	if (has_config)
+	{
+		TEST_GET_CONFIG(Arrangements, TestDataSet);
+		bool   set_parameter = config.get<bool>("set_parameter", false);
+		float  _tree_enlarge_ratio;
+		float  _tree_adaptive_thres;
+		size_t _tree_parallel_scale;
+		size_t _tree_split_size_thres;
+		if (set_parameter)
+		{
+			boost::property_tree::ptree &parameters = config.get_child("parameters");
+			_tree_enlarge_ratio    = parameters.get<float>("tree_enlarge_ratio");
+			_tree_adaptive_thres   = parameters.get<float>("tree_adaptive_thres");
+			_tree_parallel_scale   = parameters.get<size_t>("tree_parallel_scale");
+			_tree_split_size_thres = parameters.get<size_t>("tree_split_size_thres");
+
+			arrangements.setParameters(_tree_enlarge_ratio, _tree_adaptive_thres,
+			                           _tree_parallel_scale, _tree_split_size_thres);
+		}
+	}
 
 	OMC::MeshArrangements_Stats &stats = arrangements.stats();
 
-	arrangements.addTriMeshAsInput(input_points, input_triangles);
-	arrangements.setTriMeshAsOutput(result_points, result_triangles);
+	auto start = OMC::Logger::elapse_reset();
+
 	arrangements.meshArrangements(false, true);
 
 	double time = OMC::Logger::elapsed(start).count();

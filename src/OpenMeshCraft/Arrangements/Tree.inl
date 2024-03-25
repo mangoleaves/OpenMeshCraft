@@ -11,7 +11,8 @@ namespace OMC {
 template <typename AppTraits>
 void Arr_OcTree_Intersection<AppTraits>::init_from_triangle_soup(
   const std::vector<GPoint *> &verts, const std::vector<index_t> &tris,
-  NT enlarge_ratio)
+  NT enlarge_ratio, size_t split_size_threshold, float adaptive_thres,
+  size_t parallel_scale)
 {
 	size_t               num_tris = tris.size() / 3;
 	std::vector<BboxT>   boxes(num_tris);
@@ -25,10 +26,13 @@ void Arr_OcTree_Intersection<AppTraits>::init_from_triangle_soup(
 		                  boxes[i]   = box;
 		                  indices[i] = i;
 	                  });
+	// set parameters
+	this->m_split_pred = typename TreeTraits::SplitPred(split_size_threshold);
 	// insert boxes and indices to tree
 	this->insert_boxes(boxes, indices);
 	// construct the tree
-	this->construct(/*compact*/ true, enlarge_ratio);
+	this->construct(/*compact*/ true, enlarge_ratio, adaptive_thres,
+	                parallel_scale);
 }
 
 template <typename AppTraits>

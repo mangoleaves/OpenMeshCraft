@@ -95,6 +95,20 @@ TEST_F(test_Arrangements, TestDataSet)
 
 	bool verbose = config.get<bool>("verbose");
 
+	bool   set_parameter          = config.get<bool>("set_parameter", false);
+	float  _tree_enlarge_ratio    = 1.1f;
+	float  _tree_adaptive_thres   = 0.1f;
+	size_t _tree_parallel_scale   = 10000;
+	size_t _tree_split_size_thres = 1000;
+	if (set_parameter)
+	{
+		boost::property_tree::ptree &parameters = config.get_child("parameters");
+		_tree_enlarge_ratio    = parameters.get<float>("tree_enlarge_ratio");
+		_tree_adaptive_thres   = parameters.get<float>("tree_adaptive_thres");
+		_tree_parallel_scale   = parameters.get<size_t>("tree_parallel_scale");
+		_tree_split_size_thres = parameters.get<size_t>("tree_split_size_thres");
+	}
+
 	for (boost::filesystem::directory_iterator iter(model_dir_path);
 	     iter != endIter; iter++)
 	{
@@ -110,13 +124,20 @@ TEST_F(test_Arrangements, TestDataSet)
 			          io_options);
 
 			Arrangements arrangements(/*verbose*/ verbose);
+			arrangements.addTriMeshAsInput(input_points, input_triangles);
+			arrangements.setTriMeshAsOutput(result_points, result_triangles);
+
+			if (set_parameter)
+			{
+				arrangements.setParameters(_tree_enlarge_ratio, _tree_adaptive_thres,
+				                           _tree_parallel_scale,
+				                           _tree_split_size_thres);
+			}
 
 			OMC::MeshArrangements_Stats &stats = arrangements.stats();
 
 			auto start = OMC::Logger::elapse_reset();
 
-			arrangements.addTriMeshAsInput(input_points, input_triangles);
-			arrangements.setTriMeshAsOutput(result_points, result_triangles);
 			arrangements.meshArrangements(false, false);
 
 			double total_time = OMC::Logger::elapsed(start).count();

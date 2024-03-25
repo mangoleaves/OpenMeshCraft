@@ -113,6 +113,16 @@ public: /* Constructors ******************************************************/
 	{
 	}
 
+	/// @brief An experimental interface to set varying parameters.
+	void setParameters(NT _tree_enlarge_ratio, float _tree_adaptive_thres,
+	                   size_t _tree_parallel_scale, size_t _tree_split_size_thres)
+	{
+		tree_enlarge_ratio    = _tree_enlarge_ratio;
+		tree_adaptive_thres   = _tree_adaptive_thres;
+		tree_parallel_scale   = _tree_parallel_scale;
+		tree_split_size_thres = _tree_split_size_thres;
+	}
+
 public: /* Pipeline **********************************************************/
 	/// @brief Detect intersections, classify intersections, and triangulate
 	/// all triangles with intersect points and constrained segments.
@@ -169,9 +179,13 @@ public:
 	/// information of removed duplicate triangles (maybe used again)
 	std::vector<DuplTriInfo> dupl_triangles;
 
+	/* Parameters */
+	NT     tree_enlarge_ratio    = 1.01;
+	float  tree_adaptive_thres   = 0.1f;
+	size_t tree_parallel_scale   = 10000;
+	size_t tree_split_size_thres = 1000;
+
 	/* Behavior control flags and data */
-	/// enlarge bbox in tree
-	NT                      tree_enlarge_ratio = 1.01;
 	/// save stats
 	MeshArrangements_Stats *stats;
 	/// output log messages
@@ -234,7 +248,9 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	OMC_ARR_START_ELAPSE(start_tree);
 
 	// initialize tree from triangle soup (vertices and triangles)
-	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris, tree_enlarge_ratio);
+	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris, tree_enlarge_ratio,
+	                             tree_split_size_thres, tree_adaptive_thres,
+	                             tree_parallel_scale);
 
 	OMC_ARR_SAVE_ELAPSED(start_tree, tree_elapsed, "Build tree");
 	OMC_ARR_SAVE_ELAPSED(start_pp, pp_elapsed, "Preprocessing");
@@ -786,6 +802,16 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 		    *output_points, *output_triangles, output_labels);
 		m_impl = nullptr;
 	}
+}
+
+template <typename Kernel, typename Traits>
+void MeshArrangements<Kernel, Traits>::setParameters(
+  float _tree_enlarge_ratio, float _tree_adaptive_thres,
+  size_t _tree_parallel_scale, size_t _tree_split_size_thres)
+{
+	if (m_impl)
+		m_impl->setParameters(_tree_enlarge_ratio, _tree_adaptive_thres,
+		                      _tree_parallel_scale, _tree_split_size_thres);
 }
 
 template <typename Kernel, typename Traits>

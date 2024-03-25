@@ -81,7 +81,7 @@ void AdapOrthTree<Traits>::insert_boxes(const Bboxes  &bboxes,
 
 template <typename Traits>
 void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
-                                     float adaptive_thres)
+                                     float adaptive_thres, size_t parallel_scale)
 {
 	// save behavior control flags and data for further use or query.
 	m_enlarge_ratio  = enlarge_ratio;
@@ -114,7 +114,7 @@ void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
 	root_node().size() = m_boxes.size();
 	std::iota(root_node().boxes().begin(), root_node().boxes().end(), index_t(0));
 
-	bool parallel = root_node().size() > 10000;
+	bool parallel = root_node().size() > parallel_scale;
 
 	if (parallel)
 	{

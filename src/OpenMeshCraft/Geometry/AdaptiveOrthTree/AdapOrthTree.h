@@ -119,7 +119,7 @@ public: /* Constructors and Destructor *************************************/
 	 * @param adaptive_thres control the adaptive strategy when splitting nodes.
 	 */
 	void construct(bool compact_box = false, NT enlarge_ratio = 1.2,
-	               float adaptive_thres = 0.1f);
+	               float adaptive_thres = 0.1f, size_t parallel_scale = 10000);
 
 	/**
 	 * @brief Refine shape of tree (e.g., split a node if it is too large).
