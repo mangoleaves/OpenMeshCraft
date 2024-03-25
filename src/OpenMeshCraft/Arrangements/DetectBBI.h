@@ -5,28 +5,24 @@
 namespace OMC {
 
 template <typename Traits>
-class DetectIntersections
+class DetectBBI
 {
 public:
 	using NT     = typename Traits::NT;
 	using EPoint = typename Traits::EPoint;
 	using GPoint = typename Traits::GPoint;
 
-	using AsEP = typename Traits::AsEP;
-
-	using Orient3D    = typename Traits::Orient3D;
+	// used to check Box-Box intersection.
 	using DoIntersect = typename Traits::DoIntersect;
-	using Triangle3_Triangle3_DoIntersect =
-	  typename Traits::Triangle3_Triangle3_DoIntersect;
 
 	using Tree = Arr_OcTree_Intersection<Traits>;
 
-	DetectIntersections(
-	  const std::vector<GPoint *> &_verts, const std::vector<index_t> &_tris,
-	  const std::vector<Label> &_labels, const size_t _num_labels, Tree &_tree,
-	  std::vector<UIPair> &_intersection_list, std::vector<ShewchukCache> &_cache,
-	  bool                    _ignore_inter_with_same_label,
-	  MeshArrangements_Stats *_stats = nullptr, bool _verbose = false);
+	DetectBBI(const std::vector<GPoint *> &_verts,
+	          const std::vector<index_t>  &_tris,
+	          const std::vector<Label> &_labels, const size_t _num_labels,
+	          const Tree &_tree, std::vector<UIPair> &_BBI_pairs,
+	          bool _ignore_same_label, MeshArrangements_Stats *_stats = nullptr,
+	          bool _verbose = false);
 
 private:
 	/**
@@ -64,34 +60,19 @@ private:
 	 */
 	void parallelOnUniqPairs(const std::vector<index_t> &leaf_nodes);
 
-	/**
-	 * @brief A simple wrap of triangle-triangle intersection test.
-	 */
-	bool intersectsTriangle(const EPoint &t1_v0, const EPoint &t1_v1,
-	                        const EPoint &t1_v2, const EPoint &t2_v0,
-	                        const EPoint &t2_v1, const EPoint &t2_v2,
-	                        NT *t1_min = nullptr, NT *t1_perm = nullptr,
-	                        NT *t2_min = nullptr, NT *t2_perm = nullptr);
-
 protected:
 	/* Input data */
 	const std::vector<GPoint *> &verts;
 	const std::vector<index_t>  &tris;
 	const std::vector<Label>    &labels;
 	const size_t                 num_labels;
-	Tree                        &tree;
+	const Tree                  &tree;
 	/* Output data */
-	std::vector<UIPair>         &intersection_list;
-
-public:
-	/* Middle auxiliary data */
-	/* cached data, will be used by ClassifyIntersection later. */
-	std::vector<ShewchukCache> &cache;
-	std::vector<std::once_flag> cached;
+	std::vector<UIPair>         &BBI_pairs;
 
 protected:
 	/* ignore intersection between triangles with same label */
-	bool                    ignore_inter_with_same_label;
+	bool                    ignore_same_label;
 	/* statistics */
 	MeshArrangements_Stats *stats;
 	/* Behavior control flags */
@@ -101,5 +82,5 @@ protected:
 } // namespace OMC
 
 #ifdef OMC_HAS_IMPL
-	#include "DetectIntersections.inl"
+	#include "DetectBBI.inl"
 #endif

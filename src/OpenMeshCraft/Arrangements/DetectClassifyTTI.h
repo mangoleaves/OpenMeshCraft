@@ -149,7 +149,6 @@ protected:
 	};
 
 protected:
-
 	bool get_v_in_seg(TTIHelper &ha, index_t va, TTIHelper &hb, index_t eb);
 
 	index_t get_v_in_seg(TTIHelper &ha, index_t va, TTIHelper &hb);
@@ -166,7 +165,7 @@ protected:
 	                          index_t eb);
 
 	bool seg_seg_do_intersect(TTIHelper &ha, index_t ea, TTIHelper &hb,
-	                          index_t eb);
+	                          index_t eb, Sign eb0_wrt_ea, Sign eb1_wrt_ea);
 
 	bool coplanar_seg_tri_do_intersect(TTIHelper &ha, index_t ea, TTIHelper &hb);
 
@@ -180,26 +179,24 @@ protected:
 
 	void check_TTI_separate(TTIHelper &ha, TTIHelper &hb);
 
-	bool classify_coplanr_vtx_intersections(
-	  TTIHelper &ha, index_t va, TTIHelper &hb,
-	  phmap::flat_hash_set<index_t> &inter_list,
-	  phmap::flat_hash_set<index_t> &vtx_list);
+	bool
+	classify_coplanr_vtx_intersections(TTIHelper &ha, index_t va, TTIHelper &hb,
+	                                   phmap::flat_hash_set<index_t> &inter_list);
 
 	bool classify_coplanar_edge_intersections(
 	  TTIHelper &ha, index_t ea, TTIHelper &hb,
 	  phmap::flat_hash_set<index_t>             &inter_list,
-	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_inter_list);
+	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
 
 	bool classify_noncoplanar_edge_intersections(
 	  TTIHelper &ha, index_t ea, TTIHelper &hb,
-	  phmap::flat_hash_set<index_t> &inter_list,
-	  phmap::flat_hash_set<index_t> &vtx_list);
+	  phmap::flat_hash_set<index_t> &inter_list);
 
 	void add_symbolic_segment(index_t v0, index_t v1, index_t ta, index_t tb);
 
 	index_t add_edge_cross_coplanar_edge(
 	  index_t ea, index_t eb, index_t t,
-	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_inter_list);
+	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
 
 	index_t add_edge_cross_noncoplanar_edge(index_t ea, index_t eb);
 

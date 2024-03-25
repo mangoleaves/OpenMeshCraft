@@ -8,9 +8,8 @@
 #include "TriangleSoup.h"
 
 // Sub-algorithms of arrangements
-#include "ClassifyIntersections.h"
-#include "ConnectIntersections.h"
-#include "DetectIntersections.h"
+#include "DetectBBI.h"
+#include "DetectClassifyIntersections.h"
 #include "Triangulation.h"
 
 // Geometry kernel
@@ -136,10 +135,10 @@ public: /* Preprocessing steps ***********************************************/
 
 	void removeDegenerateAndDuplicatedTriangles();
 
-public: /* Parallel routines for solving intersecions ************************/
-	void divideBeforeClassifying();
+public: /* Routines for solving intersecions *********************************/
+	void initBeforeDetectClassify();
 
-	void mergeAfterTriangulation();
+	void exitAfterTriangulation();
 
 public:
 	/* Input data */
@@ -179,35 +178,20 @@ public:
 	bool                    verbose;
 
 private: /* Private middle data *******************************************/
+	/// intersection list detected by tree.
+	std::vector<UIPair>   BBI_pairs;
+	/// point arena for explicit points
 	PntArena              exp_pnt_arena;
+	/// index arena for explicit points
+	IdxArena              exp_idx_arena;
 	/// All generated points in algorithm are stored in pnt_arena
 	std::vector<PntArena> pnt_arenas;
 	/// indice arena
 	std::vector<IdxArena> idx_arenas;
-
-	/// cached data, calculated by DI, reused by CI.
-	std::vector<ShewchukCache>       cache;
-	/// intersection list detected by tree.
-	std::vector<UIPair>              intersection_list;
-	/// connected intersection lists
-	std::vector<std::vector<UIPair>> connected_intersection_lists;
-	/// triangles without intersection.
-	std::vector<index_t>             tris_without_inter;
-
-	/// reversely map local vertex index to global vertex index
-	std::vector<std::vector<index_t>>          rev_map_lv2gv;
-	/// triangle soups built on connected components
-	std::vector<TriSoup>                       tri_soups;
-	/// auxiliary structures build on connected componnets
-	std::vector<AuxStruct>                     aux_structs;
-	/// shewchuk cache (calculate by DI, reused by CI)
-	std::vector<std::vector<ShewchukCachePtr>> cache_ptrs;
-	/// shallow copies trees to store vertices
-	std::vector<Tree>                          shallow_trees;
-	/// output triangles and labels of each connected component
-	std::vector<std::vector<index_t>>          cc_out_tris;
-	/// output labels for all unique triangles
-	std::vector<Labels>                        cc_out_labels;
+	/// triangle soup
+	TriSoup               tri_soup;
+	/// auxiliary structure
+	AuxStruct             aux_struct;
 };
 
 template <typename Traits>
@@ -261,17 +245,17 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 
 	// Detect intersections between triangles.
 	// * The intersections (pairs of intersected triangles) will
-	//   be stored in intersection_list.
+	//   be stored in BBI_pairs.
 	// * Will ignore intersection between triangles with the same labels if
 	//   ignore_intersection_in_same_mesh is enabled.
 	//   This feature is designed for mesh boolean.
-	DetectIntersections<Traits> DI(
-	  arr_out_verts, arr_in_tris, arr_in_labels, arr_out_labels.num, tree,
-	  intersection_list, cache, ignore_intersection_in_same_mesh, stats, verbose);
+	DetectBBI<Traits> DI(arr_out_verts, arr_in_tris, arr_in_labels,
+	                     arr_out_labels.num, tree, BBI_pairs,
+	                     ignore_intersection_in_same_mesh, stats, verbose);
 
 	OMC_ARR_SAVE_ELAPSED(start_di, di_elapsed, "Detect intersections");
 
-	if (intersection_list.empty())
+	if (BBI_pairs.empty())
 	{
 		arr_out_tris           = arr_in_tris;
 		arr_out_labels.surface = arr_in_labels;
@@ -279,26 +263,10 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 		return;
 	}
 
-	OMC_ARR_START_ELAPSE(start_cn);
-
-	// Connect intersections.
-	// * Some triangles with intersections may be far from each other, they can be
-	//   classified and triangulated separatelly.
-	// * Triangles are inseparable if they are connected by intersections.
-	// * "Connected" is defined as below:
-	//   1. if two triangles intersect each other, they are connected.
-	//   2. if two triangles with intersection share a common edge, they are
-	//   connected.
-	// * The first definition is simple and clear. The second definition is
-	//   bacause new LPI points will be inserted on edges.
-	ConnectIntersections<Traits> CN(arr_in_tris, intersection_list,
-	                                connected_intersection_lists, stats, verbose);
-
-	OMC_ARR_SAVE_ELAPSED(start_cn, cn_elapsed, "Connect intersections");
 	OMC_ARR_START_ELAPSE(start_ci);
 
 	// build triangle soups and aux structs for each connected component.
-	divideBeforeClassifying();
+	initBeforeDetectClassify();
 
 	// Classify intersections.
 	// * Based on detected intersections between triangles,
@@ -309,18 +277,13 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	// * To keep points unique, a map where the keys are points and the
 	//   values are indices is used.
 	// * More Auxiliary data will also be stored in AuxStruct(g)
-	for (size_t cc_id = 0; cc_id < connected_intersection_lists.size(); cc_id++)
-	{
-		ClassifyIntersections<Traits> CI(
-		  tri_soups[cc_id], aux_structs[cc_id], cache_ptrs[cc_id],
-		  /*parallel*/ aux_structs[cc_id].intersection_list.size() > 100, stats,
-		  verbose);
-		CI.checkTriangleTriangleIntersections();
-		CI.propagateCoplanarTrianglesIntersections();
-	}
+	DetectClassifyIntersections<Traits> DCI(
+	  tri_soup, aux_struct,
+	  /*parallel*/ aux_struct.intersection_list.size() > 100, stats, verbose);
+	DCI.checkTriangleTriangleIntersections();
+	DCI.propagateCoplanarTrianglesIntersections();
 
-	for (Tree &shallow_tree : shallow_trees)
-		shallow_tree.clear_points();
+	tree.clear_points();
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 
@@ -334,18 +297,13 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	// * new triangles will be stored in arr_out_tris.
 	// * new labels will be attached to new triangles, stored in
 	// arr_out_labels.surface.
-	for (size_t cc_id = 0; cc_id < connected_intersection_lists.size(); cc_id++)
-	{
-		Triangulation<Traits> TR(tri_soups[cc_id], aux_structs[cc_id],
-		                         cc_out_tris[cc_id], cc_out_labels[cc_id].surface);
-	}
+	Triangulation<Traits> TR(tri_soup, aux_struct, arr_out_tris,
+	                         arr_out_labels.surface);
 
 	// merge connected components after all done.
-	mergeAfterTriangulation();
+	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
-
-	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 }
 
 template <typename Traits>
@@ -630,195 +588,46 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::divideBeforeClassifying()
+void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 {
-	size_t task_size = connected_intersection_lists.size();
-
 	pnt_arenas = std::vector<PntArena>(tbb::this_task_arena::max_concurrency());
 	idx_arenas = std::vector<IdxArena>(tbb::this_task_arena::max_concurrency());
 
-	rev_map_lv2gv.resize(task_size);
-	tri_soups.resize(task_size);
-	aux_structs.resize(task_size);
-	cache_ptrs.resize(task_size);
-
-	// shallow copy to get the first one
-	shallow_trees.resize(1, tree);
 	// refine its shape
-	shallow_trees[0].shape_refine(intersection_list.size());
-	// then copy to get remain ones
-	shallow_trees.insert(shallow_trees.end(), task_size - 1, shallow_trees[0]);
+	tree.shape_refine(BBI_pairs.size());
 
-	cc_out_tris.resize(task_size);
-	cc_out_labels.resize(task_size);
+	TriSoup   &ts = tri_soup;
+	AuxStruct &g  = aux_struct;
 
-	std::vector<index_t> map_gt2lt(arr_in_tris.size() / 3, InvalidIndex);
+	ts.vertices = tbb::concurrent_vector<GPoint *>(arr_out_verts.begin(),
+	                                               arr_out_verts.end());
+	for (index_t i = 0; i < ts.vertices.size(); i++)
+		ts.indices.push_back(exp_idx_arena.emplace(i));
+	ts.triangles  = std::move(arr_in_tris);
+	ts.tri_labels = std::move(arr_in_labels);
+	ts.pnt_arenas = &pnt_arenas;
+	ts.idx_arenas = &idx_arenas;
+	ts.initialize();
 
-	auto initOneTask = [this, &map_gt2lt](size_t tid)
-	{
-		int curr_thread_idx = tbb::this_task_arena::current_thread_index();
-		const std::vector<UIPair> &inter_list = connected_intersection_lists[tid];
-		TriSoup                   &ts         = tri_soups[tid];
-		AuxStruct                 &g          = aux_structs[tid];
-		Tree                      &stree      = shallow_trees[tid];
-		std::vector<index_t>      &map_lv2gv  = rev_map_lv2gv[tid];
-		std::vector<ShewchukCachePtr> &cps    = cache_ptrs[tid];
-		std::vector<index_t>           map_lt2gt;
-		map_lt2gt.reserve(inter_list.size());
-
-		// collect local triangles
-		for (const UIPair &inter_pair : inter_list)
-		{
-			index_t t0id = inter_pair.first, t1id = inter_pair.second;
-			if (!is_valid_idx(map_gt2lt[t0id]))
-			{
-				map_gt2lt[t0id] = map_lt2gt.size();
-				map_lt2gt.push_back(t0id);
-			}
-			if (!is_valid_idx(map_gt2lt[t1id]))
-			{
-				map_gt2lt[t1id] = map_lt2gt.size();
-				map_lt2gt.push_back(t1id);
-			}
-		}
-		ts.vertices.reserve(map_lt2gt.size());
-		ts.triangles.reserve(map_lt2gt.size() * 3);
-		ts.tri_labels.reserve(map_lt2gt.size());
-		map_lv2gv.reserve(map_lt2gt.size());
-
-		// initialize triangle soup (vertices, triangles, and labels)
-		std::vector<index_t> map_gv2lv(arr_out_verts.size(), InvalidIndex);
-		for (index_t tri_id : map_lt2gt)
-		{
-			for (size_t i = 0; i < 3; i++)
-			{
-				index_t vid = arr_in_tris[tri_id * 3 + i];
-				if (!is_valid_idx(map_gv2lv[vid]))
-				{
-					map_gv2lv[vid] = map_lv2gv.size();
-					map_lv2gv.push_back(vid);
-					ts.vertices.push_back(arr_out_verts[vid]);
-					ts.indices.push_back(
-					  idx_arenas[curr_thread_idx].emplace(map_gv2lv[vid]));
-				}
-				ts.triangles.push_back(map_gv2lv[vid]);
-			}
-			ts.tri_labels.push_back(arr_in_labels[tri_id]);
-			cps.push_back(&cache[tri_id]);
-		}
-		ts.pnt_arenas = &pnt_arenas;
-		ts.idx_arenas = &idx_arenas;
-		ts.initialize();
-		g.initialize(ts);
-		g.build_vmap(ts, &stree);
-		g.intersection_list = std::move(connected_intersection_lists[tid]);
-		for (UIPair &p : g.intersection_list)
-		{
-			p.first  = map_gt2lt[p.first];
-			p.second = map_gt2lt[p.second];
-		}
-	};
-
-	tbb::parallel_for(size_t(0), task_size, initOneTask);
-
-	tris_without_inter.reserve(arr_in_tris.size() / 3);
-	for (size_t t_id = 0; t_id < map_gt2lt.size(); t_id++)
-	{
-		if (!is_valid_idx(map_gt2lt[t_id]))
-			tris_without_inter.push_back(t_id);
-	}
+	g.initialize(ts);
+	g.build_vmap(ts, &tree);
+	g.intersection_list = std::move(BBI_pairs);
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::mergeAfterTriangulation()
+void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 {
-	size_t task_size = connected_intersection_lists.size();
-
 	// clear unused data
-	intersection_list.clear();
-	connected_intersection_lists.clear();
-	aux_structs.clear();
-	shallow_trees.clear();
-
-	// collect size info for each task
-	size_t              total_new_vertices = 0, total_triangles = 0;
-	std::vector<size_t> num_vertices(task_size, 0);
-	std::vector<size_t> off_vert(task_size, 0);
-	std::vector<size_t> num_triangles(task_size, 0);
-	std::vector<size_t> off_tri(task_size, 0);
-	std::vector<size_t> off_label(task_size, 0);
-
-	bool first = true;
-	for (size_t i = 0; i < task_size; i++)
-	{
-		const TriSoup              &ts       = tri_soups[i];
-		const std::vector<index_t> &out_tris = cc_out_tris[i];
-
-		total_new_vertices += ts.numVerts() - ts.numOrigVertices();
-		num_vertices[i] = ts.numVerts() - ts.numOrigVertices();
-		off_vert[i] =
-		  (first ? arr_out_verts.size() : off_vert[i - 1] + num_vertices[i - 1]);
-
-		total_triangles += out_tris.size() / 3;
-		num_triangles[i] = out_tris.size() / 3;
-		off_tri[i]       = (first ? 0 : off_tri[i - 1] + num_triangles[i - 1] * 3);
-
-		off_label[i] = (first ? 0 : off_label[i - 1] + num_triangles[i - 1]);
-
-		first = false;
-	}
+	BBI_pairs.clear();
+	tree.clear();
 
 	// initialize merged triangle soup and auxiliary structure
-	arr_out_verts.resize(arr_out_verts.size() + total_new_vertices);
-	arr_out_tris.resize(total_triangles * 3);
-	arr_out_labels.surface.resize(total_triangles);
+	arr_out_verts.resize(arr_out_verts.size() + tri_soup.numVerts() -
+	                     tri_soup.numOrigVertices());
+	std::copy(tri_soup.vertices.begin(), tri_soup.vertices.end(),
+	          arr_out_verts.begin());
 
-	auto mergeOneTask = [this, &num_vertices, &off_vert, &num_triangles, &off_tri,
-	                     &off_label](size_t i)
-	{
-		const TriSoup              &ts         = tri_soups[i];
-		const std::vector<index_t> &out_tris   = cc_out_tris[i];
-		const Labels               &out_labels = cc_out_labels[i];
-
-		const std::vector<index_t> &rev_map_v = rev_map_lv2gv[i];
-
-		size_t num_orig_verts = ts.numOrigVertices();
-		size_t num_verts      = ts.numVerts();
-
-		std::vector<index_t> map_lv2gv(num_verts);
-		for (size_t lv_id = 0; lv_id < num_verts; lv_id++)
-		{
-			map_lv2gv[lv_id] = lv_id < num_orig_verts
-			                     ? rev_map_v[lv_id]
-			                     : off_vert[i] + lv_id - num_orig_verts;
-		}
-
-		std::copy(ts.vertices.begin() + num_orig_verts, ts.vertices.end(),
-		          arr_out_verts.begin() + off_vert[i]);
-		std::transform(out_tris.begin(), out_tris.end(),
-		               arr_out_tris.begin() + off_tri[i],
-		               [&map_lv2gv](index_t lv_id) { return map_lv2gv[lv_id]; });
-		std::copy(out_labels.surface.begin(), out_labels.surface.end(),
-		          arr_out_labels.surface.begin() + off_label[i]);
-	};
-
-	tbb::parallel_for(size_t(0), task_size, mergeOneTask);
-
-	// merge triangles without intersection and their label
-	for (index_t t_id : tris_without_inter)
-	{
-		arr_out_tris.push_back(arr_in_tris[t_id * 3]);
-		arr_out_tris.push_back(arr_in_tris[t_id * 3 + 1]);
-		arr_out_tris.push_back(arr_in_tris[t_id * 3 + 2]);
-		arr_out_labels.surface.push_back(arr_in_labels[t_id]);
-	}
-
-	// clear unused data
-	tris_without_inter.clear();
-	rev_map_lv2gv.clear();
-	tri_soups.clear();
-	cc_out_tris.clear();
-	cc_out_labels.clear();
+	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 }
 
 template <typename Traits>

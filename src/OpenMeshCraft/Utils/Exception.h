@@ -136,10 +136,11 @@ namespace OMC {
 	#define OMC_ASSERT_AUX_CODE(code) code
 
   /// Exit program
-	#define OMC_EXIT(message, ...)                  \
-		{                                             \
-			OMC::Logger::fatal(message, ##__VA_ARGS__); \
-			std::exit(1);                               \
+	#define OMC_EXIT(message, ...)                                         \
+		{                                                                    \
+			OMC::Logger::fatal(std::format("[{}] [{}] " message, __FILENAME__, \
+			                               __LINE__, ##__VA_ARGS__));          \
+			std::exit(1);                                                      \
 		}
 
   /// Assert

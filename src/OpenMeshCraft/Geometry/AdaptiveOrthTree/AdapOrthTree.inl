@@ -643,10 +643,12 @@ void AdapOrthTree<Traits>::merge_unique(Iter b1, Iter e1, Iter b2, Iter e2,
                                         OutIter o, LessPred lp, EqualPred ep)
 {
 	remove_cvref_t<decltype(*b1)> last;
-	if (b1 != e1) { *o = *b1; last = *b1; ++o; ++b1; }
-	else if (b2 != e2) { *o = *b2; last = *b2; ++o; ++b2; }
-	else
-		return;
+	if (b1 == e1 || b2 == e2)
+	{
+		if (b1 != e1) { *o = *b1; last = *b1; ++o; ++b1; }
+		else if (b2 != e2) { *o = *b2; last = *b2; ++o; ++b2; }
+		else return;
+	}
 	while (b1 != e1 && b2 != e2)
 	{
 		if (lp(*b1, *b2))

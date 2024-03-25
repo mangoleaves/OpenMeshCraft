@@ -1014,7 +1014,7 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 template <typename IT, typename ET>
@@ -1164,7 +1164,7 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 template <typename IT, typename ET>
@@ -1290,7 +1290,7 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 template <typename IT, typename ET>
@@ -1440,7 +1440,7 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 template <typename IT, typename ET>
@@ -1566,7 +1566,7 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 template <typename IT, typename ET>
@@ -1716,7 +1716,7 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		return Sign::NEGATIVE;
 	if (return_value == 0)
 		return Sign::ZERO;
-	return Sign::UNCERTAIN; // OMC_EXIT("Should not happen.");
+	OMC_EXIT("Should not happen.");
 }
 
 #elif defined(OFFSET_PREDICATES)
