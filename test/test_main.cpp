@@ -1,3 +1,4 @@
+#include "OpenMeshCraft/Arrangements/Utils.h"
 #include "OpenMeshCraft/Geometry/Intersection/IntersectionUtils.h"
 #include "OpenMeshCraft/Geometry/Predicates/IndirectDefinitions.h"
 #include "OpenMeshCraft/Utils/Logger.h"
@@ -9,6 +10,7 @@ int main(int argc, char **argv)
 {
 	OMC_PRED_PROFILE_INIT;
 	OMC_INTER_PROFILE_INIT;
+	OMC_ARR_PROFILE_INIT;
 
 	::testing::InitGoogleTest(&argc, argv);
 
@@ -35,6 +37,7 @@ int main(int argc, char **argv)
 
 	OMC_PRED_PROFILE_PRINT;
 	OMC_INTER_PROFILE_PRINT;
+	OMC_ARR_PROFILE_PRINT;
 
 	return ret;
 }

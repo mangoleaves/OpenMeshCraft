@@ -34,6 +34,7 @@ option(OMC_CMAKE_LOG_FATAL "Log runtime fatal messages." ON)
 
 option(OMC_CMAKE_PRED_PROFILE "Enable profiling predicates in OpenMeshCraft." OFF)
 option(OMC_CMAKE_INTER_PROFILE "Enable profiling intersection in OpenMeshCraft." OFF)
+option(OMC_CMAKE_ARR_PROFILE "Enable profiling arrangements in OpenMeshCraft." OFF)
 
 option(OMC_BUILD_TEST "Build test project of OpenMeshCraft" ${OMC_MASTER_PROJECT})
 option(OMC_BUILD_EXAMPLE "Build example project of OpenMeshCraft" ${OMC_MASTER_PROJECT})

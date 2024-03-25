@@ -83,6 +83,14 @@ else()
   # message(STATUS "[OpenMeshCraft] Disable profiling intersections")
 endif()
 
+# enable profiling arrangements
+if(OMC_CMAKE_ARR_PROFILE)
+  message(STATUS "[OpenMeshCraft] Enable profiling arrangements")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_ARR_PROFILE)
+else()
+  # message(STATUS "[OpenMeshCraft] Disable profiling arrangements")
+endif()
+
 # generate debug information
 if(OMC_CMAKE_ENABLE_DEBUG_INFO)
 

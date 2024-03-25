@@ -573,6 +573,106 @@ struct hash<std::vector<T>>
 
 } // namespace std
 
+namespace OMC {
+#ifdef OMC_ARR_PROFILE
+
+enum class ArrFuncNames : size_t
+{
+	DC_TTI = 0,
+	CNT
+};
+
+struct ArrProfile
+{
+	static const uint32_t BRANCH_CNT = 64;
+
+	static size_t total_count[(size_t)ArrFuncNames::CNT];
+	static size_t reach_count[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
+	static size_t reach_line[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
+
+	static inline void initialize();
+	static inline void inc_total(ArrFuncNames name);
+	static inline void inc_reach(ArrFuncNames name, uint32_t branch_flag,
+	                             uint32_t branch_line);
+
+	static inline void print();
+};
+
+inline void ArrProfile::initialize()
+{
+	for (size_t i = 0; i < (size_t)ArrFuncNames::CNT; i++)
+	{
+		total_count[i] = 0;
+		for (size_t j = 0; j < BRANCH_CNT; j++)
+		{
+			reach_count[i][j] = 0;
+		}
+	}
+}
+
+inline void ArrProfile::inc_total(ArrFuncNames name)
+{
+	total_count[(size_t)name] += 1;
+}
+
+inline void ArrProfile::inc_reach(ArrFuncNames name, uint32_t branch_flag,
+                                  uint32_t branch_line)
+{
+	reach_count[(size_t)name][branch_flag] += 1;
+	reach_line[(size_t)name][branch_flag] = branch_line;
+}
+
+inline void ArrProfile::print()
+{
+	// clang-format off
+  std::vector<std::string> func_names = {
+	  "Detect & Classify TTI"
+  };
+
+	// clang-format on
+
+	for (size_t i = 0; i < (size_t)ArrFuncNames::CNT; i++)
+	{
+		std::cout << std::format("{}:\n", func_names[i]);
+		int last_branch_flag = 0;
+		// find the last non-zero branch flag
+		for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
+		{
+			if (reach_count[i][j] != 0)
+			{
+				last_branch_flag = j;
+				break;
+			}
+		}
+
+		for (int j = 0; j <= last_branch_flag; j++)
+		{
+			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
+			std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j],
+			                         reach_raio * 100.);
+		}
+	}
+}
+
+	#define OMC_ARR_PROFILE_INIT OMC::ArrProfile::initialize()
+	#define OMC_ARR_PROFILE_PRINT OMC::ArrProfile::print()
+
+	#define OMC_ARR_PROFILE_INC_TOTAL(func) OMC::ArrProfile::inc_total(func)
+
+	#define OMC_ARR_PROFILE_INC_REACH(func, branch_flag) \
+		OMC::ArrProfile::inc_reach(func, branch_flag, __LINE__)
+
+#else
+
+	#define OMC_ARR_PROFILE_INIT
+	#define OMC_ARR_PROFILE_PRINT
+
+	#define OMC_ARR_PROFILE_INC_TOTAL(func)
+	#define OMC_ARR_PROFILE_INC_REACH(func, branch_flag)
+
+#endif
+} // namespace OMC
+
 #define OMC_ARR_START_ELAPSE(name) auto name = OMC::Logger::elapse_reset();
 
 #define OMC_ARR_SAVE_ELAPSED(name, dst_name, dscrpt)                     \
