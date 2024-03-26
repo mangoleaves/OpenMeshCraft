@@ -573,12 +573,17 @@ struct hash<std::vector<T>>
 
 } // namespace std
 
-namespace OMC {
 #ifdef OMC_ARR_PROFILE
+
+	#include <fstream>
+
+namespace OMC {
 
 enum class ArrFuncNames : size_t
 {
 	D_BBI = 0,
+	D_BBI_UNIQ,
+	D_BBI_DUPL,
 	DC_TTI,
 	CNT
 };
@@ -644,6 +649,8 @@ inline void ArrProfile::print()
 	// clang-format off
   std::vector<std::string> func_names = {
 		"Detect BBI",
+		"Detect BBI unique",
+		"Detect BBI duplicate",
 	  "Detect & Classify TTI"
   };
 
@@ -671,6 +678,7 @@ inline void ArrProfile::print()
 		}
 	}
 }
+} // namespace OMC
 
 	#define OMC_ARR_PROFILE_INIT OMC::ArrProfile::initialize()
 	#define OMC_ARR_PROFILE_PRINT OMC::ArrProfile::print()
@@ -680,7 +688,8 @@ inline void ArrProfile::print()
 	#define OMC_ARR_PROFILE_INC_REACH(func, branch_flag) \
 		OMC::ArrProfile::inc_reach(func, branch_flag, __LINE__)
 
-	#define OMC_ARR_PROFILE_INC_TOTAL_CNT(func, count) OMC::ArrProfile::inc_total(func, count)
+	#define OMC_ARR_PROFILE_INC_TOTAL_CNT(func, count) \
+		OMC::ArrProfile::inc_total(func, count)
 
 	#define OMC_ARR_PROFILE_INC_REACH_CNT(func, branch_flag, count) \
 		OMC::ArrProfile::inc_reach(func, branch_flag, __LINE__, count)
@@ -697,7 +706,6 @@ inline void ArrProfile::print()
 	#define OMC_ARR_PROFILE_INC_REACH_CNT(func, branch_flag, count)
 
 #endif
-} // namespace OMC
 
 #define OMC_ARR_START_ELAPSE(name) auto name = OMC::Logger::elapse_reset();
 

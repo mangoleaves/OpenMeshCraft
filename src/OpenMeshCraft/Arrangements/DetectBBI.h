@@ -37,8 +37,8 @@ private:
 	 * and parallelize detection on these pairs.
 	 *
 	 * Why do we do that?
-	 * We hope for a large-scale parallelism, hence there won't be significant
-	 * overhead on parallelism.
+	 * We want the scale of parallelism is relatively large, hence there won't be
+	 * significant overhead on parallelism.
 	 * @param [in] leaf_nodes All leaf nodes of OcTree.
 	 * @param [out] uniq_leaf_nodes	See explanation in brief.
 	 * @param [out] dupl_leaf_nodes See explanation in brief.
@@ -51,14 +51,14 @@ private:
 	 * @brief Parallelize intersection detection on \p leaf_nodes.
 	 * @param leaf_nodes The uniq_leaf_nodes from partitionLeafNodes.
 	 */
-	void parallelOnLeafNodes(const std::vector<index_t> &leaf_nodes);
+	void parallelOnUniqNodes(const std::vector<index_t> &leaf_nodes);
 
 	/**
 	 * @brief Parallelize intersection detection on pairs of boxes in each node in
 	 * \p leaf_nodes.
 	 * @param leaf_nodes The dupl_leaf_nodes from partitionLeafNodes.
 	 */
-	void parallelOnUniqPairs(const std::vector<index_t> &leaf_nodes);
+	void parallelOnDuplNodes(const std::vector<index_t> &leaf_nodes);
 
 protected:
 	/* Input data */
