@@ -114,7 +114,7 @@ public: /* Constructors ******************************************************/
 	}
 
 	/// @brief An experimental interface to set varying parameters.
-	void setParameters(NT _tree_enlarge_ratio, float _tree_adaptive_thres,
+	void setParameters(float _tree_enlarge_ratio, float _tree_adaptive_thres,
 	                   size_t _tree_parallel_scale, size_t _tree_split_size_thres)
 	{
 		tree_enlarge_ratio    = _tree_enlarge_ratio;
@@ -180,7 +180,7 @@ public:
 	std::vector<DuplTriInfo> dupl_triangles;
 
 	/* Parameters */
-	NT     tree_enlarge_ratio    = 1.01;
+	float  tree_enlarge_ratio    = 1.01f;
 	float  tree_adaptive_thres   = 0.1f;
 	size_t tree_parallel_scale   = 10000;
 	size_t tree_split_size_thres = 1000;
@@ -790,6 +790,8 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 		return;
 	}
 
+	m_impl->setParameters(tree_enlarge_ratio, tree_adaptive_thres,
+	                      tree_parallel_scale, tree_split_size_thres);
 	m_impl->meshArrangementsPipeline(ignore_intersection_in_same_mesh);
 
 	if (output_explicit_result)
@@ -809,9 +811,10 @@ void MeshArrangements<Kernel, Traits>::setParameters(
   float _tree_enlarge_ratio, float _tree_adaptive_thres,
   size_t _tree_parallel_scale, size_t _tree_split_size_thres)
 {
-	if (m_impl)
-		m_impl->setParameters(_tree_enlarge_ratio, _tree_adaptive_thres,
-		                      _tree_parallel_scale, _tree_split_size_thres);
+	tree_enlarge_ratio    = _tree_enlarge_ratio;
+	tree_adaptive_thres   = _tree_adaptive_thres;
+	tree_parallel_scale   = _tree_parallel_scale;
+	tree_split_size_thres = _tree_split_size_thres;
 }
 
 template <typename Kernel, typename Traits>

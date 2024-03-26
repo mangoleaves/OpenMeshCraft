@@ -121,9 +121,9 @@ int main(int argc, char *argv[])
 
 	if (output_stats)
 	{
-		fout << stats.pp_elapsed << "," << stats.di_elapsed << ","
-		     << stats.cn_elapsed << "," << stats.ci_elapsed << ","
-		     << stats.tr_elapsed << "," << time << ","
+		fout << stats.pp_elapsed << "," << stats.tree_elapsed << ","
+		     << stats.di_elapsed << "," << stats.cn_elapsed << ","
+		     << stats.ci_elapsed << "," << stats.tr_elapsed << "," << time << ","
 		     << OMC::getPeakMegabytesUsed() << "," << result_points.size() << ","
 		     << result_triangles.size() << "\n";
 		std::cout << filename << ": " << time << "s, "

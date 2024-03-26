@@ -117,6 +117,12 @@ private:
 
 	std::vector<Label> *output_labels = nullptr;
 
+	/* Parameters */
+	float  tree_enlarge_ratio    = 1.01f;
+	float  tree_adaptive_thres   = 0.1f;
+	size_t tree_parallel_scale   = 10000;
+	size_t tree_split_size_thres = 1000;
+
 	/// behavior control flags
 	bool                   verbose;
 	MeshArrangements_Stats arr_stats;

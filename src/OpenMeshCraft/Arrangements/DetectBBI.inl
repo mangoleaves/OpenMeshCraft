@@ -157,8 +157,7 @@ void DetectBBI<Traits>::parallelOnLeafNodes(
 		}
 	};
 
-	// tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
-	std::for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+	tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
 
 	// Collect unique pairs
 	BBI_pairs.reserve(BBI_pairs.size() +
