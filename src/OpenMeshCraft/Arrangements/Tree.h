@@ -167,7 +167,7 @@ class Arr_Minimal_OrthogonalTraits
 {
 public:
 	static constexpr size_t Dimension                = 3;
-	static constexpr size_t MaxDepth                 = 8;
+	static constexpr size_t MaxDepth                 = 16;
 	static constexpr bool   EnableVertices           = false;
 	static constexpr bool   StoreBoxesInInternalNode = false;
 

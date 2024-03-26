@@ -109,6 +109,8 @@ TEST_F(test_Arrangements, TestDataSet)
 		_tree_split_size_thres = parameters.get<size_t>("tree_split_size_thres");
 	}
 
+	size_t skip_step   = config.get<size_t>("skip_step", 0);
+	size_t process_cnt = 0;
 	for (boost::filesystem::directory_iterator iter(model_dir_path);
 	     iter != endIter; iter++)
 	{
@@ -118,6 +120,10 @@ TEST_F(test_Arrangements, TestDataSet)
 		}
 		else
 		{
+			process_cnt += 1;
+			if (skip_step != 0 && process_cnt % skip_step != 0)
+				continue;
+
 			std::cout << "processing " << iter->path().filename().string()
 			          << std::endl;
 			read_mesh(iter->path().string(), input_points, input_triangles,
@@ -143,6 +149,7 @@ TEST_F(test_Arrangements, TestDataSet)
 			double total_time = OMC::Logger::elapsed(start).count();
 			std::cout << total_time << " s\n";
 
+			log_file << std::fixed;
 			log_file << iter->path().filename().string();
 			log_file << "," << stats.pp_elapsed << "," << stats.tree_elapsed << ","
 			         << stats.di_elapsed << "," << stats.cn_elapsed << ","

@@ -70,6 +70,23 @@ void DetectBBI<Traits>::parallelOnLeafNodes(
 	std::vector<std::vector<UIPair>> check_pairs_mt(
 	  tbb::this_task_arena::max_concurrency());
 
+	auto evaluate_possible_BBI_pairs = [this](size_t s, index_t node_idx)
+	{
+		const size_t num_boxes = tree.node(node_idx).size();
+		size_t       new_s     = num_boxes == 0
+		                           ? size_t(0)
+		                           : size_t(((num_boxes - 1) * num_boxes / 2) * 0.1);
+		return s + new_s;
+	};
+
+	size_t possible_pairs =
+	  std::accumulate(leaf_nodes.begin(), leaf_nodes.end(), size_t(0),
+	                  evaluate_possible_BBI_pairs);
+	for (std::vector<UIPair> &check_pairs : check_pairs_mt)
+		check_pairs.reserve(std::max(
+		  size_t(possible_pairs / tbb::this_task_arena::max_concurrency() * 1.5),
+		  size_t(1000)));
+
 	// Run intersection detection in a leaf node.
 	auto on_leaf_node =
 	  [this, &cache_labels_mt, &cache_boxes_mt, &check_pairs_mt](size_t node_idx)
@@ -157,7 +174,11 @@ void DetectBBI<Traits>::parallelOnLeafNodes(
 		}
 	};
 
+#if 1
 	tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+#else
+	std::for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+#endif
 
 	// Collect unique pairs
 	BBI_pairs.reserve(BBI_pairs.size() +
@@ -222,7 +243,12 @@ void DetectBBI<Traits>::parallelOnUniqPairs(
 				check_pairs_mt[thread_id].push_back(uniquePair(b0.id(), b1.id()));
 			}
 		};
+#if 1
 		tbb::parallel_for(index_t(0), num_boxes, collect_pairs);
+#else
+		for (index_t i = 0; i < num_boxes; i++)
+			collect_pairs(i);
+#endif
 
 		// Collect unique pairs
 		size_t new_size =

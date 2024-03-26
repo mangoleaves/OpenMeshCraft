@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
 
 	if (output_stats)
 	{
+		fout << std::fixed;
 		fout << stats.pp_elapsed << "," << stats.tree_elapsed << ","
 		     << stats.di_elapsed << "," << stats.cn_elapsed << ","
 		     << stats.ci_elapsed << "," << stats.tr_elapsed << "," << time << ","
