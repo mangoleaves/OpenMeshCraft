@@ -11,12 +11,12 @@ namespace OMC {
 template <typename AppTraits>
 void Arr_Tree_Intersection<AppTraits>::init_from_triangle_soup(
   const std::vector<GPoint *> &verts, const std::vector<index_t> &tris,
-  const MeshArrangements_Config &config)
+  const size_t reserve_tris, const MeshArrangements_Config &config)
 {
 	this->clear();
 
 	size_t num_tris = tris.size() / 3;
-	// this->m_boxes.reserve((size_t)(num_tris * 1.2));
+	this->m_boxes.reserve(reserve_tris);
 	this->m_boxes.resize(num_tris);
 	tbb::parallel_for((size_t)0, num_tris,
 	                  [this, &verts, &tris](size_t i)
@@ -31,7 +31,7 @@ void Arr_Tree_Intersection<AppTraits>::init_from_triangle_soup(
 	this->m_split_pred = Arr_TreeSplitPred(config.tree_split_size_thres);
 	// construct the tree
 	this->construct(/*compact*/ true, config.tree_enlarge_ratio,
-	                config.tree_adaptive_thres, config.tree_parallel_scale);
+	                config.tree_adaptive_thres);
 
 #if 0 && defined(OMC_ARR_PROFILE)
 
@@ -108,7 +108,7 @@ void Arr_Tree_Intersection<AppTraits>::insert_box(const BboxT &ins_box,
 {
 	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
 
-	this->m_boxes.emplace_back();
+	this->m_boxes.resize(this->m_boxes.size() + 1);
 	this->m_boxes.back().bbox() = ins_box;
 	this->m_boxes.back().id()   = ins_id;
 

@@ -231,6 +231,7 @@ public: /* Constructors ***************************************************/
 public: /* build and refine ***********************************************/
 	void init_from_triangle_soup(const std::vector<GPoint *>   &verts,
 	                             const std::vector<index_t>    &tris,
+	                             const size_t                   reserve_tris,
 	                             const MeshArrangements_Config &config);
 
 	void shape_refine(size_t num_intersection_pairs);

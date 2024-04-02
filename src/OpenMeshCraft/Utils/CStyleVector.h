@@ -13,9 +13,6 @@ namespace OMC {
 /// resizing. So, I write this simple C style vector to avoid such case.
 /// @note Use this C style vector to store simple types.
 /// I don't know what will happen for complex types. :(
-/// @note CstyleVector doesn't have the feature of capacity.
-/// The feature will make this vector more complex.
-/// I want to keep it as simple as possible, so use it only in simple scenes.
 template <typename T>
 class CStyleVector
 {
@@ -25,6 +22,7 @@ public: /* Constructor and Destructor *****************************************/
 	CStyleVector()
 	  : m_data(nullptr)
 	  , m_size(0)
+	  , m_capacity(0)
 	{
 	}
 
@@ -32,10 +30,12 @@ public: /* Constructor and Destructor *****************************************/
 
 	CStyleVector(CStyleVector &&other)
 	{
-		m_data       = other.m_data;
-		m_size       = other.m_size;
-		other.m_data = nullptr;
-		other.m_size = 0;
+		m_data           = other.m_data;
+		m_size           = other.m_size;
+		m_capacity       = other.m_capacity;
+		other.m_data     = nullptr;
+		other.m_size     = 0;
+		other.m_capacity = 0;
 	}
 
 	~CStyleVector()
@@ -52,41 +52,68 @@ public: /* Acess and Modify **************************************************/
 	T       *data() { return m_data; }
 	const T *data() const { return m_data; }
 
+	T       &front() { return m_data[0]; }
+	const T &front() const { return m_data[0]; }
+
+	T       &back() { return m_data[m_size - 1]; }
+	const T &back() const { return m_data[m_size - 1]; }
+
 	size_t size() const { return m_size; }
 
+	size_t capacity() const { return m_capacity; }
+
 	bool empty() const { return m_size == 0; }
+
+	void reserve(size_t new_capacity)
+	{
+		if (new_capacity <= m_capacity)
+			return;
+
+		// out of memory exception may be throwed by malloc, just let it throw.
+		T *tmp_data = (T *)malloc(new_capacity * sizeof(T));
+		// it's better to use copy constructor of T.
+		// but we only use this CStyleVector for simple types, just memcpy them.
+		if (m_size != 0) // always keep data
+			memcpy(tmp_data, m_data, sizeof(T) * m_size);
+		// m_data may not be nullptr even if m_size != 0.
+		if (m_data)
+			free(m_data);
+		// set m_data and m_size
+		m_data     = tmp_data;
+		m_capacity = new_capacity;
+		// m_size is unchanged.
+	}
 
 	void resize(size_t new_size, bool keep_data = true)
 	{
 		if (new_size == m_size)
 			return;
-		else if (new_size < m_size)
+		else if (new_size < m_capacity)
 			m_size = new_size;
-		else
+		else // insufficient capacity
 		{
 			// out of memory exception may be throwed by malloc, just let it throw.
 			T *tmp_data = (T *)malloc(new_size * sizeof(T));
 			// it's better to use copy constructor of T.
-			// but we only use this CStyleVector for simple types, just copy elements.
+			// but we only use this CStyleVector for simple types, just memcpy them.
 			if (keep_data && m_size != 0)
 				memcpy(tmp_data, m_data, sizeof(T) * m_size);
 			// m_data may not be nullptr even if m_size != 0.
 			if (m_data)
 				free(m_data);
 			// set m_data and m_size
-			m_data = tmp_data;
-			m_size = new_size;
+			m_data     = tmp_data;
+			m_size     = new_size;
+			m_capacity = new_size;
 		}
 	}
 
-	void clear()
+	void clear() { m_size = 0; }
+
+	void shrink_to_fit()
 	{
-		if (m_data)
-		{
-			free(m_data);
-			m_data = nullptr;
-		}
-		m_size = 0;
+		if (m_size == m_capacity)
+			return;
 	}
 
 public: /* Iterator **********************************************************/
@@ -163,5 +190,6 @@ public: /* Iterator **********************************************************/
 protected:
 	T     *m_data;
 	size_t m_size;
+	size_t m_capacity;
 };
 } // namespace OMC

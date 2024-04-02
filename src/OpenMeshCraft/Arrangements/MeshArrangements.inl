@@ -238,7 +238,9 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	OMC_ARR_START_ELAPSE(start_tree);
 
 	// initialize tree from triangle soup (vertices and triangles)
-	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris, config);
+	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris,
+	                             arr_in_tris.size() / 3 + dupl_triangles.size(),
+	                             config);
 
 	OMC_ARR_SAVE_ELAPSED(start_tree, tree_elapsed, "Build tree");
 	OMC_ARR_SAVE_ELAPSED(start_pp, pp_elapsed, "Preprocessing");

@@ -81,7 +81,7 @@ void AdapOrthTree<Traits>::insert_boxes(const Bboxes  &bboxes,
 
 template <typename Traits>
 void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
-                                     NT adaptive_thres, size_t parallel_scale)
+                                     NT adaptive_thres)
 {
 	// save behavior control flags and data for further use or query.
 	m_enlarge_ratio  = enlarge_ratio;
@@ -114,54 +114,51 @@ void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
 	root_node().size() = m_boxes.size();
 	std::iota(root_node().boxes().begin(), root_node().boxes().end(), index_t(0));
 
-	bool parallel = root_node().size() > parallel_scale;
+	constexpr size_t NUM_NODES_FOR_PARALLEL = 10;
 
-	if (parallel)
+	// Initialize a queue of nodes that need to be split
+	std::deque<index_t> nodes_to_split;
+	nodes_to_split.push_back(m_root_idx);
+
+	// sequentially split nodes until there is no node to split
+	// or we get enough nodes to split them parallelly.
+	while (!nodes_to_split.empty() &&
+	       nodes_to_split.size() < NUM_NODES_FOR_PARALLEL)
 	{
-		// Initialize a queue of nodes that need to be split
-		const size_t thread_num = tbb::this_task_arena::max_concurrency();
+		index_t cur_node_idx = nodes_to_split.front();
+		nodes_to_split.pop_front();
+		// handle the task
+		NodeRef cur_node = node(cur_node_idx);
 
-		volatile size_t      waiting_thread_num = 0;
-		tbb::spin_mutex      waiting_mutex;
-		std::vector<uint8_t> is_waiting(thread_num, false);
-
-		tbb::concurrent_queue<index_t> nodes_to_split;
-		nodes_to_split.push(m_root_idx);
-
-		auto wait_and_split_node = [this, &thread_num, &waiting_thread_num,
-		                            &waiting_mutex, &is_waiting,
-		                            &nodes_to_split](size_t thread_id)
+		// Check if this node needs to be splitted
+		if (cur_node.depth() < MaxDepth && m_split_pred(*this, cur_node))
 		{
-			// query queue to get task
-			while (true)
+			// Split the node, redistributing its boxes to its children
+			if (split(cur_node_idx))
 			{
-				index_t cur_node_idx = InvalidIndex;
-				while (!nodes_to_split.try_pop(cur_node_idx))
-				{
-					// can't get task, switch waiting state.
-					if (!is_waiting[thread_id])
-					{
-						is_waiting[thread_id] = true;
-						std::lock_guard<tbb::spin_mutex> lock(waiting_mutex);
-						waiting_thread_num += 1;
-					}
-					if (waiting_thread_num == thread_num)
-						return;
+				// process each of its children
+				for (index_t i = 0; i < cur_node.children_size(); ++i)
+					nodes_to_split.push_back(cur_node.child(i));
+			}
+		}
+	}
 
-					std::this_thread::sleep_for(std::chrono::microseconds(1));
-				}
-				// get task, switch waiting state.
-				if (is_waiting[thread_id])
-				{
-					is_waiting[thread_id] = false;
-					std::lock_guard<tbb::spin_mutex> lock(waiting_mutex);
-					waiting_thread_num -= 1;
-				}
+	// if there remain enough nodes, split them parallelly.
+	if (!nodes_to_split.empty())
+	{
+		auto split_node = [this](size_t node_idx)
+		{
+			std::queue<index_t> local_nodes_to_split;
+			local_nodes_to_split.push(node_idx);
+
+			while (!local_nodes_to_split.empty())
+			{
+				index_t cur_node_idx = local_nodes_to_split.front();
+				local_nodes_to_split.pop();
 				// handle the task
 				NodeRef cur_node = node(cur_node_idx);
 
 				// Check if this node needs to be splitted
-				// TODO: A split predicate need receive what?
 				if (cur_node.depth() < MaxDepth && m_split_pred(*this, cur_node))
 				{
 					// Split the node, redistributing its boxes to its children
@@ -169,39 +166,14 @@ void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
 					{
 						// process each of its children
 						for (index_t i = 0; i < cur_node.children_size(); ++i)
-							nodes_to_split.push(cur_node.child(i));
+							local_nodes_to_split.push(cur_node.child(i));
 					}
 				}
 			}
 		};
 
-		tbb::parallel_for(size_t(0), thread_num, wait_and_split_node);
-	}
-	else
-	{
-		std::queue<index_t> nodes_to_split;
-		nodes_to_split.push(m_root_idx);
-
-		while (!nodes_to_split.empty())
-		{
-			index_t cur_node_idx = nodes_to_split.front();
-			nodes_to_split.pop();
-			// handle the task
-			NodeRef cur_node = node(cur_node_idx);
-
-			// Check if this node needs to be splitted
-			// TODO: A split predicate need receive what?
-			if (cur_node.depth() < MaxDepth && m_split_pred(*this, cur_node))
-			{
-				// Split the node, redistributing its boxes to its children
-				if (split(cur_node_idx))
-				{
-					// process each of its children
-					for (index_t i = 0; i < cur_node.children_size(); ++i)
-						nodes_to_split.push(cur_node.child(i));
-				}
-			}
-		}
+		tbb::parallel_for_each(nodes_to_split.begin(), nodes_to_split.end(),
+		                       split_node);
 	}
 }
 
@@ -330,7 +302,7 @@ bool AdapOrthTree<Traits>::split(index_t node_idx)
 		}
 	}
 
-	calc_tbox_for_children(nd);
+	// calc_tbox_for_children(nd);
 
 	// clear
 	if constexpr (!StoreBoxesInInternalNodes)

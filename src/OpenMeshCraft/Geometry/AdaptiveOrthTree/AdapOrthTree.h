@@ -2,6 +2,8 @@
 
 #include "AdapOrthNode.h"
 
+#include "OpenMeshCraft/Utils/CStyleVector.h"
+
 #include "tbb/tbb.h"
 
 #include <deque>
@@ -45,12 +47,7 @@ public: /* Types and Declarations *******************************************/
 
 	using TreeBbox = typename Traits::TreeBboxT;
 	AdapOrthTreeAbbreviate(TreeBbox);
-
-	using TreeBboxes       = std::vector<TreeBbox>;
-	using TreeBboxesIter   = typename TreeBboxes::iterator;
-	using TreeBboxPtrs     = std::vector<TreeBboxPtr>;
-	using TreeBboxPtrsIter = typename TreeBboxPtrs ::iterator;
-
+	using TreeBboxes = CStyleVector<TreeBbox>;
 	using TreePoint =
 	  remove_cvref_t<decltype(std::declval<TreeBbox>().min_bound())>;
 	AdapOrthTreeAbbreviate(TreePoint);
@@ -63,14 +60,14 @@ public: /* Types and Declarations *******************************************/
 
 	using ShapeRefinePred = typename Traits::ShapeRefinePred;
 
+	using calc_box_from_boxes       = typename Traits::calc_box_from_boxes;
+	using calc_box_from_box_indices = typename Traits::calc_box_from_box_indices;
+
 	using Node = AdapOrthNode<Traits>;
 	AdapOrthTreeAbbreviate(Node);
 
 	using Nodes     = tbb::concurrent_vector<Node>;
 	using NodesIter = typename Nodes::iterator;
-
-	using calc_box_from_boxes       = typename Traits::calc_box_from_boxes;
-	using calc_box_from_box_indices = typename Traits::calc_box_from_box_indices;
 
 public: /* Constructors and Destructor *************************************/
 	AdapOrthTree() = default;
@@ -120,7 +117,7 @@ public: /* Constructors and Destructor *************************************/
 	 * @param adaptive_thres control the adaptive strategy when splitting nodes.
 	 */
 	void construct(bool compact_box = false, NT enlarge_ratio = 1.2,
-	               NT adaptive_thres = 0.1f, size_t parallel_scale = 10000);
+	               NT adaptive_thres = 0.1);
 
 	/**
 	 * @brief Refine shape of tree (e.g., split a node if it is too large).
@@ -260,7 +257,7 @@ protected:
 	/// bounding box enlarge ratio
 	NT m_enlarge_ratio = 1.5;
 
-	NT m_adaptive_thres = 0.1f;
+	NT m_adaptive_thres = 0.1;
 };
 
 
