@@ -33,6 +33,11 @@ public:
 	{
 	}
 
+	BoundingBox2T(const BoundingBox2T &)            = default;
+	BoundingBox2T(BoundingBox2T &&)                 = default;
+	BoundingBox2T &operator=(const BoundingBox2T &) = default;
+	BoundingBox2T &operator=(BoundingBox2T &&)      = default;
+
 	/**
 	 * @brief Construct a new BoundingBox2T object from given bounds \p minB and
 	 * \p maxB .

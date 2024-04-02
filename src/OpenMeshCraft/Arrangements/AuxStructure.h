@@ -96,21 +96,21 @@ protected:
 
 // Forward declaration
 template <typename Traits>
-class Arr_OcTree_Intersection;
+class Arr_Tree_Intersection;
 
 template <typename Traits>
-class AuxPointMap_OcTree : public AuxPointMap<Traits>
+class AuxPointMap_Tree : public AuxPointMap<Traits>
 {
 public:
 	using GPoint = typename Traits::GPoint;
-	using Tree   = Arr_OcTree_Intersection<Traits>;
+	using Tree   = Arr_Tree_Intersection<Traits>;
 
 public:
-	AuxPointMap_OcTree(Tree *_tree)
+	AuxPointMap_Tree(Tree *_tree)
 	  : tree(_tree)
 	{
 	}
-	virtual ~AuxPointMap_OcTree() {}
+	virtual ~AuxPointMap_Tree() {}
 
 public:
 	virtual std::pair<std::atomic<index_t> *, bool>
@@ -131,7 +131,7 @@ class AuxiliaryStructure
 {
 private:
 	using GPoint = typename Traits::GPoint;
-	using Tree   = Arr_OcTree_Intersection<Traits>;
+	using Tree   = Arr_Tree_Intersection<Traits>;
 
 public: /* Constructors *****************************************************/
 	AuxiliaryStructure() = default;

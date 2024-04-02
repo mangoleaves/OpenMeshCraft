@@ -108,6 +108,9 @@ public:
 	using CreateLNC  = CreateImplicitLNC_Ex<NT>;
 	/// @}
 
+	static_assert(std::is_trivially_copyable<Point2>::value);
+	static_assert(std::is_trivially_copyable<Point3>::value);
+
 	/// @name Primitive types
 	/// @{
 	using Range = RangeT<NT>;

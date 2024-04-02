@@ -301,13 +301,23 @@ public:
 	Sign on_y(const PointT &a, const PointT &b);
 	Sign on_z(const PointT &a, const PointT &b);
 
+	Sign on(const PointT &a, const PointT &b, size_t dim);
+
 	std::array<Sign, 3> on_all(const PointT &a, const PointT &b);
 
 	Sign on_x(const PointT &a, const FT *b);
 	Sign on_y(const PointT &a, const FT *b);
 	Sign on_z(const PointT &a, const FT *b);
 
+	Sign on(const PointT &a, const FT *b, size_t dim);
+
 	std::array<Sign, 3> on_all(const PointT &a, const FT *b);
+
+	Sign on_x(const PointT &a, const FT b);
+	Sign on_y(const PointT &a, const FT b);
+	Sign on_z(const PointT &a, const FT b);
+
+	Sign on(const PointT &a, const FT b, size_t dim);
 
 	// lessThan
 	// Input points can be any combination of 3D points

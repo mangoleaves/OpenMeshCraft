@@ -1,32 +1,32 @@
-#include "OpenMeshCraft/Geometry/AdaptiveOrthTree/AdapOcTree.h"
 #include "OpenMeshCraft/Geometry/ApproxPredicatesApproxConstructions.h"
+#include "OpenMeshCraft/Geometry/BinaryTree/BinaryTree.h"
+#include "OpenMeshCraft/Geometry/BinaryTree/BinarySplitManner.h"
 
 #include "OpenMeshCraft/Utils/Macros.h"
 
 #include "test_utils.h"
 
-class test_AdapOrthTree : public testing::Test
+class test_BinaryTree : public testing::Test
 {
 protected:
 	using index_t = OMC::index_t;
 	using APAC    = OMC::APAC;
 
-	class AdapOrthSplitPred
+	class BinarySplitPred
 	{
 	public:
-		template <typename OrthTree, typename OrthNode>
-		bool operator()(OMC_UNUSED const OrthTree &tree,
-		                const OrthNode                     &node)
+		template <typename BinaryTree, typename BinaryNode>
+		bool operator()(OMC_UNUSED const BinaryTree &tree, const BinaryNode &node)
 		{
-			return node.size() > 1000;
+			return node.size() > 50;
 		}
 	};
 
-	class AdapOrthShapeRefinePred
+	class BinaryShapeRefinePred
 	{
 	public:
-		template <typename OrthTree, typename OrthNode>
-		bool operator()(const OrthTree &tree, const OrthNode &node,
+		template <typename BinaryTree, typename BinaryNode>
+		bool operator()(const BinaryTree &tree, const BinaryNode &node,
 		                std::array<bool, 3> &partitionable)
 		{
 			auto diag_length =
@@ -39,23 +39,23 @@ protected:
 		}
 	};
 
-	class AdapOrthTraits
+	class BinaryTraits
 	{
 	public:
-		static constexpr size_t Dimension      = 3;
-		static constexpr size_t MaxDepth       = 16;
+		static constexpr size_t Dimension = 3;
+		static constexpr size_t MaxDepth  = 32;
 
 		using NT    = APAC::NT;
 		using BboxT = APAC::BoundingBox3;
 
-		using SplitPred       = AdapOrthSplitPred;
-		using ShapeRefinePred = AdapOrthShapeRefinePred;
+		using SplitPred       = BinarySplitPred;
+		using SplitManner     = OMC::BinarySplitManner;
+		using ShapeRefinePred = BinaryShapeRefinePred;
 		using DoIntersect     = APAC::DoIntersect;
 		using CalcBbox        = APAC::CalcBoundingBox3;
 	};
 
-	using Tree = OMC::AdapOcTree<
-	  OMC::AdapOrthAutoDeduceTraits<AdapOrthTraits>>;
+	using Tree = OMC::BinaryTree<OMC::BinaryAutoDeduceTraits<BinaryTraits>>;
 
 protected:
 	Tree tree;
@@ -65,7 +65,7 @@ protected:
 
 	void SetUp() override
 	{
-		TEST_GET_CONFIG(AdapOrthTree, SetUp);
+		TEST_GET_CONFIG(BinaryTree, SetUp);
 		std::string filename = config.get<std::string>("filename");
 
 		IOOptions io_options;
@@ -85,15 +85,15 @@ protected:
 
 		tree.insert_primitives(triangles, indices);
 		tree.construct(true, 1.01);
-		//tree.shape_refine();
+		// tree.shape_refine();
 	}
 
 	void TearDown() override { tree.clear(); }
 };
 
-TEST_F(test_AdapOrthTree, Construct)
+TEST_F(test_BinaryTree, Construct)
 {
-	TEST_OUTPUT_DIRECTORY(AdapOrthTree, Construct);
+	TEST_OUTPUT_DIRECTORY(BinaryTree, Construct);
 
 	// visualize tree and save
 	Points    out_points;
@@ -175,6 +175,5 @@ TEST_F(test_AdapOrthTree, Construct)
 	}
 	IOOptions io_options;
 	io_options.vertex_has_point = true;
-	write_mesh(outdir + "tree.obj", out_points, out_faces,
-	                          io_options);
+	write_mesh(outdir + "tree.obj", out_points, out_faces, io_options);
 }

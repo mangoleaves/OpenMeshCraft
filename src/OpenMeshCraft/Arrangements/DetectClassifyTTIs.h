@@ -31,9 +31,8 @@ public:
 	using TriSoup   = TriangleSoup<Traits>;
 	using AuxStruct = AuxiliaryStructure<Traits>;
 
-	DetectClassifyTTIs(TriSoup &_ts, AuxStruct &_g,
-	                            bool _parallel, MeshArrangements_Stats *_stats,
-	                            bool _verbose);
+	DetectClassifyTTIs(TriSoup &_ts, AuxStruct &_g, bool _parallel,
+	                   MeshArrangements_Stats *_stats, bool _verbose);
 
 	void checkTriangleTriangleIntersections();
 
@@ -47,14 +46,14 @@ protected:
 	bool pointInsideTriangle(index_t p_id, index_t t_id);
 
 protected:
-	TriSoup                   &ts;
-	std::vector<PntArena>     &pnt_arenas;
-	std::vector<IdxArena>     &idx_arenas;
-	AuxStruct                 &uniq_g;
+	TriSoup               &ts;
+	std::vector<PntArena> &pnt_arenas;
+	std::vector<IdxArena> &idx_arenas;
+	AuxStruct             &uniq_g;
 
 	/// @brief concurrent_g is used to store data in multi-threading context.
 	/// Final it will be merged in uniq_g.
-	std::vector<AuxStruct>     concurrent_g;
+	std::vector<AuxStruct> concurrent_g;
 
 	bool                    parallel;
 	bool                    verbose;

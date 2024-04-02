@@ -15,7 +15,7 @@ public:
 	// used to check Box-Box intersection.
 	using DoIntersect = typename Traits::DoIntersect;
 
-	using Tree = Arr_OcTree_Intersection<Traits>;
+	using Tree = Arr_Tree_Intersection<Traits>;
 
 	DetectBBI(const std::vector<GPoint *> &_verts,
 	          const std::vector<index_t>  &_tris,

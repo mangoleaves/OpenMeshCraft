@@ -19,8 +19,7 @@ void AdapOrthTree<Traits>::shallow_copy(const AdapOrthTree &rhs)
 	// copy nodes
 	m_nodes.clear();
 	m_nodes.resize(rhs.m_nodes.size());
-	tbb::parallel_for(size_t(0), rhs.m_nodes.size(),
-	                  [this, &rhs](size_t i)
+	tbb::parallel_for(size_t(0), rhs.m_nodes.size(), [this, &rhs](size_t i)
 	                  { m_nodes[i].shallow_copy(rhs.m_nodes[i]); });
 	// copy box
 	m_bbox              = rhs.m_bbox;
@@ -41,8 +40,9 @@ template <typename Primitives, typename Indices>
 void AdapOrthTree<Traits>::insert_primitives(const Primitives &primitives,
                                              const Indices    &indices)
 {
-	OMC_THROW_INVALID_ARGUMENT_IF(primitives.size() != indices.size(),
-	                           "size of primitives and indices are different.");
+	OMC_THROW_INVALID_ARGUMENT_IF(
+	  primitives.size() != indices.size(),
+	  "size of primitives and indices are different.");
 
 	clear();
 
@@ -81,7 +81,7 @@ void AdapOrthTree<Traits>::insert_boxes(const Bboxes  &bboxes,
 
 template <typename Traits>
 void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
-                                     float adaptive_thres, size_t parallel_scale)
+                                     NT adaptive_thres, size_t parallel_scale)
 {
 	// save behavior control flags and data for further use or query.
 	m_enlarge_ratio  = enlarge_ratio;
@@ -94,13 +94,13 @@ void AdapOrthTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
 	root_node().tbox() = m_bbox;
 
 	// Find the side length of box
-	OrPoint bbox_center = (m_bbox.max_bound() + m_bbox.min_bound()) * NT(0.5);
-	OrPoint side_length = m_bbox.max_bound() - m_bbox.min_bound();
+	TreePoint bbox_center = (m_bbox.max_bound() + m_bbox.min_bound()) * NT(0.5);
+	TreePoint side_length = m_bbox.max_bound() - m_bbox.min_bound();
 	OMC_ASSERT(enlarge_ratio >= NT(1.), "enlarge ratio must be larger than 1.");
 	if (!compact_box)
 	{
 		index_t longest_axis = m_bbox.longest_axis();
-		side_length          = OrPoint(side_length[longest_axis]);
+		side_length          = TreePoint(side_length[longest_axis]);
 	}
 	side_length *= enlarge_ratio;
 
@@ -230,7 +230,7 @@ bool AdapOrthTree<Traits>::split(index_t node_idx)
 	NodeRef nd = node(node_idx);
 
 	// get the center to split boxes
-	OrPoint center = node_center(nd);
+	TreePoint center = node_center(nd);
 
 	// reassign boxes to children
 	std::array<std::vector<index_t>, Degree> assign_res;
@@ -244,7 +244,7 @@ bool AdapOrthTree<Traits>::split(index_t node_idx)
 		OMC_ASSERT(lower[i] + higher[i] >= nd.size(), "orphan box");
 		partitionable[i] =
 		  // check if boxes are not partitionable
-		  (((float)(lower[i] + higher[i] - nd.size()) / (float)nd.size()) <
+		  (((NT)(lower[i] + higher[i] - nd.size()) / (NT)nd.size()) <
 		   m_adaptive_thres) &&
 		  // check if partition is unbalence
 		  (lower[i] > 0 && higher[i] > 0);
@@ -370,11 +370,10 @@ void AdapOrthTree<Traits>::collapse(index_t node_idx)
 			boxes.insert(boxes.end(), ch_boxes.begin(), ch_boxes.end());
 			ch_boxes = std::vector<index_t>();
 		}
-		std::sort(boxes.begin(), boxes.end(),
-		          [](OrBboxCPtr lhs, OrBboxCPtr rhs)
+		std::sort(boxes.begin(), boxes.end(), [](TreeBboxCPtr lhs, TreeBboxCPtr rhs)
 		          { return lhs->id() < rhs->id(); });
 		boxes.erase(std::unique(boxes.begin(), boxes.end(),
-		                        [](OrBboxCPtr lhs, OrBboxCPtr rhs)
+		                        [](TreeBboxCPtr lhs, TreeBboxCPtr rhs)
 		                        { return lhs->id() == rhs->id(); }),
 		            boxes.end());
 	}
@@ -387,7 +386,7 @@ void AdapOrthTree<Traits>::collapse(index_t node_idx)
 
 template <typename Traits>
 void AdapOrthTree<Traits>::assign_boxes(
-  NodeRef nd, OrPointCRef center,
+  NodeRef nd, TreePointCRef center,
   std::array<std::vector<index_t>, Degree> &assign_res,
   std::array<size_t, Dimension> &lower, std::array<size_t, Dimension> &higher)
 {
@@ -430,8 +429,8 @@ void AdapOrthTree<Traits>::assign_boxes(
 }
 
 template <typename Traits>
-auto AdapOrthTree<Traits>::compare_box_with_center(OrBboxCRef  box,
-                                                   OrPointCRef center)
+auto AdapOrthTree<Traits>::compare_box_with_center(TreeBboxCRef  box,
+                                                   TreePointCRef center)
   -> std::pair<std::bitset<Dimension>, std::bitset<Dimension>>
 {
 	std::pair<std::bitset<Dimension>, std::bitset<Dimension>> res;
@@ -470,7 +469,7 @@ void AdapOrthTree<Traits>::shape_refine()
 		if (cur_node.depth() < MaxDepth &&
 		    m_shape_refine_pred(*this, cur_node, partitionable))
 		{
-			OrPoint center = node_center(cur_node);
+			TreePoint center = node_center(cur_node);
 
 			// Split the node on partitionable dimensions.
 			// Below codes are similar to split(), I copy most of them here.
@@ -577,7 +576,7 @@ void AdapOrthTree<Traits>::collapse_destination(
 }
 
 template <typename Traits>
-auto AdapOrthTree<Traits>::node_center(NodeCRef nd) const -> OrPoint
+auto AdapOrthTree<Traits>::node_center(NodeCRef nd) const -> TreePoint
 {
 	return (nd.tbox().min_bound() + nd.tbox().max_bound()) * 0.5;
 }

@@ -68,54 +68,32 @@ public:
 	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
 	 * @param v The given Vec3T.
 	 */
-	Vec3T(const VT &v) noexcept
-	  : _x(v._x)
-	  , _y(v._y)
-	  , _z(v._z)
-	{
-	}
+	Vec3T(const VT &v) = default;
 
 	/**
 	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
 	 * @param v The given Vec3T.
 	 */
-	Vec3T(VT &&v) noexcept
-	  : _x(std::move(v._x))
-	  , _y(std::move(v._y))
-	  , _z(std::move(v._z))
-	{
-	}
+	Vec3T(VT &&v) = default;
 
 	/**
 	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
 	 * @param v The given Vec3T.
 	 * @return Vec3T& return the reference to this object.
 	 */
-	VT &operator=(const VT &v) noexcept
-	{
-		_x = v._x;
-		_y = v._y;
-		_z = v._z;
-		return *this;
-	}
+	VT &operator=(const VT &v) = default;
 
 	/**
 	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
 	 * @param v The given Vec3T.
 	 * @return Vec3T& return the reference to this object.
 	 */
-	VT &operator=(VT &&v) noexcept
-	{
-		_x = std::move(v._x);
-		_y = std::move(v._y);
-		_z = std::move(v._z);
-		return *this;
-	}
+	VT &operator=(VT &&v) = default;
 
 	/**
 	 * @brief Destroy the Vec3T object.
 	 */
-	~Vec3T() noexcept {}
+	~Vec3T() = default;
 
 	/// @brief Get the reference to `x`
 	inline T       &x() { return _x; }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DetectClassifyTTIs.h"
 #include "DetectClassifyTTI.h"
+#include "DetectClassifyTTIs.h"
 
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 #include "OpenMeshCraft/Utils/Exception.h"
@@ -11,9 +11,10 @@
 namespace OMC {
 
 template <typename Traits>
-DetectClassifyTTIs<Traits>::DetectClassifyTTIs(
-  TriSoup &_ts, AuxStruct &_g, bool _parallel, MeshArrangements_Stats *_stats,
-  bool _verbose)
+DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, AuxStruct &_g,
+                                               bool _parallel,
+                                               MeshArrangements_Stats *_stats,
+                                               bool                    _verbose)
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
   , idx_arenas(*ts.idx_arenas)
@@ -137,8 +138,7 @@ void DetectClassifyTTIs<Traits>::mergeConcurrentAuxStructures()
 }
 
 template <typename Traits>
-void DetectClassifyTTIs<
-  Traits>::propagateCoplanarTrianglesIntersections()
+void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 {
 	std::vector<std::pair<index_t, index_t>> coplanar_tris;
 	coplanar_tris.reserve(1024);
@@ -302,8 +302,7 @@ void DetectClassifyTTIs<Traits>::sortEdgePointsList()
 }
 
 template <typename Traits>
-bool DetectClassifyTTIs<Traits>::pointInsideTriangle(index_t p_id,
-                                                              index_t t_id)
+bool DetectClassifyTTIs<Traits>::pointInsideTriangle(index_t p_id, index_t t_id)
 {
 	const GPoint &p   = ts.vert(p_id);
 	const GPoint &tv0 = ts.triVert(t_id, 0);

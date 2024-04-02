@@ -107,6 +107,11 @@ public:
 	using IPoint3T_TPI = ImplicitPoint3T_TPI<IT, ET>;
 	using IPoint3T_LNC = ImplicitPoint3T_LNC<IT, ET>;
 
+	static_assert(std::is_trivially_copyable<GPoint2>::value);
+	static_assert(std::is_trivially_copyable<GPoint3>::value);
+	static_assert(std::is_trivially_copyable<EPoint2>::value);
+	static_assert(std::is_trivially_copyable<EPoint3>::value);
+
 	// To make kernels based on implicit points are compatibal with kernels based
 	// on regular points, we let implicit kernels be aware of implicit points
 	// construction but unaware of underlying representation of implicit points.

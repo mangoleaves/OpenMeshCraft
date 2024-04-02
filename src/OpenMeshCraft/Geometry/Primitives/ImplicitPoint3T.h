@@ -36,7 +36,7 @@ public: /* Constructors ******************************************************/
 	ImplicitPoint3T_SSI() noexcept;
 	ImplicitPoint3T_SSI(const EP &_a, const EP &_b, const EP &_p, const EP &_q,
 	                    int _plane) noexcept;
-	virtual ~ImplicitPoint3T_SSI() noexcept;
+	~ImplicitPoint3T_SSI() noexcept;
 
 	ImplicitPoint3T_SSI(const IP &rhs) noexcept;
 	ImplicitPoint3T_SSI(IP &&rhs) noexcept;
@@ -109,7 +109,7 @@ public: /* Constructors ******************************************************/
 	ImplicitPoint3T_LPI() noexcept;
 	ImplicitPoint3T_LPI(const EP &_p, const EP &_q, const EP &_r, const EP &_s,
 	                    const EP &_t) noexcept;
-	virtual ~ImplicitPoint3T_LPI() noexcept;
+	~ImplicitPoint3T_LPI() noexcept;
 
 	ImplicitPoint3T_LPI(const IP &rhs) noexcept;
 	ImplicitPoint3T_LPI(IP &&rhs) noexcept;
@@ -179,7 +179,7 @@ public: /* Constructors ******************************************************/
 	ImplicitPoint3T_TPI(const EP &_v1, const EP &_v2, const EP &_v3,
 	                    const EP &_w1, const EP &_w2, const EP &_w3,
 	                    const EP &_u1, const EP &_u2, const EP &_u3) noexcept;
-	virtual ~ImplicitPoint3T_TPI() noexcept;
+	~ImplicitPoint3T_TPI() noexcept;
 
 	ImplicitPoint3T_TPI(const IP &rhs) noexcept;
 	ImplicitPoint3T_TPI(IP &&rhs) noexcept;
@@ -253,7 +253,7 @@ public: /* Constructors ******************************************************/
 	ImplicitPoint3T_LNC() noexcept;
 	ImplicitPoint3T_LNC(const EP &_p, const EP &_q, const double _t) noexcept;
 
-	virtual ~ImplicitPoint3T_LNC() noexcept;
+	~ImplicitPoint3T_LNC() noexcept;
 
 	ImplicitPoint3T_LNC(const ImplicitPoint3T_LNC &rhs) noexcept;
 	ImplicitPoint3T_LNC(ImplicitPoint3T_LNC &&rhs) noexcept;

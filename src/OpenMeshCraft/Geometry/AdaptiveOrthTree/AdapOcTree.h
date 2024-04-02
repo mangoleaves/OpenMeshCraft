@@ -24,10 +24,11 @@ public:
 
 	using Bbox = typename Traits::BboxT;
 
-	using OrBbox = typename Traits::OrBboxT;
-	AdapOrthTreeAbbreviate(OrBbox);
+	using TreeBbox = typename Traits::TreeBboxT;
+	AdapOrthTreeAbbreviate(TreeBbox);
 
-	using OrPoint = remove_cvref_t<decltype(std::declval<OrBbox>().min_bound())>;
+	using OrPoint =
+	  remove_cvref_t<decltype(std::declval<TreeBbox>().min_bound())>;
 	AdapOrthTreeAbbreviate(OrPoint);
 
 	using Node = AdapOrthNode<Traits>;

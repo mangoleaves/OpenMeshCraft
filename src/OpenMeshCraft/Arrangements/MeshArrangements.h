@@ -97,9 +97,7 @@ public: /* Interfaces ********************************************************/
 
 	/// @brief An experimental interface to set parameters.
 	/// @note Don't modify it except you know it.
-	void setParameters(float _tree_enlarge_ratio, float _tree_adaptive_thres,
-	                   size_t _tree_parallel_scale,
-	                   size_t _tree_split_size_thres);
+	void setConfig(MeshArrangements_Config _config);
 
 	MeshArrangements_Stats &stats();
 
@@ -118,10 +116,7 @@ private:
 	std::vector<Label> *output_labels = nullptr;
 
 	/* Parameters */
-	float  tree_enlarge_ratio    = 1.01f;
-	float  tree_adaptive_thres   = 0.1f;
-	size_t tree_parallel_scale   = 10000;
-	size_t tree_split_size_thres = 1000;
+	MeshArrangements_Config config;
 
 	/// behavior control flags
 	bool                   verbose;

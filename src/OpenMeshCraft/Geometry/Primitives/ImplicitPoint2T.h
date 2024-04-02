@@ -34,7 +34,7 @@ public: /* Constructors ******************************************************/
 	/// @brief init SSI point with segment(l11, l12) and segment(l21, l22)
 	ImplicitPoint2T_SSI(const EP &l11, const EP &l12, const EP &l21,
 	                    const EP &l22) noexcept;
-	virtual ~ImplicitPoint2T_SSI() noexcept;
+	~ImplicitPoint2T_SSI() noexcept;
 
 	ImplicitPoint2T_SSI(const IP &rhs) noexcept;
 	ImplicitPoint2T_SSI(IP &&rhs) noexcept;

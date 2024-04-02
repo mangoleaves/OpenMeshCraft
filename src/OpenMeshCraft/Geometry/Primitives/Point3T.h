@@ -22,6 +22,11 @@ public:
 	{
 	}
 
+	Point3T(const Point3T &)             = default;
+	Point3T(Point3T &&)                  = default;
+	Point3T &operator=(const Point3T &v) = default;
+	Point3T &operator=(Point3T &&v)      = default;
+
 	/**
 	 * @brief Construct a new Point3T object, vectorize it by \p v .
 	 */
@@ -62,46 +67,6 @@ public:
 	explicit Point3T(T1 &&x, T2 &&y, T3 &&z) noexcept
 	  : m_p(std::forward<T1>(x), std::forward<T2>(y), std::forward<T3>(z))
 	{
-	}
-
-	/**
-	 * @brief Construct a new Point3T by copying from a given Point3T \p v.
-	 * @param v The given Point3T.
-	 */
-	Point3T(const Point3T &v) noexcept
-	  : m_p(v.m_p)
-	{
-	}
-
-	/**
-	 * @brief Construct a new Point3T by copying from a given Point3T \p v.
-	 * @param v The given Point3T.
-	 */
-	Point3T(Point3T &&v) noexcept
-	  : m_p(std::move(v.m_p))
-	{
-	}
-
-	/**
-	 * @brief Construct a new Point3T by copying from a given Point3T \p v.
-	 * @param v The given Point3T.
-	 * @return Point3T& return the reference to this object.
-	 */
-	Point3T &operator=(const Point3T &v) noexcept
-	{
-		m_p = v.m_p;
-		return *this;
-	}
-
-	/**
-	 * @brief Construct a new Point3T by copying from a given Point3T \p v.
-	 * @param v The given Point3T.
-	 * @return Point3T& return the reference to this object.
-	 */
-	Point3T &operator=(Point3T &&v) noexcept
-	{
-		m_p = std::move(v.m_p);
-		return *this;
 	}
 
 	/// @name Data access
@@ -177,6 +142,16 @@ public:
 	}
 
 	/**
+	 * @brief new point = point / scale_factor
+	 * @param rhs the scale factor
+	 * @return Point3T the scaled new point
+	 */
+	Point3T operator/(const NT &scale_factor) const
+	{
+		return Point3T(as_vec() / scale_factor);
+	}
+
+	/**
 	 * @brief this point += another point
 	 * @param rhs the given point
 	 * @return Point3T the result point
@@ -228,6 +203,17 @@ public:
 	Point3T operator*=(const NT &scale_factor)
 	{
 		as_vec() *= scale_factor;
+		return *this;
+	}
+
+	/**
+	 * @brief point /= scale_factor
+	 * @param rhs the scale factor
+	 * @return Point3T the in-place scaled point
+	 */
+	Point3T operator/=(const NT &scale_factor)
+	{
+		as_vec() /= scale_factor;
 		return *this;
 	}
 

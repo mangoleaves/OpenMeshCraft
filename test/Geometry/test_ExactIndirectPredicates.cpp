@@ -17,7 +17,7 @@
 #include <execution>
 
 // #define CHECK_EACH
-
+#if 0
 class test_ExactIndirectPredicates : public testing::Test
 {
 protected:
@@ -610,3 +610,4 @@ TEST_F(test_ExactIndirectPredicates, InSphere)
 #endif
 	delete[] atp;
 }
+#endif

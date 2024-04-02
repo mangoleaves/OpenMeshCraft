@@ -93,7 +93,7 @@ public: /* Traits ************************************************************/
 
 public: /* Auxiliary data structures *****************************************/
 	// tree
-	using Tree     = Arr_OcTree_Intersection<Traits>;
+	using Tree     = Arr_Tree_Intersection<Traits>;
 	// point arena
 	using PntArena = PointArena<Traits>;
 	// triangle soup
@@ -114,14 +114,7 @@ public: /* Constructors ******************************************************/
 	}
 
 	/// @brief An experimental interface to set varying parameters.
-	void setParameters(float _tree_enlarge_ratio, float _tree_adaptive_thres,
-	                   size_t _tree_parallel_scale, size_t _tree_split_size_thres)
-	{
-		tree_enlarge_ratio    = _tree_enlarge_ratio;
-		tree_adaptive_thres   = _tree_adaptive_thres;
-		tree_parallel_scale   = _tree_parallel_scale;
-		tree_split_size_thres = _tree_split_size_thres;
-	}
+	void setConfig(MeshArrangements_Config _config) { config = _config; }
 
 public: /* Pipeline **********************************************************/
 	/// @brief Detect intersections, classify intersections, and triangulate
@@ -180,10 +173,7 @@ public:
 	std::vector<DuplTriInfo> dupl_triangles;
 
 	/* Parameters */
-	float  tree_enlarge_ratio    = 1.01f;
-	float  tree_adaptive_thres   = 0.1f;
-	size_t tree_parallel_scale   = 10000;
-	size_t tree_split_size_thres = 1000;
+	MeshArrangements_Config config;
 
 	/* Behavior control flags and data */
 	/// save stats
@@ -248,9 +238,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	OMC_ARR_START_ELAPSE(start_tree);
 
 	// initialize tree from triangle soup (vertices and triangles)
-	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris, tree_enlarge_ratio,
-	                             tree_split_size_thres, tree_adaptive_thres,
-	                             tree_parallel_scale);
+	tree.init_from_triangle_soup(arr_out_verts, arr_in_tris, config);
 
 	OMC_ARR_SAVE_ELAPSED(start_tree, tree_elapsed, "Build tree");
 	OMC_ARR_SAVE_ELAPSED(start_pp, pp_elapsed, "Preprocessing");
@@ -279,6 +267,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 		return;
 	}
 
+#if 0
 	OMC_ARR_START_ELAPSE(start_ci);
 
 	// build triangle soups and aux structs for each connected component.
@@ -320,6 +309,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
+#endif
 }
 
 template <typename Traits>
@@ -352,8 +342,7 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(),
-		                   [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -790,8 +779,7 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 		return;
 	}
 
-	m_impl->setParameters(tree_enlarge_ratio, tree_adaptive_thres,
-	                      tree_parallel_scale, tree_split_size_thres);
+	m_impl->setConfig(config);
 	m_impl->meshArrangementsPipeline(ignore_intersection_in_same_mesh);
 
 	if (output_explicit_result)
@@ -807,14 +795,10 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 }
 
 template <typename Kernel, typename Traits>
-void MeshArrangements<Kernel, Traits>::setParameters(
-  float _tree_enlarge_ratio, float _tree_adaptive_thres,
-  size_t _tree_parallel_scale, size_t _tree_split_size_thres)
+void MeshArrangements<Kernel, Traits>::setConfig(
+  MeshArrangements_Config _config)
 {
-	tree_enlarge_ratio    = _tree_enlarge_ratio;
-	tree_adaptive_thres   = _tree_adaptive_thres;
-	tree_parallel_scale   = _tree_parallel_scale;
-	tree_split_size_thres = _tree_split_size_thres;
+	config = _config;
 }
 
 template <typename Kernel, typename Traits>

@@ -102,18 +102,15 @@ public: /* Constructor and Destructor ****************************************/
 	{
 	}
 
-	virtual ~GenericPoint2T() noexcept {}
+	GenericPoint2T(const GenericPoint2T &gp)            = default;
+	GenericPoint2T(GenericPoint2T &&gp)                 = default;
+	GenericPoint2T &operator=(const GenericPoint2T &gp) = default;
+	GenericPoint2T &operator=(GenericPoint2T &&gp)      = default;
 
-	GenericPoint2T(const GenericPoint2T &gp)
-	  : m_point_type(gp.m_point_type)
-	{
-	}
-
-	GenericPoint2T &operator=(const GenericPoint2T &gp)
-	{
-		m_point_type = gp.m_point_type;
-		return *this;
-	}
+protected:
+	/// you can't delete a protected and nonvirtual derived class
+	/// by delete the pointer to this base class.
+	~GenericPoint2T() = default;
 
 public: /* get lambda values from implicit points ****************************/
 	bool getFilteredLambda(FT &lx, FT &ly, FT &d, FT &mv) const

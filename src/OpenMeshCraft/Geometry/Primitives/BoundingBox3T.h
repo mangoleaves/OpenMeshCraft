@@ -33,6 +33,11 @@ public:
 	{
 	}
 
+	BoundingBox3T(const BoundingBox3T &)            = default;
+	BoundingBox3T(BoundingBox3T &&)                 = default;
+	BoundingBox3T &operator=(const BoundingBox3T &) = default;
+	BoundingBox3T &operator=(BoundingBox3T &&)      = default;
+
 	/**
 	 * @brief Construct a new BoundingBox3T object from given bounds \p minB and
 	 * \p maxB .

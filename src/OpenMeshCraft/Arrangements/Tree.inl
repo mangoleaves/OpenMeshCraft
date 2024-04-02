@@ -9,34 +9,63 @@ namespace OMC {
 /********************************************************************/
 
 template <typename AppTraits>
-void Arr_OcTree_Intersection<AppTraits>::init_from_triangle_soup(
+void Arr_Tree_Intersection<AppTraits>::init_from_triangle_soup(
   const std::vector<GPoint *> &verts, const std::vector<index_t> &tris,
-  NT enlarge_ratio, size_t split_size_threshold, float adaptive_thres,
-  size_t parallel_scale)
+  const MeshArrangements_Config &config)
 {
-	size_t               num_tris = tris.size() / 3;
-	std::vector<BboxT>   boxes(num_tris);
-	std::vector<index_t> indices(num_tris);
+	this->clear();
+
+	size_t num_tris = tris.size() / 3;
+	// this->m_boxes.reserve((size_t)(num_tris * 1.2));
+	this->m_boxes.resize(num_tris);
 	tbb::parallel_for((size_t)0, num_tris,
-	                  [&boxes, &indices, &verts, &tris](size_t i)
+	                  [this, &verts, &tris](size_t i)
 	                  {
 		                  BboxT box(AsEP()(*verts[tris[i * 3]]));
 		                  box += AsEP()(*verts[tris[i * 3 + 1]]);
 		                  box += AsEP()(*verts[tris[i * 3 + 2]]);
-		                  boxes[i]   = box;
-		                  indices[i] = i;
+		                  this->m_boxes[i].bbox() = box;
+		                  this->m_boxes[i].id()   = i;
 	                  });
 	// set parameters
-	this->m_split_pred = typename TreeTraits::SplitPred(split_size_threshold);
-	// insert boxes and indices to tree
-	this->insert_boxes(boxes, indices);
+	this->m_split_pred = Arr_TreeSplitPred(config.tree_split_size_thres);
 	// construct the tree
-	this->construct(/*compact*/ true, enlarge_ratio, adaptive_thres,
-	                parallel_scale);
+	this->construct(/*compact*/ true, config.tree_enlarge_ratio,
+	                config.tree_adaptive_thres, config.tree_parallel_scale);
+
+#if 0 && defined(OMC_ARR_PROFILE)
+
+	std::fstream fout;
+	fout.open("./data/test_output/Arrangements/octree_nodes_size.txt",
+	          std::ios::out | std::ios::app);
+	if (fout.is_open())
+	{
+		std::vector<index_t> leaf_nodes = all_leaf_nodes();
+		for (index_t ni : leaf_nodes)
+		{
+			if (node(ni).size() != 0)
+				fout << node(ni).size() << std::endl;
+		}
+	}
+	fout.close();
+
+#endif
+}
+
+template <typename Tree, typename Node>
+bool Arr_TreeShapeRefinePred::operator()(const Tree &tree, const Node &node,
+                                         std::array<bool, 3> &partitionable)
+{
+	auto diag_length = (tree.box().max_bound() - tree.box().min_bound()).length();
+	auto node_length = node.box().max_bound() - node.box().min_bound();
+	partitionable[0] = node_length[0] > scale * diag_length;
+	partitionable[1] = node_length[1] > scale * diag_length;
+	partitionable[2] = node_length[2] > scale * diag_length;
+	return partitionable[0] || partitionable[1] || partitionable[2];
 }
 
 template <typename AppTraits>
-void Arr_OcTree_Intersection<AppTraits>::shape_refine(
+void Arr_Tree_Intersection<AppTraits>::shape_refine(
   size_t num_intersection_pairs)
 {
 	if (num_intersection_pairs < 1000)
@@ -53,8 +82,8 @@ void Arr_OcTree_Intersection<AppTraits>::shape_refine(
 
 template <typename AppTraits>
 template <typename QPrimT>
-void Arr_OcTree_Intersection<AppTraits>::all_intersections(
-  const QPrimT &query, Indices &results) const
+void Arr_Tree_Intersection<AppTraits>::all_intersections(const QPrimT &query,
+                                                         Indices &results) const
 {
 	BoxTrav box_trav(query);
 	this->traversal(box_trav);
@@ -62,10 +91,10 @@ void Arr_OcTree_Intersection<AppTraits>::all_intersections(
 }
 
 template <typename AppTraits>
-void Arr_OcTree_Intersection<AppTraits>::insert_triangle(const GPoint *v0,
-                                                         const GPoint *v1,
-                                                         const GPoint *v2,
-                                                         index_t       ins_id)
+void Arr_Tree_Intersection<AppTraits>::insert_triangle(const GPoint *v0,
+                                                       const GPoint *v1,
+                                                       const GPoint *v2,
+                                                       index_t       ins_id)
 {
 	BboxT box(AsEP()(*v0));
 	box += AsEP()(*v1);
@@ -74,8 +103,8 @@ void Arr_OcTree_Intersection<AppTraits>::insert_triangle(const GPoint *v0,
 }
 
 template <typename AppTraits>
-void Arr_OcTree_Intersection<AppTraits>::insert_box(const BboxT &ins_box,
-                                                    index_t      ins_id)
+void Arr_Tree_Intersection<AppTraits>::insert_box(const BboxT &ins_box,
+                                                  index_t      ins_id)
 {
 	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
 
@@ -113,7 +142,7 @@ void Arr_OcTree_Intersection<AppTraits>::insert_box(const BboxT &ins_box,
 }
 
 template <typename AppTraits>
-auto Arr_OcTree_Intersection<AppTraits>::locate_point(const GPoint *pp) ->
+auto Arr_Tree_Intersection<AppTraits>::locate_point(const GPoint *pp) ->
   typename BaseT::NodeRef
 { // in arrangements context, inserted point is always in one leaf node.
 	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
@@ -121,7 +150,7 @@ auto Arr_OcTree_Intersection<AppTraits>::locate_point(const GPoint *pp) ->
 	typename BaseT::NodePtr nd_ptr = &this->root_node();
 	while (nd_ptr->is_internal())
 	{
-		typename BaseT::OrPoint center = this->node_center(*nd_ptr);
+		typename BaseT::TreePoint center = this->node_center(*nd_ptr);
 
 		std::array<Sign, 3> cmp_sign = LessThan3D().on_all(*pp, center);
 
@@ -138,8 +167,8 @@ auto Arr_OcTree_Intersection<AppTraits>::locate_point(const GPoint *pp) ->
 
 template <typename AppTraits>
 std::pair<std::atomic<index_t> *, bool>
-Arr_OcTree_Intersection<AppTraits>::insert_point(const GPoint         *pp,
-                                                 std::atomic<index_t> *ip)
+Arr_Tree_Intersection<AppTraits>::insert_point(const GPoint         *pp,
+                                               std::atomic<index_t> *ip)
 {
 	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
 
@@ -151,7 +180,7 @@ Arr_OcTree_Intersection<AppTraits>::insert_point(const GPoint         *pp,
 
 template <typename AppTraits>
 template <typename GetIndex>
-std::pair<index_t, bool> Arr_OcTree_Intersection<AppTraits>::insert_point_F(
+std::pair<index_t, bool> Arr_Tree_Intersection<AppTraits>::insert_point_F(
   const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx)
 {
 	OMC_EXPENSIVE_ASSERT(this->m_nodes.size() != 0, "empty tree.");
@@ -184,21 +213,21 @@ std::pair<index_t, bool> Arr_OcTree_Intersection<AppTraits>::insert_point_F(
 
 template <typename AppTraits>
 std::pair<index_t, bool>
-Arr_OcTree_Intersection<AppTraits>::find(const GPoint *pp)
+Arr_Tree_Intersection<AppTraits>::find(const GPoint *pp)
 {
 	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
 	return leaf_nd.attribute().point_map.find(pp);
 }
 
 template <typename AppTraits>
-std::atomic<index_t> &Arr_OcTree_Intersection<AppTraits>::at(const GPoint *pp)
+std::atomic<index_t> &Arr_Tree_Intersection<AppTraits>::at(const GPoint *pp)
 {
 	typename BaseT::NodeRef leaf_nd = this->locate_point(pp);
 	return leaf_nd.attribute().point_map.at(pp);
 }
 
 template <typename AppTraits>
-void Arr_OcTree_Intersection<AppTraits>::clear_points()
+void Arr_Tree_Intersection<AppTraits>::clear_points()
 {
 	for (typename BaseT::NodeRef nd : this->m_nodes)
 	{

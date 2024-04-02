@@ -1,14 +1,12 @@
 #pragma once
 
-#include "AdapOrthTree.h"
-
-#include "OpenMeshCraft/Utils/SFINAE.h"
+#include "BinaryTree.h"
 
 namespace OMC {
 
 /// @todo Add an option to find first or all intersections.
 template <typename Traits>
-class AdapOrth_BoxInterTraversal
+class Binary_BoxInterTraversal
 {
 public:
 	using NT        = typename Traits::NT;
@@ -20,15 +18,21 @@ public:
 
 public:
 	template <typename QPrimT>
-	AdapOrth_BoxInterTraversal(const QPrimT &query)
+	Binary_BoxInterTraversal(const QPrimT &query)
 	{
 		m_box_of_query = CalcBbox()(query);
 	}
 
-	bool intersection(const TreeBboxT &leaf_bbox)
+	template <>
+	Binary_BoxInterTraversal(const BboxT &query)
 	{
-		if (DoIntersect()(m_box_of_query, leaf_bbox.bbox()))
-			m_intersected_ids.push_back(leaf_bbox.id());
+		m_box_of_query = query;
+	}
+
+	bool intersection(const TreeBboxT &bbox)
+	{
+		if (DoIntersect()(m_box_of_query, bbox.bbox()))
+			m_intersected_ids.push_back(bbox.id());
 		return true;
 	}
 

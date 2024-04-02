@@ -86,7 +86,7 @@ public: /* Traits ***********************************************************/
 
 public: /* Auxiliary data structures *****************************************/
 	// tree
-	using Tree        = Arr_OcTree_Intersection<Traits>;
+	using Tree        = Arr_Tree_Intersection<Traits>;
 	// point arena
 	using PntArena    = PointArena<Traits>;
 	// triangle soup
@@ -292,7 +292,7 @@ public:
 	Labels                &arr_out_labels;
 
 	/* Auxiliary data */
-	/// AABB tree build on arr_in_tris (NOTE: not on in_tris)
+	/// tree build on arr_in_tris (NOTE: not on in_tris)
 	Tree                     &tree;
 	/// information of removed duplicate triangles (maybe used again)
 	std::vector<DuplTriInfo> &dupl_triangles;
@@ -647,11 +647,9 @@ MeshBoolean_Impl<Traits>::intersects_box(const Segment &rayAABB)
 }
 
 template <typename Traits>
-auto MeshBoolean_Impl<Traits>::fast2DCheckIntersectionOnRay(const Ray    &ray,
-                                                            const EPoint &tv0,
-                                                            const EPoint &tv1,
-                                                            const EPoint &tv2)
-  -> IntersInfo
+auto MeshBoolean_Impl<Traits>::fast2DCheckIntersectionOnRay(
+  const Ray &ray, const EPoint &tv0, const EPoint &tv1,
+  const EPoint &tv2) -> IntersInfo
 {
 	NT v0[2]{}, v1[2]{}, v2[2]{}, vq[2]{};
 

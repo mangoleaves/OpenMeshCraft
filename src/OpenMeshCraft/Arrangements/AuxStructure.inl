@@ -31,15 +31,16 @@ AuxPointMap_ConcurrentMap<Traits>::insert(const GPoint         *pp,
 
 template <typename Traits>
 std::pair<std::atomic<index_t> *, bool>
-AuxPointMap_OcTree<Traits>::insert(const GPoint *pp, std::atomic<index_t> *idx)
+AuxPointMap_Tree<Traits>::insert(const GPoint *pp, std::atomic<index_t> *idx)
 {
 	return tree->insert_point(pp, idx);
 }
 
 template <typename Traits>
 template <typename GetIndex>
-std::pair<index_t, bool> AuxPointMap_OcTree<Traits>::insert_F(
-  const GPoint *pp, std::atomic<index_t> *idx, GetIndex get_idx)
+std::pair<index_t, bool>
+AuxPointMap_Tree<Traits>::insert_F(const GPoint *pp, std::atomic<index_t> *idx,
+                                   GetIndex get_idx)
 {
 	return tree->insert_point_F(pp, idx, get_idx);
 }
@@ -62,9 +63,8 @@ void AuxiliaryStructure<Traits>::build_vmap(const TriangleSoup<Traits> &ts,
                                             Tree                       *tree)
 {
 	tree->clear_points();
-	v_map = std::make_unique<AuxPointMap_OcTree<Traits>>(tree);
-	tbb::parallel_for(index_t(0), ts.numVerts(),
-	                  [this, &ts](index_t v_id)
+	v_map = std::make_unique<AuxPointMap_Tree<Traits>>(tree);
+	tbb::parallel_for(index_t(0), ts.numVerts(), [this, &ts](index_t v_id)
 	                  { v_map->insert(ts.vertices[v_id], ts.indices[v_id]); });
 }
 
@@ -262,7 +262,7 @@ template <typename GetIndex>
 std::pair<index_t, bool> AuxiliaryStructure<Traits>::addVertexInSortedList(
   const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx)
 {
-	return static_cast<AuxPointMap_OcTree<Traits> *>(v_map.get())
+	return static_cast<AuxPointMap_Tree<Traits> *>(v_map.get())
 	  ->insert_F(pp, ip, get_idx);
 }
 

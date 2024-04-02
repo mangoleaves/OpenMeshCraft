@@ -59,23 +59,6 @@ void DetectBBI<Traits>::partitionLeafNodes(
 		else
 			uniq_leaf_nodes.push_back(ni);
 	}
-
-#ifdef OMC_ARR_PROFILE
-	#if 0
-	std::fstream fout;
-	fout.open("./data/test_output/Arrangements/nodes_size.txt",
-	          std::ios::out | std::ios::app);
-	if (fout.is_open())
-	{
-		for (index_t ni : leaf_nodes)
-		{
-			if (tree.node(ni).size() != 0)
-				fout << tree.node(ni).size() << std::endl;
-		}
-	}
-	fout.close();
-	#endif
-#endif
 }
 
 template <typename Traits>
@@ -84,7 +67,7 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 {
 	std::vector<std::vector<Label>> cache_labels_mt(
 	  tbb::this_task_arena::max_concurrency());
-	std::vector<std::vector<typename Tree::OrBbox>> cache_boxes_mt(
+	std::vector<std::vector<typename Tree::TreeBbox>> cache_boxes_mt(
 	  tbb::this_task_arena::max_concurrency());
 	std::vector<std::vector<UIPair>> cache_check_pairs_mt(
 	  tbb::this_task_arena::max_concurrency());
@@ -114,7 +97,8 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 	{
 		int thread_id = tbb::this_task_arena::current_thread_index();
 
-		std::vector<typename Tree::OrBbox> &cache_boxes = cache_boxes_mt[thread_id];
+		std::vector<typename Tree::TreeBbox> &cache_boxes =
+		  cache_boxes_mt[thread_id];
 		std::vector<Label>  &cache_labels = cache_labels_mt[thread_id];
 		std::vector<UIPair> &cache_pairs  = cache_check_pairs_mt[thread_id];
 		std::vector<UIPair> &check_pairs  = check_pairs_mt[thread_id];
@@ -145,7 +129,7 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 
 		for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 		{
-			const typename Tree::OrBbox &b0 = cache_boxes[bi0];
+			const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
 
 			for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
 			{
@@ -153,7 +137,7 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 				     (cache_labels[bi0] & cache_labels[bi1]).any()))
 					continue;
 
-				const typename Tree::OrBbox &b1 = cache_boxes[bi1];
+				const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
 
 				if (!DoIntersect()(b0.bbox(), b1.bbox()))
 					continue; // early reject
@@ -167,7 +151,7 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 		                   cache_pairs.end());
 	};
 
-#if 0
+#if 1
 	tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
 #else
 	std::for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
@@ -189,9 +173,9 @@ template <typename Traits>
 void DetectBBI<Traits>::parallelOnDuplNodes(
   const std::vector<index_t> &leaf_nodes)
 {
-	std::vector<Label>                 cache_labels;
-	std::vector<typename Tree::OrBbox> cache_boxes;
-	std::vector<std::vector<UIPair>>   check_pairs_mt(
+	std::vector<Label>                   cache_labels;
+	std::vector<typename Tree::TreeBbox> cache_boxes;
+	std::vector<std::vector<UIPair>>     check_pairs_mt(
     tbb::this_task_arena::max_concurrency());
 	for (std::vector<UIPair> &check_pairs : check_pairs_mt)
 		check_pairs.reserve(10000);
@@ -212,7 +196,7 @@ void DetectBBI<Traits>::parallelOnDuplNodes(
 			cache_boxes.resize(num_boxes);
 			for (size_t i = 0; i < num_boxes; i++)
 			{
-				const typename Tree::OrBbox &b = tree.box(boxes[i]);
+				const typename Tree::TreeBbox &b = tree.box(boxes[i]);
 
 				cache_boxes[i]  = b;
 				cache_labels[i] = labels[b.id()];
@@ -228,14 +212,14 @@ void DetectBBI<Traits>::parallelOnDuplNodes(
 			index_t thread_id = tbb::this_task_arena::current_thread_index();
 			std::vector<UIPair> &check_pairs = check_pairs_mt[thread_id];
 
-			const typename Tree::OrBbox &b0 = cache_boxes[bi0];
+			const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
 			for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
 			{
 				if ((ignore_same_label &&
 				     (cache_labels[bi0] & cache_labels[bi1]).any()))
 					continue;
 
-				const typename Tree::OrBbox &b1 = cache_boxes[bi1];
+				const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
 
 				if (!DoIntersect()(b0.bbox(), b1.bbox()))
 					continue; // early reject
@@ -252,7 +236,7 @@ void DetectBBI<Traits>::parallelOnDuplNodes(
 #endif
 
 		// Collect unique pairs
-		size_t new_size = std::accumulate(
+		OMC_UNUSED size_t new_size = std::accumulate(
 		  check_pairs_mt.begin(), check_pairs_mt.end(), size_t(0),
 		  [](size_t s, const std::vector<UIPair> &cp) { return s + cp.size(); });
 

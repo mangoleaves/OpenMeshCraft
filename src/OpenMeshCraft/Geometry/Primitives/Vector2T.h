@@ -65,50 +65,32 @@ public:
 	 * @brief Construct a new Vec2T object by copying from a given Vec2T \p v .
 	 * @param v The given Vec2T.
 	 */
-	Vec2T(const VT &v) noexcept
-	  : _x(v._x)
-	  , _y(v._y)
-	{
-	}
+	Vec2T(const VT &v) = default;
 
 	/**
 	 * @brief Construct a new Vec2T object by copying from a given Vec2T \p v .
 	 * @param v The given Vec2T.
 	 */
-	Vec2T(VT &&v) noexcept
-	  : _x(std::move(v._x))
-	  , _y(std::move(v._y))
-	{
-	}
+	Vec2T(VT &&v) = default;
 
 	/**
 	 * @brief Construct a new Vec2T object by copying from a given Vec2T \p v .
 	 * @param v The given Vec2T.
 	 * @return Vec2T& return the reference to this object.
 	 */
-	VT &operator=(const VT &v) noexcept
-	{
-		_x = v._x;
-		_y = v._y;
-		return *this;
-	}
+	VT &operator=(const VT &v) = default;
 
 	/**
 	 * @brief Construct a new Vec2T object by copying from a given Vec2T \p v .
 	 * @param v The given Vec2T.
 	 * @return Vec2T& return the reference to this object.
 	 */
-	VT &operator=(VT &&v) noexcept
-	{
-		_x = std::move(v._x);
-		_y = std::move(v._y);
-		return *this;
-	}
+	VT &operator=(VT &&v) = default;
 
 	/**
 	 * @brief Destroy the Vec2T object.
 	 */
-	~Vec2T() noexcept {}
+	~Vec2T() = default;
 
 	/// @brief Get the reference to `x`
 	inline T       &x() { return _x; }

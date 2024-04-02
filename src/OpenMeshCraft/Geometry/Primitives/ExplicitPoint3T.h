@@ -80,60 +80,14 @@ public:
 	{
 	}
 
-	/**
-	 * @brief Construct a new ExplicitPoint3T object by copying from a given
-	 * ExplicitPoint3T \p v
-	 * .
-	 * @param v The given ExplicitPoint3T.
-	 */
-	ExplicitPoint3T(const ExplicitPoint3T &v) noexcept
-	  : GP(PointType::Explicit)
-	  , m_p(v.m_p)
-	{
-	}
+	ExplicitPoint3T(const ExplicitPoint3T &v)            = default;
+	ExplicitPoint3T(ExplicitPoint3T &&v)                 = default;
+	ExplicitPoint3T &operator=(const ExplicitPoint3T &v) = default;
+	ExplicitPoint3T &operator=(ExplicitPoint3T &&v)      = default;
 
-	/**
-	 * @brief Construct a new ExplicitPoint3T object by copying from a given
-	 * ExplicitPoint3T \p v
-	 * .
-	 * @param v The given ExplicitPoint3T.
-	 */
-	ExplicitPoint3T(ExplicitPoint3T &&v) noexcept
-	  : GP(PointType::Explicit)
-	  , m_p(std::move(v.m_p))
-	{
-	}
+	~ExplicitPoint3T() = default;
 
-	virtual ~ExplicitPoint3T() noexcept {}
-
-	/**
-	 * @brief Construct a new ExplicitPoint3T object by copying from a given
-	 * ExplicitPoint3T \p v
-	 * .
-	 * @param v The given ExplicitPoint3T.
-	 * @return ExplicitPoint3T& return the reference to this object.
-	 */
-	ExplicitPoint3T &operator=(const ExplicitPoint3T &v) noexcept
-	{
-		this->m_point_type = v.m_point_type;
-		m_p                = v.m_p;
-		return *this;
-	}
-
-	/**
-	 * @brief Construct a new ExplicitPoint3T object by copying from a given
-	 * ExplicitPoint3T \p v
-	 * .
-	 * @param v The given ExplicitPoint3T.
-	 * @return ExplicitPoint3T& return the reference to this object.
-	 */
-	ExplicitPoint3T &operator=(ExplicitPoint3T &&v) noexcept
-	{
-		this->m_point_type = v.m_point_type;
-		m_p                = std::move(v.m_p);
-		return *this;
-	}
-
+public: /* Regular operators *************************************************/
 	/// @name Data access
 	/// @{
 	NT       &x() { return m_p.x(); }

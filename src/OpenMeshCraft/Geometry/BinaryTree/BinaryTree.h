@@ -1,22 +1,23 @@
 #pragma once
 
-#include "AdapOrthNode.h"
+#include "BinaryNode.h"
+
+#include "OpenMeshCraft/Utils/CStyleVector.h"
 
 #include "tbb/tbb.h"
 
 #include <deque>
 #include <queue>
+#include <stack>
 
 namespace OMC {
 
 /**
- * @brief Adaptive orthogonal tree. In 2D it is mainly QuadTree, in 3D it is
- * mainly OcTree. But it will divide node to less children depending on whether
- * primitives are partitionable in all dimensions.
+ * @brief Binary tree.
  * @tparam _Traits _Traits WON'T be automatically deduced in the class.
  */
 template <typename _Traits>
-class AdapOrthTree
+class BinaryTree
 {
 public: /* Types and Declarations *******************************************/
 	using Traits = _Traits;
@@ -31,53 +32,46 @@ public: /* Types and Declarations *******************************************/
 	/// Dimension, typically 2 or 3, or higher n
 	static constexpr size_t Dimension = Traits::Dimension;
 
-	/// size of children, typically 4 or 8, or higher 2^n.
-	static constexpr size_t Degree = (1u << Dimension);
-
-	/// Store pointers to boxes in internal node.
-	/// (Of course, pointers to boxes will always be stored in leaf nodes.)
-	static constexpr bool StoreBoxesInInternalNodes =
-	  Traits::StoreBoxesInInternalNodes;
+	/// size of children, constantly being 2 in binary tree.
+	static constexpr size_t Degree = 2;
 
 	using NT = typename Traits::NT;
 
 	using Bbox = typename Traits::BboxT;
 
 	using TreeBbox = typename Traits::TreeBboxT;
-	AdapOrthTreeAbbreviate(TreeBbox);
+	BinaryTreeAbbreviate(TreeBbox);
 
-	using TreeBboxes       = std::vector<TreeBbox>;
-	using TreeBboxesIter   = typename TreeBboxes::iterator;
-	using TreeBboxPtrs     = std::vector<TreeBboxPtr>;
-	using TreeBboxPtrsIter = typename TreeBboxPtrs ::iterator;
+	using TreeBboxes = CStyleVector<TreeBbox>;
+
+	using Node = BinaryNode<Traits>;
+	BinaryTreeAbbreviate(Node);
+	using Nodes     = tbb::concurrent_vector<Node>;
+	using NodesIter = typename Nodes::iterator;
+
+	using TreeBboxesContainer = Node::BboxesContainer;
 
 	using TreePoint =
 	  remove_cvref_t<decltype(std::declval<TreeBbox>().min_bound())>;
-	AdapOrthTreeAbbreviate(TreePoint);
+	BinaryTreeAbbreviate(TreePoint);
 
 	using CalcBbox    = typename Traits::CalcBbox;
 	using DoIntersect = typename Traits::DoIntersect;
 
-	using SplitPred = typename Traits::SplitPred;
-	// using CollapsePred = typename Traits::CollapsePred;
+	using SplitPred   = typename Traits::SplitPred;
+	using SplitManner = typename Traits::SplitManner;
 
 	using ShapeRefinePred = typename Traits::ShapeRefinePred;
-
-	using Node = AdapOrthNode<Traits>;
-	AdapOrthTreeAbbreviate(Node);
-
-	using Nodes     = tbb::concurrent_vector<Node>;
-	using NodesIter = typename Nodes::iterator;
 
 	using calc_box_from_boxes       = typename Traits::calc_box_from_boxes;
 	using calc_box_from_box_indices = typename Traits::calc_box_from_box_indices;
 
 public: /* Constructors and Destructor *************************************/
-	AdapOrthTree() = default;
+	BinaryTree() = default;
 
-	AdapOrthTree(const AdapOrthTree &rhs) { shallow_copy(rhs); }
+	BinaryTree(const BinaryTree &rhs) { shallow_copy(rhs); }
 
-	AdapOrthTree &operator=(const AdapOrthTree &rhs)
+	BinaryTree &operator=(const BinaryTree &rhs)
 	{
 		shallow_copy(rhs);
 		return *this;
@@ -86,7 +80,7 @@ public: /* Constructors and Destructor *************************************/
 	/**
 	 * @brief Only copy topology and shape, won't copy data and attributes.
 	 */
-	void shallow_copy(const AdapOrthTree &rhs);
+	void shallow_copy(const BinaryTree &rhs);
 
 	/**
 	 * @brief Insert primitives and indices to tree. Will clear tree before
@@ -117,10 +111,8 @@ public: /* Constructors and Destructor *************************************/
 	 * @param compact_box if set to false, the box will be an equal length cube,
 	 * otherwise be a unequal length cuboid to bound input as compact as possible.
 	 * @param enlarge_ratio enlarge the bounding box of the inserting points.
-	 * @param adaptive_thres control the adaptive strategy when splitting nodes.
 	 */
-	void construct(bool compact_box = false, NT enlarge_ratio = 1.2,
-	               NT adaptive_thres = 0.1f, size_t parallel_scale = 10000);
+	void construct(bool compact_box = false, NT enlarge_ratio = 1.2);
 
 	/**
 	 * @brief Refine shape of tree (e.g., split a node if it is too large).
@@ -147,48 +139,6 @@ protected: /* Modifiers ******************************************************/
 	 */
 	bool split(index_t node_idx);
 
-	/**
-	 * @brief Collaspe children node to its parent node.
-	 * @param nd The node to collapse.
-	 * @param collect_boxes If set to true, collect boxes in children.
-	 * @todo How to re-cycle garbage?
-	 */
-	void collapse(index_t node_idx);
-
-	/** @brief Assign boxes when splitting a node to children.  */
-	void assign_boxes(NodeRef nd, TreePointCRef center,
-	                  std::array<std::vector<index_t>, Degree> &assign_res,
-	                  std::array<size_t, Dimension>            &lower,
-	                  std::array<size_t, Dimension>            &higher);
-
-	/**
-	 * @brief Compare a box with a center point.
-	 * @param box any box.
-	 * @param center any center point.
-	 * @return
-	 * for the first bitset in pair: for any dimension i, if the box overlaps the
-	 * lower half space of the center point, set bitset[i] to true.
-	 * for the second bitset in pair: for any dimension i, if the box overlaps the
-	 * higher half space of the center point, set bitset[i] to true.
-	 */
-	static std::pair<std::bitset<Dimension>, std::bitset<Dimension>>
-	compare_box_with_center(TreeBboxCRef box, TreePointCRef center);
-
-	/**
-	 * @brief If boxes are not partitionable on dimension i, collapse nodes on
-	 * dimension i. Boxes in collasped nodes will be moved to existed nodes.
-	 * This function calculate destination for collapsed nodes.
-	 * @param partitionable whether boxes are partitionable on all dimensions.
-	 * @param destination boxes on i-th child node are moved to destination[i]-th
-	 * child node.
-	 * @return true if moving happens.
-	 */
-	void collapse_destination(const std::array<bool, Dimension> &partitionable,
-	                          std::array<index_t, Degree>       &destination);
-
-	virtual void calc_box_for_children(NodeRef nd, TreePointCRef center,
-	                                   std::array<Bbox, Degree> &child_boxes) = 0;
-
 	void calc_tbox_for_children(NodeRef nd);
 
 public: /* Queries */
@@ -208,7 +158,11 @@ public: /* Queries */
 
 	size_t size() const { return m_boxes.size(); }
 
-	TreePoint node_center(NodeCRef nd) const;
+	size_t depth() const;
+
+	std::vector<std::pair<index_t, size_t>> all_nodes_with_height() const;
+
+	std::vector<index_t> all_nodes() const;
 
 	std::vector<index_t> all_leaf_nodes() const;
 
@@ -216,14 +170,8 @@ public: /* Traversal *********************************************************/
 	template <typename TraversalTrait>
 	void traversal(TraversalTrait &traits) const;
 
-protected:
 	template <typename TraversalTrait>
 	bool traversal_node(NodeCRef nd, TraversalTrait &traits) const;
-
-	// clang-format off
-	template <typename Iter, typename OutIter, typename LessPred, typename EqualPred>
-	void merge_unique(Iter b1, Iter e1, Iter b2, Iter e2, OutIter o, LessPred lp, EqualPred ep);
-	// clang-format off
 
 protected:
 	/***** tree's kernel data *****/
@@ -243,10 +191,13 @@ protected:
 
 	/***** Predicates *****/
 
-	/// Split predicate, check whether a node need to split.
+	/// Split predicate, test whether a node need to split.
 	SplitPred m_split_pred;
 
-	/// shape refine predicate, check node's shape and decide whether to split it.
+	/// Split manner, decide how to split a node.
+	SplitManner m_split_manner;
+
+	/// Shape refine predicate, test node's shape and decide whether to split it.
 	ShapeRefinePred m_shape_refine_pred;
 
 	/// Do intersect
@@ -259,14 +210,10 @@ protected:
 
 	/// bounding box enlarge ratio
 	NT m_enlarge_ratio = 1.5;
-
-	NT m_adaptive_thres = 0.1f;
 };
-
-
 
 } // namespace OMC
 
 #ifdef OMC_HAS_IMPL
-	#include "AdapOrthTree.inl"
+	#include "BinaryTree.inl"
 #endif

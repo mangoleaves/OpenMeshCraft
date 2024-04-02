@@ -827,6 +827,18 @@ Sign LessThan3D_Indirect<FT, IT, ET>::on_z(const PointT &a, const PointT &b)
 }
 
 template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on(const PointT &a, const PointT &b,
+                                         size_t dim)
+{
+	if (dim == 0)
+		return on_x(a, b);
+	if (dim == 1)
+		return on_y(a, b);
+	if (dim == 2)
+		return on_z(a, b);
+}
+
+template <typename FT, typename IT, typename ET>
 std::array<Sign, 3> LessThan3D_Indirect<FT, IT, ET>::on_all(const PointT &a,
                                                             const PointT &b)
 {
@@ -884,43 +896,26 @@ std::array<Sign, 3> LessThan3D_Indirect<FT, IT, ET>::on_all(const PointT &a,
 template <typename FT, typename IT, typename ET>
 Sign LessThan3D_Indirect<FT, IT, ET>::on_x(const PointT &a, const FT *b)
 {
-	if (a.is_Explicit())
-		return static_cast<Sign>(((a.x() > b.x()) - (a.x() < b.x())));
-	if (a.has_ssf())
-		return lessThanOnX_IE<SSF>(a, b[0], static_cast<PntArr3>(PntType(a)));
-	else
-		return lessThanOnX_IE<DF>(a, b[0], PntArr3::I);
-
-	OMC_EXIT("LessThan3D - should not happen");
-	return Sign::ZERO; // warning killer
+	return on_x(a, b[0]);
 }
 
 template <typename FT, typename IT, typename ET>
 Sign LessThan3D_Indirect<FT, IT, ET>::on_y(const PointT &a, const FT *b)
 {
-	if (a.is_Explicit())
-		return static_cast<Sign>(((a.y() > b.y()) - (a.y() < b.y())));
-	if (a.has_ssf())
-		return lessThanOnY_IE<SSF>(a, b[1], static_cast<PntArr3>(PntType(a)));
-	else
-		return lessThanOnY_IE<DF>(a, b[1], PntArr3::I);
-
-	OMC_EXIT("LessThan3D - should not happen");
-	return Sign::ZERO; // warning killer
+	return on_y(a, b[1]);
 }
 
 template <typename FT, typename IT, typename ET>
 Sign LessThan3D_Indirect<FT, IT, ET>::on_z(const PointT &a, const FT *b)
 {
-	if (a.is_Explicit())
-		return static_cast<Sign>(((a.z() > b.z()) - (a.z() < b.z())));
-	if (a.has_ssf())
-		return lessThanOnZ_IE<SSF>(a, b[2], static_cast<PntArr3>(PntType(a)));
-	else
-		return lessThanOnZ_IE<DF>(a, b[2], PntArr3::I);
+	return on_z(a, b[2]);
+}
 
-	OMC_EXIT("LessThan3D - should not happen");
-	return Sign::ZERO; // warning killer
+template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on(const PointT &a, const FT *b,
+                                         size_t dim)
+{
+	return on(a, b[dim], dim);
 }
 
 template <typename FT, typename IT, typename ET>
@@ -938,6 +933,53 @@ std::array<Sign, 3> LessThan3D_Indirect<FT, IT, ET>::on_all(const PointT &a,
 	OMC_EXIT("LessThan3D - should not happen");
 	return std::array<Sign, 3>{Sign::ZERO, Sign::ZERO,
 	                           Sign::ZERO}; // warning killer
+}
+
+template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on_x(const PointT &a, const FT b)
+{
+	if (a.is_Explicit())
+		return static_cast<Sign>(((a.x() > b) - (a.x() < b)));
+	if (a.has_ssf())
+		return lessThanOnX_IE<SSF>(a, b, static_cast<PntArr3>(PntType(a)));
+	else
+		return lessThanOnX_IE<DF>(a, b, PntArr3::I);
+}
+
+template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on_y(const PointT &a, const FT b)
+{
+	if (a.is_Explicit())
+		return static_cast<Sign>(((a.y() > b) - (a.y() < b)));
+	if (a.has_ssf())
+		return lessThanOnY_IE<SSF>(a, b, static_cast<PntArr3>(PntType(a)));
+	else
+		return lessThanOnY_IE<DF>(a, b, PntArr3::I);
+}
+
+template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on_z(const PointT &a, const FT b)
+{
+	if (a.is_Explicit())
+		return static_cast<Sign>(((a.z() > b) - (a.z() < b)));
+	if (a.has_ssf())
+		return lessThanOnZ_IE<SSF>(a, b, static_cast<PntArr3>(PntType(a)));
+	else
+		return lessThanOnZ_IE<DF>(a, b, PntArr3::I);
+}
+
+template <typename FT, typename IT, typename ET>
+Sign LessThan3D_Indirect<FT, IT, ET>::on(const PointT &a, const FT b,
+                                         size_t dim)
+{
+	if (dim == 0)
+		return on_x(a, b);
+	if (dim == 1)
+		return on_y(a, b);
+	if (dim == 2)
+		return on_z(a, b);
+
+	OMC_EXIT("LessThan3D - should not happen");
 }
 
 template <typename FT, typename IT, typename ET>
@@ -1024,10 +1066,9 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
 }
 
 template <typename FT, typename IT, typename ET>
-auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(const PointT &p,
-                                                      const PointT &q,
-                                                      const PointT &r)
-  -> std::tuple<const PointT &, const PointT &, const PointT &>
+auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(
+  const PointT &p, const PointT &q,
+  const PointT &r) -> std::tuple<const PointT &, const PointT &, const PointT &>
 {
 	using CR = const PointT &;
 	using CP = const PointT *;

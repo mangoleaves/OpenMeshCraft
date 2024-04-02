@@ -80,55 +80,12 @@ public: /* Constructors ******************************************************/
 	{
 	}
 
-	/**
-	 * @brief Construct a new ExplicitPoint2T object by copying from a given
-	 * ExplicitPoint2T \p v .
-	 * @param v The given ExplicitPoint2T.
-	 */
-	ExplicitPoint2T(const ExplicitPoint2T &v) noexcept
-	  : GP(PointType::Explicit)
-	  , m_p(v.m_p)
-	{
-	}
+	ExplicitPoint2T(const ExplicitPoint2T &v)            = default;
+	ExplicitPoint2T(ExplicitPoint2T &&v)                 = default;
+	ExplicitPoint2T &operator=(const ExplicitPoint2T &v) = default;
+	ExplicitPoint2T &operator=(ExplicitPoint2T &&v)      = default;
 
-	/**
-	 * @brief Construct a new ExplicitPoint2T object by copying from a given
-	 * ExplicitPoint2T \p v .
-	 * @param v The given ExplicitPoint2T.
-	 */
-	ExplicitPoint2T(ExplicitPoint2T &&v) noexcept
-	  : GP(PointType::Explicit)
-	  , m_p(std::move(v.m_p))
-	{
-	}
-
-	virtual ~ExplicitPoint2T() noexcept {}
-
-	/**
-	 * @brief Construct a new ExplicitPoint2T object by copying from a given
-	 * ExplicitPoint2T \p v .
-	 * @param v The given ExplicitPoint2T.
-	 * @return ExplicitPoint2T& return the reference to this object.
-	 */
-	ExplicitPoint2T &operator=(const ExplicitPoint2T &v) noexcept
-	{
-		this->m_point_type = v.point_type;
-		m_p                = v.m_p;
-		return *this;
-	}
-
-	/**
-	 * @brief Construct a new ExplicitPoint2T object by copying from a given
-	 * ExplicitPoint2T \p v .
-	 * @param v The given ExplicitPoint2T.
-	 * @return ExplicitPoint2T& return the reference to this object.
-	 */
-	ExplicitPoint2T &operator=(ExplicitPoint2T &&v) noexcept
-	{
-		this->m_point_type = v.point_type;
-		m_p                = std::move(v.m_p);
-		return *this;
-	}
+	~ExplicitPoint2T() = default;
 
 public: /* Regular operators *************************************************/
 	/// @name Data access

@@ -9,6 +9,7 @@
 
 #include "OpenMeshCraft/Utils/Exception.h"
 #include "OpenMeshCraft/Utils/IndexDef.h"
+#include "OpenMeshCraft/Utils/InlinedVector.h"
 
 #include "OpenMeshCraft/Geometry/Intersection/IntersectionUtils.h"
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
@@ -19,6 +20,7 @@
 #include <execution>
 #include <iterator>
 #include <memory>
+#include <queue>
 #include <vector>
 
 namespace OMC {
@@ -35,6 +37,18 @@ constexpr int NBIT = 32;
 /// * Consider efficiency, we limit maximal label count to be less than
 ///   NBIT(32).
 using Label = std::bitset<NBIT>;
+
+struct MeshArrangements_Config
+{
+	double tree_enlarge_ratio    = 1.01;
+	size_t tree_parallel_scale   = 10000;
+	size_t tree_split_size_thres = 50;
+	// only for OcTree
+	double tree_adaptive_thres   = 0.1;
+	// only for BinaryTree
+	double tree_cross_thres      = 0.1;
+	double tree_balence_thres    = 0.1;
+};
 
 struct MeshArrangements_Stats
 {
@@ -62,6 +76,10 @@ struct MeshArrangements_Stats
 
 	double tr_elapsed = 0.; // timings of triangulation
 };
+
+/********************************************************************/
+/* Below are used internally ****************************************/
+/********************************************************************/
 
 /// @brief Each output triangle has a surface label and inside label.
 struct Labels
@@ -248,192 +266,6 @@ private:
 	using RecycleQueue = std::queue<std::atomic<index_t> *>;
 
 	RecycleQueue recycled_idx;
-};
-
-/// @note Only used this inlined vector to store simple types!!!
-template <typename T, size_t N>
-class InlinedVector
-{
-	// N is not zero and N is power of 2.
-	static_assert(N != 0 && (N & (N - 1)) == 0);
-
-public:
-	using value_type = T;
-
-public: /* Constructors *****************************************************/
-	InlinedVector() noexcept
-	  : cur_elem_size(0)
-	{
-	}
-
-	InlinedVector(const InlinedVector &rhs) noexcept { operator=(rhs); }
-
-	InlinedVector &operator=(const InlinedVector &rhs) noexcept
-	{
-		if (rhs.cur_elem_size <= N)
-		{
-			std::copy(rhs.inlined_data.begin(),
-			          rhs.inlined_data.begin() + rhs.cur_elem_size,
-			          inlined_data.begin());
-			heap_data.clear();
-		}
-		else
-		{
-			inlined_data = rhs.inlined_data;
-			heap_data    = rhs.heap_data;
-		}
-		cur_elem_size = rhs.cur_elem_size;
-		return *this;
-	}
-
-	InlinedVector(InlinedVector &&rhs) noexcept { operator=(std::move(rhs)); }
-
-	InlinedVector &operator=(InlinedVector &&rhs) noexcept
-	{
-		if (rhs.cur_elem_size <= N)
-		{
-			std::copy(rhs.inlined_data.begin(),
-			          rhs.inlined_data.begin() + rhs.cur_elem_size,
-			          inlined_data.begin());
-			heap_data.clear();
-		}
-		else
-		{
-			inlined_data = rhs.inlined_data;
-			heap_data    = std::move(rhs.heap_data);
-		}
-		cur_elem_size = rhs.cur_elem_size;
-		return *this;
-	}
-
-public: /* Modifier **********************************************************/
-	void push_back(const T &elem)
-	{
-		if (cur_elem_size < N)
-			inlined_data[cur_elem_size] = elem;
-		else
-			heap_data.push_back(elem);
-		cur_elem_size++;
-	}
-	void push_back(T &&elem)
-	{
-		if (cur_elem_size < N)
-			inlined_data[cur_elem_size] = std::move(elem);
-		else
-			heap_data.push_back(elem);
-		cur_elem_size++;
-	}
-
-	void pop_back()
-	{
-		if (cur_elem_size > N)
-			heap_data.pop_back();
-		cur_elem_size--;
-	}
-
-	void clear()
-	{
-		cur_elem_size = 0;
-		heap_data.clear();
-	}
-
-	void resize(size_t s)
-	{ /* do nothing */
-	}
-
-	void reserve(size_t s)
-	{ /* do nothing */
-	}
-
-public: /* Access ************************************************************/
-	const T &operator[](size_t idx) const
-	{
-		if (idx < N)
-			return inlined_data[idx];
-		else
-			return heap_data[idx - N];
-	}
-
-	T &operator[](size_t idx)
-	{
-		if (idx < N)
-			return inlined_data[idx];
-		else
-			return heap_data[idx - N];
-	}
-
-	T       &back() { return operator[](cur_elem_size - 1); }
-	const T &back() const { return operator[](cur_elem_size - 1); }
-
-	size_t size() const { return (size_t)cur_elem_size; }
-
-	bool empty() const { return cur_elem_size == 0; }
-
-public: /* Iterator **********************************************************/
-	      // clang-format off
-	class ForwardNoSkipIterator
-	{
-	public:
-		using iterator_category = std::bidirectional_iterator_tag;
-		using difference_type   = std::ptrdiff_t;
-		using value_type        = T;
-		using pointer           = T*;
-		using reference         = T&;
-	public:
-		ForwardNoSkipIterator(InlinedVector *_vec, difference_type _cur_idx)
-		  : vec(_vec) , cur_idx(_cur_idx) {}
-		ForwardNoSkipIterator &operator++() { cur_idx++; return *this; }
-		ForwardNoSkipIterator &operator--() { cur_idx--; return *this; }
-		ForwardNoSkipIterator operator++(int) { ForwardNoSkipIterator cpy(*this); cur_idx++; return cpy; }
-		ForwardNoSkipIterator operator--(int) { ForwardNoSkipIterator cpy(*this); cur_idx--; return cpy; }
-		T &operator*() const { return vec->operator[](cur_idx); }
-		T &operator*() { return vec->operator[](cur_idx); }
-		T *operator->() const { return &vec->operator[](cur_idx); }
-		T *operator->() { return &vec->operator[](cur_idx); }
-		bool operator==(const ForwardNoSkipIterator &rhs) const { return cur_idx == rhs.cur_idx; }
-		bool operator!=(const ForwardNoSkipIterator &rhs) const { return cur_idx != rhs.cur_idx; }
-	public:
-		InlinedVector   *vec;
-		difference_type  cur_idx;
-	};
-
-	ForwardNoSkipIterator begin() {return ForwardNoSkipIterator(this, 0);}
-	ForwardNoSkipIterator end() {return ForwardNoSkipIterator(this, (typename ForwardNoSkipIterator::difference_type)cur_elem_size);}
-
-	class ForwardNoSkipConstIterator
-	{
-	public:
-		using iterator_category = std::bidirectional_iterator_tag;
-		using difference_type   = std::ptrdiff_t;
-		using value_type        = T;
-		using pointer           = const T*;
-		using reference         = const T&;
-	public:
-		ForwardNoSkipConstIterator(const InlinedVector *_vec, difference_type _cur_idx)
-		  : vec(_vec) , cur_idx(_cur_idx) {}
-		ForwardNoSkipConstIterator &operator++() { cur_idx++; return *this; }
-		ForwardNoSkipConstIterator &operator--() { cur_idx--; return *this; }
-		ForwardNoSkipConstIterator operator++(int) { ForwardNoSkipConstIterator cpy(*this); cur_idx++; return cpy; }
-		ForwardNoSkipConstIterator operator--(int) { ForwardNoSkipConstIterator cpy(*this); cur_idx--; return cpy; }
-		const T &operator*() const { return vec->operator[](cur_idx); }
-		const T &operator*() { return vec->operator[](cur_idx); }
-		const T *operator->() const { return &vec->operator[](cur_idx); }
-		const T *operator->() { return &vec->operator[](cur_idx); }
-		bool operator==(const ForwardNoSkipConstIterator &rhs) const { return cur_idx == rhs.cur_idx; }
-		bool operator!=(const ForwardNoSkipConstIterator &rhs) const { return cur_idx != rhs.cur_idx; }
-	public:
-		const InlinedVector   *vec;
-		difference_type       cur_idx;
-	};
-	ForwardNoSkipConstIterator begin() const {return ForwardNoSkipConstIterator(this, 0);}
-	ForwardNoSkipConstIterator end() const {return ForwardNoSkipConstIterator(this, (typename ForwardNoSkipIterator::difference_type)cur_elem_size);}
-	      // clang-format on
-
-public:
-	std::array<T, N> inlined_data;
-	std::vector<T>   heap_data;
-
-	size_t cur_elem_size;
 };
 
 struct DuplTriInfo

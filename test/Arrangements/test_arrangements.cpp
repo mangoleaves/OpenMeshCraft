@@ -95,18 +95,24 @@ TEST_F(test_Arrangements, TestDataSet)
 
 	bool verbose = config.get<bool>("verbose");
 
-	bool   set_parameter          = config.get<bool>("set_parameter", false);
-	float  _tree_enlarge_ratio    = 1.1f;
-	float  _tree_adaptive_thres   = 0.1f;
-	size_t _tree_parallel_scale   = 10000;
-	size_t _tree_split_size_thres = 1000;
+	bool set_parameter = config.get<bool>("set_parameter", false);
+
+	OMC::MeshArrangements_Config arr_config;
+	arr_config.tree_enlarge_ratio    = 1.1;
+	arr_config.tree_adaptive_thres   = 0.1;
+	arr_config.tree_parallel_scale   = 10000;
+	arr_config.tree_split_size_thres = 1000;
 	if (set_parameter)
 	{
 		boost::property_tree::ptree &parameters = config.get_child("parameters");
-		_tree_enlarge_ratio    = parameters.get<float>("tree_enlarge_ratio");
-		_tree_adaptive_thres   = parameters.get<float>("tree_adaptive_thres");
-		_tree_parallel_scale   = parameters.get<size_t>("tree_parallel_scale");
-		_tree_split_size_thres = parameters.get<size_t>("tree_split_size_thres");
+		arr_config.tree_enlarge_ratio =
+		  parameters.get<double>("tree_enlarge_ratio");
+		arr_config.tree_adaptive_thres =
+		  parameters.get<double>("tree_adaptive_thres");
+		arr_config.tree_parallel_scale =
+		  parameters.get<size_t>("tree_parallel_scale");
+		arr_config.tree_split_size_thres =
+		  parameters.get<size_t>("tree_split_size_thres");
 	}
 
 	size_t skip_step   = config.get<size_t>("skip_step", 0);
@@ -135,9 +141,7 @@ TEST_F(test_Arrangements, TestDataSet)
 
 			if (set_parameter)
 			{
-				arrangements.setParameters(_tree_enlarge_ratio, _tree_adaptive_thres,
-				                           _tree_parallel_scale,
-				                           _tree_split_size_thres);
+				arrangements.setConfig(arr_config);
 			}
 
 			OMC::MeshArrangements_Stats &stats = arrangements.stats();

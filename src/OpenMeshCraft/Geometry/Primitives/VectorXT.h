@@ -34,25 +34,12 @@ private:
 
 public:
 	VecXT() noexcept {}
-	VecXT(const VT &rhs) noexcept
-	  : values(rhs.values)
-	{
-	}
-	VecXT(VT &&rhs) noexcept
-	  : values(std::move(rhs.values))
-	{
-	}
-	VT &operator=(const VT &rhs) noexcept
-	{
-		values = rhs.values;
-		return *this;
-	}
-	VT &operator=(VT &&rhs) noexcept
-	{
-		values = std::move(rhs.values);
-		return *this;
-	}
-	~VecXT() noexcept {}
+
+	VecXT(const VT &rhs)         = default;
+	VecXT(VT &&rhs)              = default;
+	VT &operator=(const VT &rhs) = default;
+	VT &operator=(VT &&rhs)      = default;
+	~VecXT()                     = default;
 
 	explicit inline VecXT(const T *v) noexcept
 	{

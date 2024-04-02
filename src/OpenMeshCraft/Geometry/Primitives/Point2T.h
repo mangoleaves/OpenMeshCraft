@@ -22,6 +22,11 @@ public:
 	{
 	}
 
+	Point2T(const Point2T &)             = default;
+	Point2T(Point2T &&)                  = default;
+	Point2T &operator=(const Point2T &v) = default;
+	Point2T &operator=(Point2T &&v)      = default;
+
 	/**
 	 * @brief Construct a new Point2T object, vectorize it by \p v .
 	 * @tparam
@@ -63,46 +68,6 @@ public:
 	explicit Point2T(T1 &&x, T2 &&y) noexcept
 	  : m_p(std::forward<T1>(x), std::forward<T2>(y))
 	{
-	}
-
-	/**
-	 * @brief Construct a new Point2T by copying from a given Point2T \p v.
-	 * @param v The given Point2T.
-	 */
-	Point2T(const Point2T &v) noexcept
-	  : m_p(v.m_p)
-	{
-	}
-
-	/**
-	 * @brief Construct a new Point2T by copying from a given Point2T \p v.
-	 * @param v The given Point2T.
-	 */
-	Point2T(Point2T &&v) noexcept
-	  : m_p(std::move(v.m_p))
-	{
-	}
-
-	/**
-	 * @brief Construct a new Point2T by copying from a given Point2T \p v.
-	 * @param v The given Point2T.
-	 * @return Point2T& return the reference to this object.
-	 */
-	Point2T &operator=(const Point2T &v) noexcept
-	{
-		m_p = v.m_p;
-		return *this;
-	}
-
-	/**
-	 * @brief Construct a new Point2T by copying from a given Point2T \p v.
-	 * @param v The given Point2T.
-	 * @return Point2T& return the reference to this object.
-	 */
-	Point2T &operator=(Point2T &&v) noexcept
-	{
-		m_p = std::move(v.m_p);
-		return *this;
 	}
 
 	/// @name Data access
@@ -176,6 +141,16 @@ public:
 	}
 
 	/**
+	 * @brief new point = point / scale_factor
+	 * @param rhs the scale factor
+	 * @return Point2T the scaled new point
+	 */
+	Point2T operator/(const NT &scale_factor) const
+	{
+		return Point2T(as_vec() / scale_factor);
+	}
+
+	/**
 	 * @brief this point += another point
 	 * @param rhs the given point
 	 * @return Point2T the result point.
@@ -227,6 +202,17 @@ public:
 	Point2T operator*=(const NT &scale_factor)
 	{
 		as_vec() *= scale_factor;
+		return *this;
+	}
+
+	/**
+	 * @brief point /= scale_factor
+	 * @param rhs the scale factor
+	 * @return Point2T the in-place scaled point
+	 */
+	Point2T operator/=(const NT &scale_factor)
+	{
+		as_vec() /= scale_factor;
 		return *this;
 	}
 

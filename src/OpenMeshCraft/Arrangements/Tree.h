@@ -109,21 +109,21 @@ private:
 /* Octree, used in detecting intersections                          */
 /********************************************************************/
 
-class Arr_AdapOrthSplitPred
+class Arr_TreeSplitPred
 {
 public:
-	Arr_AdapOrthSplitPred()
+	Arr_TreeSplitPred()
 	  : threshold(1000)
 	{
 	}
 
-	Arr_AdapOrthSplitPred(size_t _threshold)
+	Arr_TreeSplitPred(size_t _threshold)
 	  : threshold(_threshold)
 	{
 	}
 
-	template <typename OrthTree, typename OrthNode>
-	bool operator()(OMC_UNUSED const OrthTree &tree, const OrthNode &node)
+	template <typename Tree, typename OrthNode>
+	bool operator()(OMC_UNUSED const Tree &tree, const OrthNode &node)
 	{
 		return node.size() > threshold;
 	}
@@ -132,50 +132,39 @@ private:
 	size_t threshold;
 };
 
-class Arr_AdapOrthShapeRefinePred
+class Arr_TreeShapeRefinePred
 {
 public:
-	Arr_AdapOrthShapeRefinePred()
+	Arr_TreeShapeRefinePred()
 	  : scale(1.)
 	{
 	}
 
-	Arr_AdapOrthShapeRefinePred(double _scale)
+	Arr_TreeShapeRefinePred(double _scale)
 	  : scale(_scale)
 	{
 	}
 
-	template <typename OrthTree, typename OrthNode>
-	bool operator()(const OrthTree &tree, const OrthNode &node,
-	                std::array<bool, 3> &partitionable)
-	{
-		auto diag_length =
-		  (tree.box().max_bound() - tree.box().min_bound()).length();
-		auto node_length = node.box().max_bound() - node.box().min_bound();
-		partitionable[0] = node_length[0] > scale * diag_length;
-		partitionable[1] = node_length[1] > scale * diag_length;
-		partitionable[2] = node_length[2] > scale * diag_length;
-		return partitionable[0] || partitionable[1] || partitionable[2];
-	}
+	template <typename Tree, typename Node>
+	bool operator()(const Tree &tree, const Node &node,
+	                std::array<bool, 3> &partitionable);
 
 private:
 	double scale;
 };
 
 template <typename AppTraits>
-class Arr_Minimal_OrthogonalTraits
+class Arr_Tree_MinimalTraits
 {
 public:
-	static constexpr size_t Dimension                = 3;
-	static constexpr size_t MaxDepth                 = 16;
-	static constexpr bool   EnableVertices           = false;
-	static constexpr bool   StoreBoxesInInternalNode = false;
+	static constexpr size_t Dimension = 3;
+	static constexpr size_t MaxDepth  = 16;
 
 	using NT    = typename AppTraits::NT;
 	using BboxT = typename AppTraits::BoundingBox;
 
-	using SplitPred       = Arr_AdapOrthSplitPred;
-	using ShapeRefinePred = Arr_AdapOrthShapeRefinePred;
+	using SplitPred       = Arr_TreeSplitPred;
+	using ShapeRefinePred = Arr_TreeShapeRefinePred;
 	using DoIntersect     = typename AppTraits::DoIntersect;
 	using CalcBbox        = typename AppTraits::CalcBbox;
 
@@ -201,21 +190,20 @@ public:
 };
 
 template <typename AppTraits>
-using Arr_OrthogonalTraits =
-  AdapOrthAutoDeduceTraits<Arr_Minimal_OrthogonalTraits<AppTraits>>;
+using Arr_TreeTraits =
+  AdapOrthAutoDeduceTraits<Arr_Tree_MinimalTraits<AppTraits>>;
 
 template <typename AppTraits>
-class Arr_OcTree_Intersection
-  : public AdapOcTree<Arr_OrthogonalTraits<AppTraits>>
+class Arr_Tree_Intersection : public AdapOcTree<Arr_TreeTraits<AppTraits>>
 {
 public:
 	using GPoint     = typename AppTraits::GPoint;
 	using AsEP       = typename AppTraits::AsEP;
 	using LessThan3D = typename AppTraits::LessThan3D;
 
-	using BaseT      = AdapOcTree<Arr_OrthogonalTraits<AppTraits>>;
-	using ThisT      = Arr_OcTree_Intersection<AppTraits>;
-	using TreeTraits = Arr_OrthogonalTraits<AppTraits>;
+	using TreeTraits = Arr_TreeTraits<AppTraits>;
+	using BaseT      = AdapOcTree<TreeTraits>;
+	using ThisT      = Arr_Tree_Intersection<AppTraits>;
 
 	using NT    = typename TreeTraits::NT;
 	using BboxT = typename TreeTraits::BboxT;
@@ -227,24 +215,23 @@ public:
 	using Indices = std::vector<index_t>;
 
 public: /* Constructors ***************************************************/
-	Arr_OcTree_Intersection(MeshArrangements_Stats *_stats)
+	Arr_Tree_Intersection(MeshArrangements_Stats *_stats)
 	  : BaseT()
 	  , stats(_stats)
 	{
 	}
 
 	/// @brief it is shallow copy (see details in AdapOrthTree)
-	Arr_OcTree_Intersection(const Arr_OcTree_Intersection &rhs)
+	Arr_Tree_Intersection(const Arr_Tree_Intersection &rhs)
 	  : BaseT(rhs)
 	  , stats(rhs.stats)
 	{
 	}
 
 public: /* build and refine ***********************************************/
-	void init_from_triangle_soup(const std::vector<GPoint *> &verts,
-	                             const std::vector<index_t>  &tris,
-	                             NT enlarge_ratio, size_t split_size_threshold,
-	                             float adaptive_thres, size_t parallel_scale);
+	void init_from_triangle_soup(const std::vector<GPoint *>   &verts,
+	                             const std::vector<index_t>    &tris,
+	                             const MeshArrangements_Config &config);
 
 	void shape_refine(size_t num_intersection_pairs);
 
@@ -271,7 +258,7 @@ public: /* Query and update Interfaces ************************************/
 	insert_point(const GPoint *pp, std::atomic<index_t> *ip);
 
 	/**
-	 * @brief
+	 * @brief insert a point into tree.
 	 * @param pp point's pointer
 	 * @param ip index's pointer
 	 * @param get_idx A function object that inserts point and get index.
@@ -289,7 +276,7 @@ public: /* Query and update Interfaces ************************************/
 	void clear_points();
 
 protected: /* Internal types, functions and data. **************************/
-	/* used in traversal */
+	         /* used in traversal */
 
 	using BoxTrav = AdapOrth_BoxInterTraversal<TreeTraits>;
 

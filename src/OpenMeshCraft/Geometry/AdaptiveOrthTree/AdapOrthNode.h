@@ -37,9 +37,9 @@ public:
 	static_assert(MaxDepth <= 64);
 
 	/// Geometry information
-	using Bbox   = typename Traits::BboxT;
-	using OrBbox = typename Traits::OrBboxT;
-	AdapOrthTreeAbbreviate(OrBbox);
+	using Bbox     = typename Traits::BboxT;
+	using TreeBbox = typename Traits::TreeBboxT;
+	AdapOrthTreeAbbreviate(TreeBbox);
 
 	/// Attribute type defined on node.
 	using NodeAttrT = typename Traits::NodeAttrT;
