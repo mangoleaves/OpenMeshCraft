@@ -2,6 +2,8 @@
 
 #include "DetectBBI.h"
 
+#define OMC_ARR_DETECT_BBI_PARA
+
 namespace OMC {
 
 template <typename Traits>
@@ -27,48 +29,53 @@ DetectBBI<Traits>::DetectBBI(const std::vector<GPoint *> &_verts,
 
 	std::vector<index_t> leaf_nodes = tree.all_leaf_nodes();
 
-	std::vector<index_t> uniq_leaf_nodes, dupl_leaf_nodes;
-	partitionLeafNodes(leaf_nodes, uniq_leaf_nodes, dupl_leaf_nodes);
-	parallelOnUniqNodes(uniq_leaf_nodes);
-	parallelOnDuplNodes(dupl_leaf_nodes);
+	std::vector<index_t> small_nodes, large_nodes;
+	partitionNodes(leaf_nodes, small_nodes, large_nodes);
+	parallelOnSmallNodes(small_nodes);
+	parallelOnLargeNodes(large_nodes);
 
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 	parallel_remove_duplicates(BBI_pairs);
+#endif
 
 	OMC_ARR_PROFILE_INC_REACH_CNT(ArrFuncNames::D_BBI, 0, BBI_pairs.size());
 
 	if (verbose)
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 		Logger::info(std::format("[OpenMeshCraft Arrangements] Detect unique pairs "
 		                         "of box-box intersections {}.",
 		                         BBI_pairs.size()));
+#else
+		Logger::info(std::format("[OpenMeshCraft Arrangements] Detect unique pairs "
+		                         "of box-box intersections {}.",
+		                         num_BBI_pairs));
+#endif
 }
 
 template <typename Traits>
-void DetectBBI<Traits>::partitionLeafNodes(
-  const std::vector<index_t> &leaf_nodes, std::vector<index_t> &uniq_leaf_nodes,
-  std::vector<index_t> &dupl_leaf_nodes)
+void DetectBBI<Traits>::partitionNodes(const std::vector<index_t> &nodes,
+                                       std::vector<index_t>       &small_nodes,
+                                       std::vector<index_t>       &large_nodes)
 {
-	uniq_leaf_nodes.reserve(leaf_nodes.size());
-	dupl_leaf_nodes.reserve(leaf_nodes.size());
+	small_nodes.reserve(nodes.size());
+	large_nodes.reserve(nodes.size());
 
-	for (index_t ni : leaf_nodes)
+	for (index_t ni : nodes)
 	{
 		if (tree.node(ni).size() == 0)
 			continue;
 		if (tree.node(ni).size() > 400)
-			dupl_leaf_nodes.push_back(ni);
+			large_nodes.push_back(ni);
 		else
-			uniq_leaf_nodes.push_back(ni);
+			small_nodes.push_back(ni);
 	}
 }
 
 template <typename Traits>
-void DetectBBI<Traits>::parallelOnUniqNodes(
-  const std::vector<index_t> &leaf_nodes)
+void DetectBBI<Traits>::parallelOnSmallNodes(const std::vector<index_t> &nodes)
 {
-	std::vector<std::vector<Label>> cache_labels_mt(
-	  tbb::this_task_arena::max_concurrency());
-	std::vector<std::vector<typename Tree::TreeBbox>> cache_boxes_mt(
-	  tbb::this_task_arena::max_concurrency());
+	// Run intersection detection in a node.
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 	std::vector<std::vector<UIPair>> cache_check_pairs_mt(
 	  tbb::this_task_arena::max_concurrency());
 	std::vector<std::vector<UIPair>> check_pairs_mt(
@@ -83,82 +90,109 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 		return s + new_s;
 	};
 
-	size_t possible_pairs =
-	  std::accumulate(leaf_nodes.begin(), leaf_nodes.end(), size_t(0),
-	                  evaluate_possible_BBI_pairs);
+	size_t possible_pairs = std::accumulate(nodes.begin(), nodes.end(), size_t(0),
+	                                        evaluate_possible_BBI_pairs);
 	for (std::vector<UIPair> &check_pairs : check_pairs_mt)
 		check_pairs.reserve(std::max(
 		  size_t(possible_pairs / tbb::this_task_arena::max_concurrency() * 2),
 		  size_t(1000)));
+#endif
 
 	// Run intersection detection in a leaf node.
-	auto on_leaf_node = [this, &cache_labels_mt, &cache_boxes_mt,
-	                     &cache_check_pairs_mt, &check_pairs_mt](size_t node_idx)
+	auto on_small_node = [&](size_t node_idx)
 	{
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 		int thread_id = tbb::this_task_arena::current_thread_index();
+		std::vector<UIPair> &cache_pairs = cache_check_pairs_mt[thread_id];
+		std::vector<UIPair> &check_pairs = check_pairs_mt[thread_id];
+#endif
 
-		std::vector<typename Tree::TreeBbox> &cache_boxes =
-		  cache_boxes_mt[thread_id];
-		std::vector<Label>  &cache_labels = cache_labels_mt[thread_id];
-		std::vector<UIPair> &cache_pairs  = cache_check_pairs_mt[thread_id];
-		std::vector<UIPair> &check_pairs  = check_pairs_mt[thread_id];
+		const typename Tree::Node &node = tree.node(node_idx);
+
+		CStyleVector<typename Tree::TreeBbox> cache_boxes;
+		CStyleVector<Label>                   cache_labels;
+
+		cacheBoxesInNode(node, cache_boxes, ignore_same_label, cache_labels);
 
 		const size_t num_boxes = tree.node(node_idx).size();
-		const auto  &boxes     = tree.node(node_idx).boxes();
 
-		// for better memory cache (it really saves a lot of time :) )
-		cache_boxes.resize(num_boxes);
-		for (size_t i = 0; i < num_boxes; i++)
-			cache_boxes[i] = tree.box(boxes[i]);
-
-		if (ignore_same_label)
-		{
-			cache_labels.resize(num_boxes);
-			for (size_t i = 0; i < num_boxes; i++)
-				cache_labels[i] = labels[tree.box(boxes[i]).id()];
-		}
-
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 		cache_pairs.clear();
 		cache_pairs.reserve(
-		  std::max(size_t(num_boxes * (num_boxes - 1) / 2 * 0.2), size_t(1000)));
+		  std::max(size_t(num_boxes * (num_boxes - 1) / 2 * 0.5), size_t(1000)));
+#else
+		size_t local_num_BBI_pairs = 0;
+#endif
 
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
 		                              num_boxes * (num_boxes - 1) / 2);
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_UNIQ,
 		                              num_boxes * (num_boxes - 1) / 2);
 
-		for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
+		if (ignore_same_label)
 		{
-			const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
-
-			for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
+			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
-				if ((ignore_same_label &&
-				     (cache_labels[bi0] & cache_labels[bi1]).any()))
-					continue;
+				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
 
-				const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
+				for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
+				{
+					if ((cache_labels[bi0] & cache_labels[bi1]).any())
+						continue;
 
-				if (!DoIntersect()(b0.bbox(), b1.bbox()))
-					continue; // early reject
+					const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
 
-				OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-				cache_pairs.push_back(uniquePair(b0.id(), b1.id()));
+					if (!DoIntersect()(b0.bbox(), b1.bbox()))
+						continue; // early reject
+
+					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
+					cache_pairs.push_back(uniquePair(b0.id(), b1.id()));
+#else
+					local_num_BBI_pairs++;
+#endif
+				}
 			}
 		}
+		else
+		{
+			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
+			{
+				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
 
+				for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
+				{
+					const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
+
+					if (!DoIntersect()(b0.bbox(), b1.bbox()))
+						continue; // early reject
+
+					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
+					cache_pairs.push_back(uniquePair(b0.id(), b1.id()));
+#else
+					local_num_BBI_pairs++;
+#endif
+				}
+			}
+		}
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 		check_pairs.insert(check_pairs.end(), cache_pairs.begin(),
 		                   cache_pairs.end());
+#else
+		num_BBI_pairs += local_num_BBI_pairs;
+#endif
 	};
 
-#if 1
-	tbb::parallel_for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+#ifdef OMC_ARR_DETECT_BBI_PARA
+	tbb::parallel_for_each(nodes.begin(), nodes.end(), on_small_node);
 #else
-	std::for_each(leaf_nodes.begin(), leaf_nodes.end(), on_leaf_node);
+	std::for_each(nodes.begin(), nodes.end(), on_small_node);
 #endif
 
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 	// Collect unique pairs
-	size_t new_size = std::accumulate(
+	OMC_UNUSED size_t new_size = std::accumulate(
 	  check_pairs_mt.begin(), check_pairs_mt.end(), size_t(0),
 	  [](size_t s, const std::vector<UIPair> &cp) { return s + cp.size(); });
 
@@ -167,74 +201,99 @@ void DetectBBI<Traits>::parallelOnUniqNodes(
 	BBI_pairs.reserve(BBI_pairs.size() + new_size);
 	for (std::vector<UIPair> &cp : check_pairs_mt)
 		BBI_pairs.insert(BBI_pairs.end(), cp.begin(), cp.end());
+#endif
 }
 
 template <typename Traits>
-void DetectBBI<Traits>::parallelOnDuplNodes(
-  const std::vector<index_t> &leaf_nodes)
+void DetectBBI<Traits>::parallelOnLargeNodes(const std::vector<index_t> &nodes)
 {
-	std::vector<Label>                   cache_labels;
-	std::vector<typename Tree::TreeBbox> cache_boxes;
-	std::vector<std::vector<UIPair>>     check_pairs_mt(
-    tbb::this_task_arena::max_concurrency());
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
+	std::vector<std::vector<UIPair>> check_pairs_mt(
+	  tbb::this_task_arena::max_concurrency());
 	for (std::vector<UIPair> &check_pairs : check_pairs_mt)
 		check_pairs.reserve(10000);
+#endif
 
-	for (index_t node_idx : leaf_nodes)
+	size_t num_threads = tbb::this_task_arena::max_concurrency();
+
+	for (index_t node_idx : nodes)
 	{
-		// sort boxes for faster traversal
-		const auto  &boxes     = tree.node(node_idx).boxes();
-		const size_t num_boxes = boxes.size();
+		const typename Tree::Node &node = tree.node(node_idx);
+
+		size_t num_boxes = node.size();
 
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
 		                              num_boxes * (num_boxes - 1) / 2);
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_DUPL,
 		                              num_boxes * (num_boxes - 1) / 2);
 
-		{ // for better memory cache :>
-			cache_labels.resize(num_boxes);
-			cache_boxes.resize(num_boxes);
-			for (size_t i = 0; i < num_boxes; i++)
-			{
-				const typename Tree::TreeBbox &b = tree.box(boxes[i]);
+		CStyleVector<typename Tree::TreeBbox> cache_boxes;
+		CStyleVector<Label>                   cache_labels;
+		cacheBoxesInNode(node, cache_boxes, ignore_same_label, cache_labels);
 
-				cache_boxes[i]  = b;
-				cache_labels[i] = labels[b.id()];
-			}
-			for (std::vector<UIPair> &check_pairs : check_pairs_mt)
-				check_pairs.clear();
-		}
-
-		// collect (possibly duplicate) pairs
-		auto collect_pairs = [this, num_boxes, &cache_labels, &cache_boxes,
-		                      &check_pairs_mt](index_t bi0)
+		// check Box-Box-Intersection in current node.
+		auto on_large_node = [&](index_t thread_id)
 		{
-			index_t thread_id = tbb::this_task_arena::current_thread_index();
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 			std::vector<UIPair> &check_pairs = check_pairs_mt[thread_id];
-
-			const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
-			for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
-			{
-				if ((ignore_same_label &&
-				     (cache_labels[bi0] & cache_labels[bi1]).any()))
-					continue;
-
-				const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
-
-				if (!DoIntersect()(b0.bbox(), b1.bbox()))
-					continue; // early reject
-
-				OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-				check_pairs.push_back(uniquePair(b0.id(), b1.id()));
-			}
-		};
-#if 1
-		tbb::parallel_for(index_t(0), num_boxes, collect_pairs);
+			check_pairs.clear();
 #else
-		for (index_t i = 0; i < num_boxes; i++)
-			collect_pairs(i);
+			size_t local_num_BBI_pairs = 0;
 #endif
 
+			if (ignore_same_label)
+			{
+				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
+				{
+					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
+					for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
+					{
+						if ((cache_labels[bi0] & cache_labels[bi1]).any())
+							continue;
+
+						const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
+						if (!DoIntersect()(b0, b1))
+							continue; // early reject.
+
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
+						check_pairs.push_back(uniquePair(b0.id(), b1.id()));
+#else
+						local_num_BBI_pairs++;
+#endif
+					}
+				}
+			}
+			else
+			{
+				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
+				{
+					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
+					for (index_t bi1 = bi0 + 1; bi1 < num_boxes; bi1++)
+					{
+						const typename Tree::TreeBbox &b1 = cache_boxes[bi1];
+						if (!DoIntersect()(b0, b1))
+							continue; // early reject.
+
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
+						check_pairs.push_back(uniquePair(b0.id(), b1.id()));
+#else
+						local_num_BBI_pairs++;
+#endif
+					}
+				}
+			}
+#ifndef OMC_ARR_COLLECT_BBI_PAIRS
+			num_BBI_pairs += local_num_BBI_pairs;
+#endif
+		};
+#ifdef OMC_ARR_DETECT_BBI_PARA
+		tbb::parallel_for(size_t(0), num_threads, on_large_node);
+#else
+		std::ranges::for_each(std::ranges::iota_view(size_t(0), num_threads),
+		                      on_large_node);
+#endif
+
+#ifdef OMC_ARR_COLLECT_BBI_PAIRS
 		// Collect unique pairs
 		OMC_UNUSED size_t new_size = std::accumulate(
 		  check_pairs_mt.begin(), check_pairs_mt.end(), size_t(0),
@@ -244,6 +303,28 @@ void DetectBBI<Traits>::parallelOnDuplNodes(
 
 		for (std::vector<UIPair> &cp : check_pairs_mt)
 			BBI_pairs.insert(BBI_pairs.end(), cp.begin(), cp.end());
+#endif
+	}
+}
+
+template <typename Traits>
+void DetectBBI<Traits>::cacheBoxesInNode(
+  const typename Tree::Node             &node,
+  CStyleVector<typename Tree::TreeBbox> &cached_boxes, bool cache_labels,
+  CStyleVector<Label> &cached_labels)
+{
+	const auto  &boxes     = node.boxes();
+	const size_t num_boxes = node.size();
+
+	cached_boxes.resize(num_boxes, /*keep_data*/ false);
+	for (size_t i = 0; i < num_boxes; i++)
+		cached_boxes[i] = tree.box(boxes[i]);
+
+	if (cache_labels)
+	{
+		cached_labels.resize(num_boxes, /*keep_data*/ false);
+		for (size_t i = 0; i < num_boxes; i++)
+			cached_labels[i] = labels[tree.box(boxes[i]).id()];
 	}
 }
 

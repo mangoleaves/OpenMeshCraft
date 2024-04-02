@@ -29,36 +29,41 @@ private:
 	 * @brief Leaf nodes of OcTree are divided into two groups.
 	 *
 	 * If number of boxes in a leaf node is less than a specific number (e.g.,
-	 * 1000), the node is assigned to \p uniq_leaf_nodes, otherwise it is assigned
-	 * to \p dupl_leaf_nodes.
+	 * 1000), the node is assigned to \p small_leaf_nodes, otherwise it is
+	 * assigned to \p large_leaf_nodes.
 	 *
-	 * Then, for \p uniq_leaf_nodes, we parallelize intersection detection on
-	 * these nodes. For \p dupl_leaf_nodes, we collect pairs of boxes in one node
+	 * Then, for \p small_leaf_nodes, we parallelize intersection detection on
+	 * these nodes. For \p large_leaf_nodes, we collect pairs of boxes in one node
 	 * and parallelize detection on these pairs.
 	 *
 	 * Why do we do that?
 	 * We want the scale of parallelism is relatively large, hence there won't be
 	 * significant overhead on parallelism.
 	 * @param [in] leaf_nodes All leaf nodes of OcTree.
-	 * @param [out] uniq_leaf_nodes	See explanation in brief.
-	 * @param [out] dupl_leaf_nodes See explanation in brief.
+	 * @param [out] small_leaf_nodes	See explanation in brief.
+	 * @param [out] large_leaf_nodes See explanation in brief.
 	 */
-	void partitionLeafNodes(const std::vector<index_t> &leaf_nodes,
-	                        std::vector<index_t>       &uniq_leaf_nodes,
-	                        std::vector<index_t>       &dupl_leaf_nodes);
+	void partitionNodes(const std::vector<index_t> &leaf_nodes,
+	                    std::vector<index_t>       &small_leaf_nodes,
+	                    std::vector<index_t>       &large_leaf_nodes);
 
 	/**
-	 * @brief Parallelize intersection detection on \p leaf_nodes.
-	 * @param leaf_nodes The uniq_leaf_nodes from partitionLeafNodes.
+	 * @brief Parallelize intersection detection on \p nodes.
+	 * @param leaf_nodes The small_leaf_nodes from partitionNodes.
 	 */
-	void parallelOnUniqNodes(const std::vector<index_t> &leaf_nodes);
+	void parallelOnSmallNodes(const std::vector<index_t> &nodes);
 
 	/**
 	 * @brief Parallelize intersection detection on pairs of boxes in each node in
-	 * \p leaf_nodes.
-	 * @param leaf_nodes The dupl_leaf_nodes from partitionLeafNodes.
+	 * \p nodes.
+	 * @param leaf_nodes The large_leaf_nodes from partitionNodes.
 	 */
-	void parallelOnDuplNodes(const std::vector<index_t> &leaf_nodes);
+	void parallelOnLargeNodes(const std::vector<index_t> &nodes);
+
+	void cacheBoxesInNode(const typename Tree::Node             &node,
+	                      CStyleVector<typename Tree::TreeBbox> &cached_boxes,
+	                      bool                                   cache_labels,
+	                      CStyleVector<Label>                   &cached_labels);
 
 protected:
 	/* Input data */
@@ -69,6 +74,7 @@ protected:
 	const Tree                  &tree;
 	/* Output data */
 	std::vector<UIPair>         &BBI_pairs;
+	size_t                       num_BBI_pairs;
 
 protected:
 	/* ignore intersection between triangles with same label */

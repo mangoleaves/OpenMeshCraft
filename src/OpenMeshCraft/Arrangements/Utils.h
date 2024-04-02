@@ -7,6 +7,7 @@
 #include "OpenMeshCraft/Utils/EnableWarnings.h"
 // clang-format on
 
+#include "OpenMeshCraft/Utils/CStyleVector.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 #include "OpenMeshCraft/Utils/IndexDef.h"
 #include "OpenMeshCraft/Utils/InlinedVector.h"
@@ -21,6 +22,7 @@
 #include <iterator>
 #include <memory>
 #include <queue>
+#include <ranges>
 #include <vector>
 
 namespace OMC {

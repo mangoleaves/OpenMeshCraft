@@ -302,7 +302,7 @@ bool AdapOrthTree<Traits>::split(index_t node_idx)
 		}
 	}
 
-	// calc_tbox_for_children(nd);
+	calc_tbox_for_children(nd);
 
 	// clear
 	if constexpr (!StoreBoxesInInternalNodes)
@@ -518,6 +518,7 @@ void AdapOrthTree<Traits>::shape_refine()
 template <typename Traits>
 void AdapOrthTree<Traits>::calc_tbox_for_children(NodeRef nd)
 {
+#if 0
 	for (index_t chi = 0; chi < nd.children_size(); chi++)
 	{
 		NodeRef ch = node(nd.child(chi));
@@ -526,6 +527,13 @@ void AdapOrthTree<Traits>::calc_tbox_for_children(NodeRef nd)
 		ch.tbox().min_bound().maximize(ch.box().min_bound());
 		ch.tbox().max_bound().minimize(ch.box().max_bound());
 	}
+#else
+	for (index_t chi = 0; chi < nd.children_size(); chi++)
+	{
+		NodeRef ch = node(nd.child(chi));
+		ch.tbox()  = ch.box();
+	}
+#endif
 }
 
 template <typename Traits>
