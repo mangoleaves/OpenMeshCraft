@@ -163,6 +163,7 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
   const std::vector<index_t> &point_list, OMC_UNUSED index_t v0_id,
   index_t v1_id, std::vector<index_t> &out_point_list)
 {
+	// FIXME if point set is changed to edge based point set.
 	if (point_list.empty())
 		return;
 

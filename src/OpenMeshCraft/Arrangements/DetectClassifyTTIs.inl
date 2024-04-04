@@ -77,6 +77,7 @@ void DetectClassifyTTIs<Traits>::checkTriangleTriangleIntersections()
 template <typename Traits>
 void DetectClassifyTTIs<Traits>::mergeConcurrentAuxStructures()
 {
+	// FIXME remove concurrent aux structures
 	auto mergeOneMember = [this](size_t idx)
 	{
 		switch (idx)

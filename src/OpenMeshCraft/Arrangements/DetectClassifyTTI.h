@@ -60,37 +60,43 @@ protected:
 		static bool is_cached(char boolean) { return boolean != UncachedBoolean; }
 
 		index_t t_id;
-		int     t_nmax = -1;
+		int     t_nmax;
+
+		// vectices from triangle
+		std::array<EPoint, 3>     p;
+		// pointers to vertices.
+		std::array<const NT *, 3> v;
 
 		// indices of vertices from triangle.
-		std::array<index_t, 3>    v_id;
+		std::array<index_t, 3> v_id;
 		// indices of edges from triangle.
-		std::array<index_t, 3>    e_id;
-		// pointers to vertices from triangle.
-		// TODO store coordinates for better cache performance?
-		std::array<const NT *, 3> v;
+		std::array<index_t, 3> e_id;
 
 		// position of sub-simplex of this triangle with respect to sub-simplex of
 		// another triangle
-		std::array<index_t, 3> v_in_vtx = {InvalidIndex, InvalidIndex,
-		                                   InvalidIndex};
-		std::array<index_t, 3> v_in_seg = {UncachedIndex, UncachedIndex,
-		                                   UncachedIndex};
-		std::array<char, 3>    v_in_tri = {UncachedBoolean, UncachedBoolean,
-		                                   UncachedBoolean};
+		std::array<index_t, 3> v_in_vtx;
+		std::array<index_t, 3> v_in_seg;
+		std::array<char, 3>    v_in_tri;
 
 		// cached orientations
 		// Sign::UNCERTAIN means "not cached/calculated"
-		std::array<Sign, 3> v_wrt_tri = {Sign::UNCERTAIN, Sign::UNCERTAIN,
-		                                 Sign::UNCERTAIN};
-		std::array<std::array<Sign, 3>, 3> v_wrt_seg = {
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})};
-		std::array<std::array<Sign, 3>, 3> seg_wrt_seg = {
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})};
+		std::array<std::array<Sign, 3>, 3> v_wrt_seg;
+		std::array<std::array<Sign, 3>, 3> seg_wrt_seg;
+
+		// clang-format off
+		// v_in_vtx will always be set.
+		void init_v_in_seg() { v_in_seg = {UncachedIndex, UncachedIndex, UncachedIndex}; }
+		void init_v_in_tri() { v_in_tri = {UncachedBoolean, UncachedBoolean, UncachedBoolean}; }
+
+		void init_v_wrt_seg() { v_wrt_seg = {
+				std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+			  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+			  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})}; }
+		void init_seg_wrt_seg() { seg_wrt_seg = {
+		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})}; }
+		// clang-format on
 	};
 
 	struct CoplanarEEI // Edge-Edge-Intersection

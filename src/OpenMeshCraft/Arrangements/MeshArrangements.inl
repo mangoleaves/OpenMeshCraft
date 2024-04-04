@@ -97,12 +97,9 @@ public: /* Auxiliary data structures *****************************************/
 	// point arena
 	using PntArena = PointArena<Traits>;
 	// triangle soup
-
-	using TriSoup   = TriangleSoup<Traits>;
+	using TriSoup  = TriangleSoup<Traits>;
 	// fast triangle mesh
-	using FastMesh  = FastTriMesh<Traits>;
-	// auxiliary structure
-	using AuxStruct = AuxiliaryStructure<Traits>;
+	using FastMesh = FastTriMesh<Traits>;
 
 public: /* Constructors ******************************************************/
 	MeshArrangements_Impl(MeshArrangements_Stats *_stats   = nullptr,
@@ -194,8 +191,6 @@ private: /* Private middle data *******************************************/
 	std::vector<IdxArena> idx_arenas;
 	/// triangle soup
 	TriSoup               tri_soup;
-	/// auxiliary structure
-	AuxStruct             aux_struct;
 };
 
 template <typename Traits>
@@ -269,8 +264,9 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 		return;
 	}
 
-#if 0
+#if 1
 	OMC_ARR_START_ELAPSE(start_ci);
+	// TODO
 
 	// build triangle soups and aux structs for each connected component.
 	initBeforeDetectClassify();
@@ -285,7 +281,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	//   values are indices is used.
 	// * More Auxiliary data will also be stored in AuxStruct(g)
 	DetectClassifyTTIs<Traits> DCI(
-	  tri_soup, aux_struct,
+	  tri_soup,
 	  /*parallel*/ aux_struct.intersection_list.size() > 100, stats, verbose);
 	DCI.checkTriangleTriangleIntersections();
 	DCI.propagateCoplanarTrianglesIntersections();
@@ -344,7 +340,8 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(),
+		                   [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -603,8 +600,7 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	// refine its shape
 	tree.shape_refine(BBI_pairs.size());
 
-	TriSoup   &ts = tri_soup;
-	AuxStruct &g  = aux_struct;
+	TriSoup &ts = tri_soup;
 
 	ts.vertices = tbb::concurrent_vector<GPoint *>(arr_out_verts.begin(),
 	                                               arr_out_verts.end());
@@ -615,10 +611,7 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	ts.pnt_arenas = &pnt_arenas;
 	ts.idx_arenas = &idx_arenas;
 	ts.initialize();
-
-	g.initialize(ts);
-	g.build_vmap(ts, &tree);
-	g.intersection_list = std::move(BBI_pairs);
+	ts.build_vmap(&tree);
 }
 
 template <typename Traits>
@@ -630,7 +623,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 
 	// initialize merged triangle soup and auxiliary structure
 	arr_out_verts.resize(arr_out_verts.size() + tri_soup.numVerts() -
-	                     tri_soup.numOrigVertices());
+	                     tri_soup.numOrigVerts());
 	std::copy(tri_soup.vertices.begin(), tri_soup.vertices.end(),
 	          arr_out_verts.begin());
 

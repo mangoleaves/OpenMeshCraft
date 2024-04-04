@@ -43,13 +43,9 @@ using Label = std::bitset<NBIT>;
 struct MeshArrangements_Config
 {
 	double tree_enlarge_ratio    = 1.01;
-	size_t tree_parallel_scale   = 10000;
 	size_t tree_split_size_thres = 50;
 	// only for OcTree
 	double tree_adaptive_thres   = 0.1;
-	// only for BinaryTree
-	double tree_cross_thres      = 0.1;
-	double tree_balence_thres    = 0.1;
 };
 
 struct MeshArrangements_Stats
@@ -65,10 +61,6 @@ struct MeshArrangements_Stats
 	/* Detect intersections ******************************************/
 
 	double di_elapsed = 0.; // timings of detecting intersection
-
-	/* connect intersetion *******************************************/
-
-	double cn_elapsed = 0.; // timings of connecting intersection
 
 	/* classify intersection *****************************************/
 
@@ -122,14 +114,6 @@ inline UIPair uniquePair(index_t i, index_t j)
 
 /// "<" in case of unique, "==" in case of two invalid indices.
 inline bool isUnique(const UIPair &p) { return p.first <= p.second; }
-
-struct ShewchukCache
-{
-	double minor[3];
-	double perm[3];
-};
-
-using ShewchukCachePtr = const ShewchukCache *;
 
 inline Plane intToPlane(const int &norm) { return static_cast<Plane>(norm); }
 inline int   planeToInt(const Plane &p) { return static_cast<int>(p); }
@@ -338,6 +322,13 @@ inline size_t remove_duplicates(std::array<T, N> &values)
 {
 	std::sort(values.begin(), values.end());
 	return (size_t)(std::unique(values.begin(), values.end()) - values.begin());
+}
+
+template <typename T>
+inline void remove_duplicates(tbb::concurrent_vector<T> &values)
+{
+	std::sort(values.begin(), values.end());
+	values.erase(std::unique(values.begin(), values.end()), values.end());
 }
 
 template <typename T>

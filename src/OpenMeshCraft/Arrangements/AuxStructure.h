@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TriangleSoup.h"
+#include "Utils.h"
 
 // clang-format off
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
@@ -122,114 +122,6 @@ public:
 
 private:
 	Tree *tree;
-};
-
-/// @brief Auxiliary structure, storing intersection information for triangle
-/// soup.
-template <typename Traits>
-class AuxiliaryStructure
-{
-private:
-	using GPoint = typename Traits::GPoint;
-	using Tree   = Arr_Tree_Intersection<Traits>;
-
-public: /* Constructors *****************************************************/
-	AuxiliaryStructure() = default;
-
-	void initialize(const TriangleSoup<Traits> &ts);
-
-	void build_vmap(const TriangleSoup<Traits> &ts, Tree *tree);
-
-	AuxiliaryStructure(AuxiliaryStructure &&rhs) noexcept;
-
-	~AuxiliaryStructure() {}
-
-public: /* Add **************************************************************/
-	/* Coplanar */
-
-	void addCoplanarTriangles(index_t ta, index_t tb);
-
-	void addCoplanarEdge(index_t t_id, index_t e_id);
-
-	/* Has intersection */
-
-	void setTriangleHasIntersections(index_t t_id);
-
-	/* Intersection points and contrained segments */
-
-	void addVertexInTriangle(index_t t_id, index_t v_id);
-
-	void addVertexInEdge(index_t e_id, index_t v_id);
-
-	void addSegmentInTriangle(index_t t_id, const UIPair &seg);
-
-	void addTrianglesInSegment(const UIPair &seg, index_t tA_id, index_t tB_id);
-
-	/* Map point to unique index */
-
-	template <typename GetIndex>
-	std::pair<index_t, bool> addVertexInSortedList(const GPoint         *pp,
-	                                               std::atomic<index_t> *ip,
-	                                               GetIndex              get_idx);
-
-	/* Unique pocket */
-
-	index_t addVisitedPolygonPocket(const std::vector<index_t> &polygon,
-	                                size_t                      pos);
-
-public: /* Query ***********************************************************/
-	/* Coplanar */
-
-	const std::vector<size_t> &coplanarTriangles(index_t t_id) const;
-
-	const std::vector<size_t> &sortedCoplanarTriangles(index_t t_id);
-
-	const std::vector<size_t> &coplanarEdges(index_t t_id) const;
-
-	bool triangleHasCoplanars(index_t t_id) const;
-
-	/* Has intersection */
-
-	bool triangleHasIntersections(index_t t_id) const;
-
-	/* Intersection points and contrained segments */
-
-	const std::vector<size_t> &trianglePointsList(index_t t_id) const;
-
-	const std::vector<size_t> &edgePointsList(index_t e_id) const;
-
-	const std::vector<UIPair> &triangleSegmentsList(index_t t_id) const;
-
-	const std::vector<size_t> &segmentTrianglesList(const UIPair &seg) const;
-
-public: /* Modify *********************************************************/
-	template <typename Comparator>
-	void sortEdgeList(index_t eid, Comparator comp);
-
-public:
-	// intersections
-	std::vector<UIPair>                                 intersection_list;
-	// triangles
-	std::vector<uint8_t>                                tri_has_intersections;
-	std::vector<std::vector<index_t>>                   coplanar_tris;
-	std::vector<std::vector<index_t>>                   coplanar_edges;
-	std::vector<uint8_t>                                coplanar_tris_sorted;
-	// map point coordinates to vertex id
-	std::unique_ptr<AuxPointMap<Traits>>                v_map;
-	// store intersection points on triangles and edges
-	std::vector<std::vector<index_t>>                   tri2pts;
-	std::vector<std::vector<index_t>>                   edge2pts;
-	// store contrained segments on triangles
-	std::vector<std::vector<UIPair>>                    tri2segs;
-	// reverse map contrained segments to triangles on where they locate
-	phmap::flat_hash_map<UIPair, std::vector<index_t>>  seg2tris;
-	// pockets
-	phmap::flat_hash_set<std::vector<index_t>>          visited_pockets;
-	phmap::flat_hash_map<std::vector<index_t>, index_t> pockets_map;
-
-	// mutexes
-	tbb::spin_mutex new_vertex_mutex;
-	tbb::spin_mutex new_tris_mutex;
 };
 
 } // namespace OMC

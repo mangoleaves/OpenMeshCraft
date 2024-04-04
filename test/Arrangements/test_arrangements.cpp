@@ -87,7 +87,7 @@ TEST_F(test_Arrangements, TestDataSet)
 	std::fstream log_file;
 	log_file.open(log_path, std::ios::out | std::ios::app);
 
-	log_file << "filename,pp,tree,di,cn,ci,tr,time\n";
+	log_file << "filename,pp,tree,di,ci,tr,time\n";
 
 	std::string             models_dir = config.get<std::string>("models_dir");
 	boost::filesystem::path model_dir_path(models_dir);
@@ -100,7 +100,6 @@ TEST_F(test_Arrangements, TestDataSet)
 	OMC::MeshArrangements_Config arr_config;
 	arr_config.tree_enlarge_ratio    = 1.1;
 	arr_config.tree_adaptive_thres   = 0.1;
-	arr_config.tree_parallel_scale   = 10000;
 	arr_config.tree_split_size_thres = 1000;
 	if (set_parameter)
 	{
@@ -109,8 +108,6 @@ TEST_F(test_Arrangements, TestDataSet)
 		  parameters.get<double>("tree_enlarge_ratio");
 		arr_config.tree_adaptive_thres =
 		  parameters.get<double>("tree_adaptive_thres");
-		arr_config.tree_parallel_scale =
-		  parameters.get<size_t>("tree_parallel_scale");
 		arr_config.tree_split_size_thres =
 		  parameters.get<size_t>("tree_split_size_thres");
 	}
@@ -156,9 +153,8 @@ TEST_F(test_Arrangements, TestDataSet)
 			log_file << std::fixed;
 			log_file << iter->path().filename().string();
 			log_file << "," << stats.pp_elapsed << "," << stats.tree_elapsed << ","
-			         << stats.di_elapsed << "," << stats.cn_elapsed << ","
-			         << stats.ci_elapsed << "," << stats.tr_elapsed << ","
-			         << total_time << std::endl;
+			         << stats.di_elapsed << "," << stats.ci_elapsed << ","
+			         << stats.tr_elapsed << "," << total_time << std::endl;
 		}
 	}
 	log_file.close();

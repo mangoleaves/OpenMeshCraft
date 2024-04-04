@@ -24,16 +24,20 @@ void DetectClassifyTTI<Traits>::check_TTI(index_t ta, index_t tb)
 
 	// vertices from two triangles `ta` and `tb`.
 	ha.t_id = ta;
-	ha.v    = {ts.triVertPtr(ta, 0), ts.triVertPtr(ta, 1), ts.triVertPtr(ta, 2)};
+	ha.p    = {AsEP()(ts.triVert(ta, 0)), AsEP()(ts.triVert(ta, 1)),
+	           AsEP()(ts.triVert(ta, 2))};
+	ha.v    = {ha.p[0].data(), ha.p[1].data(), ha.p[2].data()};
 	ha.v_id = {ts.triVertID(ta, 0), ts.triVertID(ta, 1), ts.triVertID(ta, 2)};
-	ha.e_id = {ts.triEdgeID(ta, 0), ts.triEdgeID(ta, 1), ts.triEdgeID(ta, 2)};
+	// FIXME
+	// ha.e_id = {ts.triEdgeID(ta, 0), ts.triEdgeID(ta, 1), ts.triEdgeID(ta, 2)};
 
 	hb.t_id = tb;
-	hb.v    = {ts.triVertPtr(tb, 0), ts.triVertPtr(tb, 1), ts.triVertPtr(tb, 2)};
+	hb.p    = {AsEP()(ts.triVert(tb, 0)), AsEP()(ts.triVert(tb, 1)),
+	           AsEP()(ts.triVert(tb, 2))};
+	hb.v    = {hb.p[0].data(), hb.p[1].data(), hb.p[2].data()};
 	hb.v_id = {ts.triVertID(tb, 0), ts.triVertID(tb, 1), ts.triVertID(tb, 2)};
-	hb.e_id = {ts.triEdgeID(tb, 0), ts.triEdgeID(tb, 1), ts.triEdgeID(tb, 2)};
-
-	// TODO get e_id only if necessary.
+	// FIXME
+	// hb.e_id = {ts.triEdgeID(tb, 0), ts.triEdgeID(tb, 1), ts.triEdgeID(tb, 2)};
 
 	// check if any triangle is degenerate
 	OMC_EXPENSIVE_ASSERT(
@@ -121,9 +125,22 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	if (oppa_wrt_ea != oppb_wrt_ea)
 		return; // do not intersect
 
+	// otherwise they intersect.
+	// each triangle has one sharing edge and other two coplanar edges.
+	g.addCoplanarTriangles(ha.t_id, hb.t_id);
+	uniq_g.setTriangleHasIntersections(ha.t_id);
+	uniq_g.setTriangleHasIntersections(hb.t_id);
+
 	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 2);
 
 	// cache the orientation result
+	ha.init_v_wrt_seg();
+	ha.init_v_in_seg();
+	ha.init_v_in_tri();
+	hb.init_v_wrt_seg();
+	hb.init_v_in_seg();
+	hb.init_v_in_tri();
+
 	hb.v_wrt_seg[oppb][ea] = oppb_wrt_ea;
 	if (ha.v_id[ea] == hb.v_id[eb])
 	{
@@ -138,12 +155,6 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 		                     "correspond orientation is wrong.");
 		ha.v_wrt_seg[oppa][eb] = reverse_sign(oppa_wrt_ea);
 	}
-
-	// if they intersect, each triangle has one sharing edge and other two
-	// coplanar edges.
-	g.addCoplanarTriangles(ha.t_id, hb.t_id);
-	uniq_g.setTriangleHasIntersections(ha.t_id);
-	uniq_g.setTriangleHasIntersections(hb.t_id);
 
 	// intersection list
 	phmap::flat_hash_set<index_t>             inter_list;
@@ -197,9 +208,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	index_t eav0 = ea, eav1 = (ea + 1) % 3; // two endpoints of ea
 	index_t ebv0 = eb, ebv1 = (eb + 1) % 3; // two endpoints of eb
 
-	// OPT most expensive
-	Sign eav0_wrt_tb = Orient3D()(hb.v[0], hb.v[1], hb.v[2], ha.v[eav0]);
-	Sign eav1_wrt_tb = Orient3D()(hb.v[0], hb.v[1], hb.v[2], ha.v[eav1]);
+	Sign eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
+	Sign eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
 
 	if (eav0_wrt_tb != Sign::ZERO && eav0_wrt_tb == eav1_wrt_tb)
 		return; // above or below `tb`, do not intersect
@@ -207,19 +217,16 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	if (eav0_wrt_tb == Sign::ZERO && eav1_wrt_tb == Sign::ZERO)
 	{
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 5);
-		// ea is coplanar to `tb`, so `ta` and `tb` are coplanar
-		auto &il  = inter_list;            // a short name :)
-		auto &cec = coplanar_edge_crosses; // a short name :)
 
-		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-		hb.t_nmax = ha.t_nmax;
+		{ // initialize cache
+			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+			hb.t_nmax = ha.t_nmax;
+			ha.init_v_wrt_seg();
+			hb.init_v_wrt_seg();
+		}
 
 		size_t eav0_wrt_sector = get_vtx_wrt_sector(ha, eav0, hb, eb);
-		if (eav0_wrt_sector == 0) // previous edge of ea intersects tb
-			classify_coplanar_edge_intersections(ha, (ea + 2) % 3, hb, il, cec);
 		size_t eav1_wrt_sector = get_vtx_wrt_sector(ha, eav1, hb, eb);
-		if (eav1_wrt_sector == 0) // next edge of ea intersects tb
-			classify_coplanar_edge_intersections(ha, (ea + 1) % 3, hb, il, cec);
 
 		if ((eav0_wrt_sector == 1 || eav0_wrt_sector == 3) &&
 		    (eav1_wrt_sector == 1 || eav1_wrt_sector == 3))
@@ -230,11 +237,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 6);
 
 		size_t ebv0_wrt_sector = get_vtx_wrt_sector(hb, ebv0, ha, ea);
-		if (ebv0_wrt_sector == 0) // previous edge of eb intersects ta
-			classify_coplanar_edge_intersections(hb, (eb + 2) % 3, ha, il, cec);
 		size_t ebv1_wrt_sector = get_vtx_wrt_sector(hb, ebv1, ha, ea);
-		if (ebv1_wrt_sector == 0) // next edge of eb intersects ta
-			classify_coplanar_edge_intersections(hb, (eb + 1) % 3, ha, il, cec);
 
 		if ((ebv0_wrt_sector == 1 || ebv0_wrt_sector == 3) &&
 		    (ebv1_wrt_sector == 1 || ebv1_wrt_sector == 3))
@@ -243,6 +246,27 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		    (ebv1_wrt_sector == 2 || ebv1_wrt_sector == 3))
 			return; // ta and tb do not intersect
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 7);
+
+		// ea is coplanar to `tb`, so `ta` and `tb` are coplanar
+		auto &il  = inter_list;            // a short name :)
+		auto &cec = coplanar_edge_crosses; // a short name :)
+
+		{ // initialize cache
+			ha.init_v_in_seg();
+			ha.init_v_in_tri();
+			hb.init_v_in_seg();
+			hb.init_v_in_tri();
+		}
+
+		if (eav0_wrt_sector == 0) // previous edge of ea intersects tb
+			classify_coplanar_edge_intersections(ha, (ea + 2) % 3, hb, il, cec);
+		if (eav1_wrt_sector == 0) // next edge of ea intersects tb
+			classify_coplanar_edge_intersections(ha, (ea + 1) % 3, hb, il, cec);
+
+		if (ebv0_wrt_sector == 0) // previous edge of eb intersects ta
+			classify_coplanar_edge_intersections(hb, (eb + 2) % 3, ha, il, cec);
+		if (ebv1_wrt_sector == 0) // next edge of eb intersects ta
+			classify_coplanar_edge_intersections(hb, (eb + 1) % 3, ha, il, cec);
 
 		classify_coplanar_edge_intersections(ha, ea, hb, il, cec);
 		classify_coplanar_edge_intersections(hb, eb, ha, il, cec);
@@ -262,17 +286,28 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	}
 	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 9);
 
-	// OPT most expensive
-	Sign ebv0_wrt_ta = Orient3D()(ha.v[0], ha.v[1], ha.v[2], hb.v[ebv0]);
-	Sign ebv1_wrt_ta = Orient3D()(ha.v[0], ha.v[1], ha.v[2], hb.v[ebv1]);
+	Sign ebv0_wrt_ta = get_v_wrt_tri(hb, ebv0, ha);
+	Sign ebv1_wrt_ta = get_v_wrt_tri(hb, ebv1, ha);
 
 	if (ebv0_wrt_ta != Sign::ZERO && ebv0_wrt_ta == ebv1_wrt_ta)
 		return; // above or below `tb`, do not intersect
 	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 10);
 
+	// otherwise they cross each other's plane, possibly intersect.
+
 	// go on classifying intersections on `tb`
-	ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-	hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+	{ // initialize cache
+		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.init_v_in_seg();
+		ha.init_v_in_tri();
+		ha.init_v_wrt_seg();
+		ha.init_seg_wrt_seg();
+		hb.init_v_in_seg();
+		hb.init_v_in_tri();
+		hb.init_v_wrt_seg();
+		hb.init_seg_wrt_seg();
+	}
 
 	if (eav0_wrt_tb == Sign::POSITIVE && eav1_wrt_tb == Sign::NEGATIVE ||
 	    eav0_wrt_tb == Sign::NEGATIVE && eav1_wrt_tb == Sign::POSITIVE)
@@ -483,8 +518,16 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	{
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 22);
 		// CASE: all edge of ta are coplanar to all edges of tb   (orAB: 0 0 0)
-		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
-		ha.t_nmax = hb.t_nmax;
+		{ // initialize cache
+			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+			ha.t_nmax = hb.t_nmax;
+			ha.init_v_in_seg();
+			ha.init_v_in_tri();
+			ha.init_v_wrt_seg();
+			hb.init_v_in_seg();
+			hb.init_v_in_tri();
+			hb.init_v_wrt_seg();
+		}
 
 		if (coplanar_seg_tri_do_intersect(ha, 0, hb))
 			classify_coplanar_edge_intersections(ha, 0, hb, inter_list,
@@ -517,8 +560,18 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		return;
 	}
 
-	hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
-	ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+	{ // initialize cache
+		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+		ha.init_v_in_seg();
+		ha.init_v_in_tri();
+		ha.init_v_wrt_seg();
+		ha.init_seg_wrt_seg();
+		hb.init_v_in_seg();
+		hb.init_v_in_tri();
+		hb.init_v_wrt_seg();
+		hb.init_seg_wrt_seg();
+	}
 
 	if (_singleCoplanarEdge(orAB, edge_id))
 	{
@@ -813,17 +866,11 @@ template <typename Traits>
 Sign DetectClassifyTTI<Traits>::get_v_wrt_tri(TTIHelper &ha, index_t va,
                                               TTIHelper &hb)
 {
-	// check if cached
-	if (is_sign_reliable(ha.v_wrt_tri[va]))
-		return ha.v_wrt_tri[va];
-	// otherwise calculate it
-
 	const NT *p  = ha.v[va];
 	const NT *t0 = hb.v[0], *t1 = hb.v[1], *t2 = hb.v[2];
 
 	Sign sign = Orient3D()(t0, t1, t2, p);
 
-	ha.v_wrt_tri[va] = sign;
 	return sign;
 }
 

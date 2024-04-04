@@ -102,8 +102,6 @@ int main(int argc, char *argv[])
 			  parameters.get<double>("tree_enlarge_ratio");
 			arr_config.tree_adaptive_thres =
 			  parameters.get<double>("tree_adaptive_thres");
-			arr_config.tree_parallel_scale =
-			  parameters.get<size_t>("tree_parallel_scale");
 			arr_config.tree_split_size_thres =
 			  parameters.get<size_t>("tree_split_size_thres");
 
@@ -123,8 +121,8 @@ int main(int argc, char *argv[])
 	{
 		fout << std::fixed;
 		fout << stats.pp_elapsed << "," << stats.tree_elapsed << ","
-		     << stats.di_elapsed << "," << stats.cn_elapsed << ","
-		     << stats.ci_elapsed << "," << stats.tr_elapsed << "," << time << ","
+		     << stats.di_elapsed << "," << stats.ci_elapsed << ","
+		     << stats.tr_elapsed << "," << time << ","
 		     << OMC::getPeakMegabytesUsed() << "," << result_points.size() << ","
 		     << result_triangles.size() << "\n";
 		std::cout << filename << ": " << time << "s, "

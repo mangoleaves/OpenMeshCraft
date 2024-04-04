@@ -3,6 +3,7 @@
 #include "DetectBBI.h"
 
 #define OMC_ARR_DETECT_BBI_PARA
+#define OMC_ARR_COLLECT_BBI_PAIRS
 
 namespace OMC {
 

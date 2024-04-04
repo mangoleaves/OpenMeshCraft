@@ -7,7 +7,14 @@
     },
     "TestDataSet": {
       "models_dir": "who-knows",
-      "verbose": false
+      "verbose": false,
+      "skip_step": 0,
+      "set_parameter": true,
+      "parameters": {
+        "tree_enlarge_ratio": 1.01,
+        "tree_adaptive_thres": 0.1,
+        "tree_split_size_thres": 50
+      }
     }
   },
   "Boolean": {
