@@ -41,22 +41,19 @@ DEFINE_ERROR_TYPE(UnderflowError   ,std::underflow_error)
 
 #if defined(OMC_ENABLE_EXCEPTION)
 
-	#define _OMC_LOG_FATAL(message, ...) \
-		OMC::Logger::fatal(std::format(message, ##__VA_ARGS__))
-	#define _OMC_THROW_EXCEPTION(exception, message, ...) \
-		throw OMC::exception(std::format(message, ##__VA_ARGS__))
-
 	#define OMC_THROW(exception, message, ...)                   \
 		{                                                          \
-			_OMC_LOG_FATAL(message, ##__VA_ARGS__);                  \
-			_OMC_THROW_EXCEPTION(exception, message, ##__VA_ARGS__); \
+			std::string fmt_msg = std::format(message, __VA_ARGS__); \
+			OMC::Logger::fatal(fmt_msg);                             \
+			throw OMC::exception(fmt_msg);                           \
 		}
 
 	#define OMC_THROW_IF(condition, exception, message, ...)     \
 		if (condition)                                             \
 		{                                                          \
-			_OMC_LOG_FATAL(message, ##__VA_ARGS__);                  \
-			_OMC_THROW_EXCEPTION(exception, message, ##__VA_ARGS__); \
+			std::string fmt_msg = std::format(message, __VA_ARGS__); \
+			OMC::Logger::fatal(fmt_msg);                             \
+			throw OMC::exception(fmt_msg);                           \
 		}
 
 #else

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Utils.h"
 #include "AuxStructure.h"
+#include "Utils.h"
 
 // clang-format off
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
@@ -19,8 +19,10 @@ template <typename Traits>
 class TriangleSoup
 {
 public: /* Types **************************************************************/
-	using NT     = typename Traits::NT;
-	using GPoint = typename Traits::GPoint;
+	using NT                 = typename Traits::NT;
+	using GPoint             = typename Traits::GPoint;
+	using OrientOn2D         = typename Traits::OrientOn2D;
+	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
 	using PntArena = PointArena<Traits>;
 
@@ -34,6 +36,16 @@ public: /* Types **************************************************************/
 	using EdgeMap        = std::vector<phmap::flat_hash_map<index_t, index_t>>;
 	/// mutex for reading and writing EdgeMap.
 	using EdgeMapMutexes = std::vector<tbb::spin_mutex>;
+
+	/// <smaller vertex index, larger vertex index>
+	using Seg      = UIPair;
+	/// map a segment to its related triangles.
+	/// 1. map Seg to (Seg.first+Seg.second) % Seg2Tris.size() to locate the
+	/// flat_hash_map in the outer std::vector.
+	/// 2. map Seg to Tris in the inner flat_hash_map.
+	using Seg2Tris = std::vector<phmap::flat_hash_map<Seg, std::vector<index_t>>>;
+	/// mutex for reading and writing Seg2Tris.
+	using SegMutexes = std::vector<tbb::spin_mutex>;
 
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
@@ -60,23 +72,25 @@ public:
 	/// local indices
 	std::vector<IdxArena> *idx_arenas = nullptr;
 
+protected:
 	/***** Below data should be initialized by calling initialize() ******/
 
 	size_t num_orig_vtxs;
 	size_t num_orig_tris;
 
-	std::atomic<index_t> largest_edge_id;
+	tbb::concurrent_vector<UIPair> edges;
 	/// map an edge(index pair) to a unique edge index.
 	/// 1. map smaller vertex index by std::vector.
 	/// 2. map larger vertex index by flat hash map.
-	EdgeMap              edge_map;
+	EdgeMap                        edge_map;
 	/// mutex for reading and writing EdgeMap.
-	EdgeMapMutexes       edge_mutexes;
+	EdgeMapMutexes                 edge_mutexes;
 	/// triangle edges
-	std::vector<index_t> tri_edges;
+	std::vector<index_t>           tri_edges;
 
 public: /* Size queries *******************************************************/
 	size_t numVerts() const { return vertices.size(); }
+	size_t numEdges() const { return edges.size(); }
 	size_t numTris() const { return triangles.size() / 3; }
 
 	size_t numOrigVerts() const { return num_orig_vtxs; }
@@ -90,6 +104,8 @@ public: /* Vertices ***********************************************************/
 	index_t addImplVert(GPoint *pp, std::atomic<index_t> *ip);
 
 public: /* Edges **************************************************************/
+	const UIPair &edge(index_t e_id) const;
+
 	index_t getOrAddEdge(index_t v0_id, index_t v1_id);
 
 public: /* Triangles **********************************************************/
@@ -101,14 +117,14 @@ public: /* Triangles **********************************************************/
 
 	const NT *triVertPtr(index_t t_id, index_t off) const;
 
-	index_t triEdgeID(index_t t_id, index_t off) const;
+	index_t triEdgeID(index_t t_id, index_t off);
+
+	index_t triEdgeID(index_t t_id, index_t off, std::true_type add_if_not_found);
 
 	Label triLabel(index_t t_id) const;
 
-public:
+protected:
 	/***** Below data are calculated by arrangements  ******/
-
-	// FIXME clear duplication
 
 	std::vector<uint8_t> tri_has_intersections;
 
@@ -129,33 +145,24 @@ public:
 	std::vector<tbb::concurrent_vector<UIPair>> tri2segs;
 
 	// reverse map contrained segments to triangles on where they locate
-	phmap::parallel_flat_hash_map<
-	  /*Key*/ UIPair,
-	  /*Value*/ tbb::concurrent_vector<index_t>,
-	  /*Hash*/ phmap::priv::hash_default_hash<UIPair>,
-	  /*Eq*/ phmap::priv::hash_default_eq<UIPair>,
-	  /*Alloc*/
-	  phmap::priv::Allocator<
-	    phmap::priv::Pair<const UIPair, tbb::concurrent_vector<index_t>>>,
-	  /*2**N submaps*/ 4,
-	  /*Mutex*/ tbb::spin_mutex>
-	  seg2tris;
+	Seg2Tris   seg2tris;
+	SegMutexes seg_mutexes;
+
+	/// orthogonal plane of a triangle
+	/// (only the triangles with intersections will be calculated)
+	std::vector<Plane> tri_plane;
+
+	/// orientation of a triangle on its orthogonal plane
+	/// (only the triangles with intersections will be calculated)
+	std::vector<Sign> tri_orient;
 
 	// coplanar pockets
-	phmap::parallel_flat_hash_map<
-	  /*Key*/ std::vector<index_t>,
-	  /*Value*/ index_t,
-	  /*Hash*/ phmap::priv::hash_default_hash<std::vector<index_t>>,
-	  /*Eq*/ phmap::priv::hash_default_eq<std::vector<index_t>>,
-	  /*Alloc*/
-	  phmap::priv::Allocator<
-	    phmap::priv::Pair<const std::vector<index_t>, index_t>>,
-	  /*2**N submaps*/ 4,
-	  /*Mutex*/ tbb::spin_mutex>
-	  pockets_map;
+	phmap::flat_hash_map<std::vector<index_t>, index_t> pockets_map;
 
+public:
 	// mutexes
 	tbb::spin_mutex new_vertex_mutex;
+	tbb::spin_mutex new_edge_mutex;
 	tbb::spin_mutex new_tris_mutex;
 
 public: /* Add **************************************************************/
@@ -211,13 +218,20 @@ public: /* Query ***********************************************************/
 	const tbb::concurrent_vector<UIPair> &
 	triangleSegmentsList(index_t t_id) const;
 
-	const tbb::concurrent_vector<index_t> &
-	segmentTrianglesList(const UIPair &seg) const;
+	const std::vector<index_t> &segmentTrianglesList(const UIPair &seg) const;
+
+	/* Orthogonal plane and orientation on the orthogonal plane */
+
+	Plane triPlane(index_t t_id) const;
+
+	Sign triOrient(index_t t_id) const;
 
 public: /* Modify *********************************************************/
-	void build_vmap(Tree *tree);
+	void buildVMap(Tree *tree);
 
-	void remove_all_duplicates();
+	void removeAllDuplicates();
+
+	void calcPlaneAndOrient();
 
 	template <typename Comparator>
 	void sortEdgeList(index_t eid, Comparator comp);

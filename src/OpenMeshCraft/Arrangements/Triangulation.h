@@ -42,10 +42,9 @@ private:
 	using FastTriMesh = FastTriMesh<Traits>;
 	using PntArena    = PointArena<Traits>;
 	using TriSoup     = TriangleSoup<Traits>;
-	using AuxStruct   = AuxiliaryStructure<Traits>;
 
 public:
-	Triangulation(TriSoup &_ts, AuxStruct &_g, std::vector<index_t> &new_tris,
+	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
 	              std::vector<Label> &new_labels);
 
 private:
@@ -55,9 +54,9 @@ private:
 
 	/* Split triangle and edges by constraint points ****************************/
 
-	void sortedVertexListAlongSegment(const std::vector<index_t> &point_list,
-	                                  index_t v0_id, index_t v1_id,
-	                                  std::vector<index_t> &out_point_list);
+	void sortedVertexListAlongSegment(
+	  const tbb::concurrent_vector<index_t> &point_list, index_t v0_id,
+	  index_t v1_id, std::vector<index_t> &out_point_list);
 
 	void splitSingleTriangle(FastTriMesh                &subm,
 	                         const std::vector<index_t> &points);
@@ -137,8 +136,7 @@ private:
 	                                        index_t p_id);
 
 private:
-	TriSoup   &ts;
-	AuxStruct &g;
+	TriSoup &ts;
 
 	std::vector<PntArena> &pnt_arenas;
 	std::vector<IdxArena> &idx_arenas;

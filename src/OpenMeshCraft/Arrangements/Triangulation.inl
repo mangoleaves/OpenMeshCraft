@@ -8,11 +8,10 @@
 namespace OMC {
 
 template <typename Traits>
-Triangulation<Traits>::Triangulation(TriSoup &_ts, AuxStruct &_g,
+Triangulation<Traits>::Triangulation(TriSoup              &_ts,
                                      std::vector<index_t> &new_tris,
                                      std::vector<Label>   &new_labels)
   : ts(_ts)
-  , g(_g)
   , pnt_arenas(*ts.pnt_arenas)
   , idx_arenas(*ts.idx_arenas)
 {
@@ -28,7 +27,7 @@ Triangulation<Traits>::Triangulation(TriSoup &_ts, AuxStruct &_g,
 
 	for (index_t t_id = 0; t_id < ts.numTris(); t_id++)
 	{
-		if (g.triangleHasIntersections(t_id) || g.triangleHasCoplanars(t_id))
+		if (ts.triangleHasIntersections(t_id))
 			tris_to_split.push_back(t_id);
 		else
 		{
@@ -53,7 +52,7 @@ Triangulation<Traits>::Triangulation(TriSoup &_ts, AuxStruct &_g,
 		  int thread_id = tbb::this_task_arena::current_thread_index();
 		  subms[thread_id].initialize(&ts.triVert(t_id, 0), &ts.triVert(t_id, 1),
 		                              &ts.triVert(t_id, 2), ts.tri(t_id),
-		                              ts.triPlane(t_id), ts.triOrientation(t_id));
+		                              ts.triPlane(t_id), ts.triOrient(t_id));
 		  triangulateSingleTriangle(t_id, subms[thread_id], new_tris, new_labels);
 	  });
 #else
@@ -63,7 +62,7 @@ Triangulation<Traits>::Triangulation(TriSoup &_ts, AuxStruct &_g,
 	              {
 		              subm.initialize(&ts.triVert(t_id, 0), &ts.triVert(t_id, 1),
 		                              &ts.triVert(t_id, 2), ts.tri(t_id),
-		                              ts.triPlane(t_id), ts.triOrientation(t_id));
+		                              ts.triPlane(t_id), ts.triOrient(t_id));
 		              triangulateSingleTriangle(t_id, subm, new_tris, new_labels);
 	              });
 #endif
@@ -81,26 +80,27 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	 *                                  POINTS AND SEGMENTS RECOVERY
 	 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-	const auto &t_points = g.trianglePointsList(t_id);
+	std::vector<index_t> t_points(ts.trianglePointsList(t_id).begin(),
+	                              ts.trianglePointsList(t_id).end());
 
-	index_t e0_id = ts.edgeID(subm.vertInfo(0), subm.vertInfo(1));
-	OMC_EXPENSIVE_ASSERT(is_valid_idx(e0_id), "Invalid edge index");
-	index_t e1_id = ts.edgeID(subm.vertInfo(1), subm.vertInfo(2));
-	OMC_EXPENSIVE_ASSERT(is_valid_idx(e1_id), "Invalid edge index");
-	index_t e2_id = ts.edgeID(subm.vertInfo(2), subm.vertInfo(0));
-	OMC_EXPENSIVE_ASSERT(is_valid_idx(e2_id), "Invalid edge index");
+	index_t e0_id = ts.triEdgeID(t_id, 0);
+	index_t e1_id = ts.triEdgeID(t_id, 1);
+	index_t e2_id = ts.triEdgeID(t_id, 2);
 
 	std::vector<index_t> e0_points, e1_points, e2_points;
 
-	sortedVertexListAlongSegment(g.edgePointsList(e0_id), subm.vertInfo(0),
-	                             subm.vertInfo(1), e0_points);
-	sortedVertexListAlongSegment(g.edgePointsList(e1_id), subm.vertInfo(1),
-	                             subm.vertInfo(2), e1_points);
-	sortedVertexListAlongSegment(g.edgePointsList(e2_id), subm.vertInfo(2),
-	                             subm.vertInfo(0), e2_points);
+	if (is_valid_idx(e0_id))
+		sortedVertexListAlongSegment(ts.edgePointsList(e0_id), subm.vertInfo(0),
+		                             subm.vertInfo(1), e0_points);
+	if (is_valid_idx(e1_id))
+		sortedVertexListAlongSegment(ts.edgePointsList(e1_id), subm.vertInfo(1),
+		                             subm.vertInfo(2), e1_points);
+	if (is_valid_idx(e2_id))
+		sortedVertexListAlongSegment(ts.edgePointsList(e2_id), subm.vertInfo(2),
+		                             subm.vertInfo(0), e2_points);
 
-	std::vector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(),
-	                               g.triangleSegmentsList(t_id).end());
+	std::vector<UIPair> t_segments(ts.triangleSegmentsList(t_id).begin(),
+	                               ts.triangleSegmentsList(t_id).end());
 
 	size_t estimated_vert_num =
 	  t_points.size() + e0_points.size() + e1_points.size() + e2_points.size();
@@ -133,7 +133,7 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	 *                      POCKETS IN COPLANAR TRIANGLES SOLVING
 	 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-	if (!g.coplanarTriangles(t_id).empty())
+	if (!ts.coplanarTriangles(t_id).empty())
 	{
 		solvePocketsInCoplanarTriangle(subm, new_tris, new_labels,
 		                               ts.triLabel(t_id));
@@ -145,7 +145,7 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 		 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
 		{ // start critical section...
-			std::lock_guard<tbb::spin_mutex> lock(g.new_tris_mutex);
+			std::lock_guard<tbb::spin_mutex> lock(ts.new_tris_mutex);
 			for (index_t ti = 0; ti < subm.numTriangles(); ++ti)
 			{
 				const index_t *tri = subm.tri(ti);
@@ -160,22 +160,21 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::sortedVertexListAlongSegment(
-  const std::vector<index_t> &point_list, OMC_UNUSED index_t v0_id,
+  const tbb::concurrent_vector<index_t> &point_list, index_t v0_id,
   index_t v1_id, std::vector<index_t> &out_point_list)
 {
 	// FIXME if point set is changed to edge based point set.
 	if (point_list.empty())
 		return;
 
-	out_point_list = point_list;
+	out_point_list = std::vector<index_t>(point_list.begin(), point_list.end());
 	if (out_point_list.front() == v1_id) // first element must be v0
 	{
 		std::reverse(out_point_list.begin(), out_point_list.end());
 	}
 
-	OMC_EXPENSIVE_ASSERT(out_point_list.front() == v0_id &&
-	                       out_point_list.back() == v1_id,
-	                     "Sorted list not correct");
+	OMC_ASSERT(out_point_list.front() == v0_id && out_point_list.back() == v1_id,
+	           "Sorted list not correct");
 }
 
 template <typename Traits>
@@ -923,7 +922,7 @@ index_t Triangulation<Traits>::createTPI(
 	{
 		index_t idx = InvalidIndex;
 		{ // lock for new index
-			std::lock_guard<tbb::spin_mutex> lock(g.new_vertex_mutex);
+			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
 			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
 		}
 		ip->store(idx, std::memory_order_relaxed); // assign a valid index
@@ -933,7 +932,7 @@ index_t Triangulation<Traits>::createTPI(
 	  idx_arenas[cur_thread_idx].emplace(InvalidIndex);
 
 	std::pair<size_t, bool> ins =
-	  g.addVertexInSortedList(new_v, idx_ptr, create_index);
+	  ts.addVertexInSortedList(new_v, idx_ptr, create_index);
 
 	if (!ins.second)
 	{
@@ -950,9 +949,9 @@ auto Triangulation<Traits>::computeTriangleOfSegment(FastTriMesh  &subm,
                                                      const UIPair &seg)
   -> std::array<const GPoint *, 3>
 {
-	const std::vector<index_t> &seg_tris = g.segmentTrianglesList(seg);
-	const std::vector<index_t> &copl_tris =
-	  g.sortedCoplanarTriangles(subm.meshInfo());
+	const std::vector<index_t> &seg_tris = ts.segmentTrianglesList(seg);
+	const tbb::concurrent_vector<index_t> &copl_tris =
+	  ts.coplanarTriangles(subm.meshInfo());
 
 	for (index_t t_id : seg_tris)
 	{
@@ -1140,8 +1139,8 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
 		remove_duplicates(curr_polygon);
 
 		{ // critical section
-			std::lock_guard<tbb::spin_mutex> lock(g.new_tris_mutex);
-			index_t pos = g.addVisitedPolygonPocket(curr_polygon, new_labels.size());
+			std::lock_guard<tbb::spin_mutex> lock(ts.new_tris_mutex);
+			index_t pos = ts.addVisitedPolygonPocket(curr_polygon, new_labels.size());
 
 			if (!is_valid_idx(pos)) // pocket not added yet
 			{

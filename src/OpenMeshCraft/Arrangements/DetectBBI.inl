@@ -256,6 +256,7 @@ void DetectBBI<Traits>::parallelOnLargeNodes(const std::vector<index_t> &nodes)
 						if (!DoIntersect()(b0, b1))
 							continue; // early reject.
 
+						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 #ifdef OMC_ARR_COLLECT_BBI_PAIRS
 						check_pairs.push_back(uniquePair(b0.id(), b1.id()));
 #else
@@ -275,6 +276,7 @@ void DetectBBI<Traits>::parallelOnLargeNodes(const std::vector<index_t> &nodes)
 						if (!DoIntersect()(b0, b1))
 							continue; // early reject.
 
+						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 #ifdef OMC_ARR_COLLECT_BBI_PAIRS
 						check_pairs.push_back(uniquePair(b0.id(), b1.id()));
 #else

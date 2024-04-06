@@ -98,9 +98,9 @@ TEST_F(test_Arrangements, TestDataSet)
 	bool set_parameter = config.get<bool>("set_parameter", false);
 
 	OMC::MeshArrangements_Config arr_config;
-	arr_config.tree_enlarge_ratio    = 1.1;
+	arr_config.tree_enlarge_ratio    = 1.01;
 	arr_config.tree_adaptive_thres   = 0.1;
-	arr_config.tree_split_size_thres = 1000;
+	arr_config.tree_split_size_thres = 50;
 	if (set_parameter)
 	{
 		boost::property_tree::ptree &parameters = config.get_child("parameters");
@@ -145,7 +145,7 @@ TEST_F(test_Arrangements, TestDataSet)
 
 			auto start = OMC::Logger::elapse_reset();
 
-			arrangements.meshArrangements(false, false);
+			arrangements.meshArrangements(false, true);
 
 			double total_time = OMC::Logger::elapsed(start).count();
 			std::cout << total_time << " s\n";
@@ -154,7 +154,9 @@ TEST_F(test_Arrangements, TestDataSet)
 			log_file << iter->path().filename().string();
 			log_file << "," << stats.pp_elapsed << "," << stats.tree_elapsed << ","
 			         << stats.di_elapsed << "," << stats.ci_elapsed << ","
-			         << stats.tr_elapsed << "," << total_time << std::endl;
+			         << stats.tr_elapsed << "," << total_time << ","
+			         << result_points.size() << "," << result_triangles.size()
+			         << std::endl;
 		}
 	}
 	log_file.close();

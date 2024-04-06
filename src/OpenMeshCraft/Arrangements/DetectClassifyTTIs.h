@@ -27,19 +27,18 @@ public:
 	using LessThan3D         = typename Traits::LessThan3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
-	using PntArena  = PointArena<Traits>;
-	using TriSoup   = TriangleSoup<Traits>;
-	using AuxStruct = AuxiliaryStructure<Traits>;
+	using PntArena = PointArena<Traits>;
+	using TriSoup  = TriangleSoup<Traits>;
 
-	DetectClassifyTTIs(TriSoup &_ts, AuxStruct &_g, bool _parallel,
+	DetectClassifyTTIs(TriSoup &_ts, std::vector<UIPair> &_intersection_list,
 	                   MeshArrangements_Stats *_stats, bool _verbose);
+
+
+protected:
 
 	void checkTriangleTriangleIntersections();
 
 	void propagateCoplanarTrianglesIntersections();
-
-protected:
-	void mergeConcurrentAuxStructures();
 
 	void sortEdgePointsList();
 
@@ -49,13 +48,8 @@ protected:
 	TriSoup               &ts;
 	std::vector<PntArena> &pnt_arenas;
 	std::vector<IdxArena> &idx_arenas;
-	AuxStruct             &uniq_g;
+	std::vector<UIPair>   &intersection_list;
 
-	/// @brief concurrent_g is used to store data in multi-threading context.
-	/// Final it will be merged in uniq_g.
-	std::vector<AuxStruct> concurrent_g;
-
-	bool                    parallel;
 	bool                    verbose;
 	MeshArrangements_Stats *stats;
 };

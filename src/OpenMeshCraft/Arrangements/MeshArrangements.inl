@@ -264,50 +264,26 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 		return;
 	}
 
-#if 1
 	OMC_ARR_START_ELAPSE(start_ci);
-	// TODO
 
-	// build triangle soups and aux structs for each connected component.
+	// build triangle soup
 	initBeforeDetectClassify();
 
 	// Classify intersections.
-	// * Based on detected intersections between triangles,
-	//   construct LPI points and constrained segments on triangles and edges.
-	// * Data mentioned above will be stored in AuxStruct(g), such as
-	//   tri2pts (LPI on triangles), edge2pts (LPI on edges), tri2segs (
-	//   constrained segments on triangles).
-	// * To keep points unique, a map where the keys are points and the
-	//   values are indices is used.
-	// * More Auxiliary data will also be stored in AuxStruct(g)
-	DetectClassifyTTIs<Traits> DCI(
-	  tri_soup,
-	  /*parallel*/ aux_struct.intersection_list.size() > 100, stats, verbose);
-	DCI.checkTriangleTriangleIntersections();
-	DCI.propagateCoplanarTrianglesIntersections();
+	DetectClassifyTTIs<Traits> DCI(tri_soup, BBI_pairs, stats, verbose);
 
 	tree.clear_points();
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
-
 	OMC_ARR_START_ELAPSE(start_tr);
 
 	// Triangulation.
-	// * Based on intersection infos, triangulate all triangles to sub-triangles
-	//   without intersection and self-intersection.
-	// * New TPI points will be created during triangulation and stored in
-	//   pnt_arena and arr_out_verts.
-	// * new triangles will be stored in arr_out_tris.
-	// * new labels will be attached to new triangles, stored in
-	// arr_out_labels.surface.
-	Triangulation<Traits> TR(tri_soup, aux_struct, arr_out_tris,
-	                         arr_out_labels.surface);
+	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
 
 	// merge connected components after all done.
 	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
-#endif
 }
 
 template <typename Traits>
@@ -611,7 +587,7 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	ts.pnt_arenas = &pnt_arenas;
 	ts.idx_arenas = &idx_arenas;
 	ts.initialize();
-	ts.build_vmap(&tree);
+	ts.buildVMap(&tree);
 }
 
 template <typename Traits>

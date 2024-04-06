@@ -33,23 +33,19 @@ public:
 	using LessThan3D         = typename Traits::LessThan3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
-	using PntArena  = PointArena<Traits>;
-	using TriSoup   = TriangleSoup<Traits>;
-	using AuxStruct = AuxiliaryStructure<Traits>;
+	using PntArena = PointArena<Traits>;
+	using TriSoup  = TriangleSoup<Traits>;
 
-	DetectClassifyTTI(TriSoup &_ts, AuxStruct &_uniq_g, AuxStruct &_g,
-	                  PntArena &_pnt_arena, IdxArena &_idx_arena);
+	DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena, IdxArena &_idx_arena);
 
 public:
 	void check_TTI(index_t ta, index_t tb);
 
 protected:
 	/* Input data */
-	TriSoup   &ts;
-	AuxStruct &uniq_g;
-	AuxStruct &g;
-	PntArena  &pnt_arena;
-	IdxArena  &idx_arena;
+	TriSoup  &ts;
+	PntArena &pnt_arena;
+	IdxArena &idx_arena;
 
 	struct TTIHelper
 	{
@@ -96,6 +92,8 @@ protected:
 		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
 		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
 		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})}; }
+
+		bool contains_vtx(index_t vidx) { return v_id[0] == vidx || v_id[1] == vidx || v_id[2] == vidx; }
 		// clang-format on
 	};
 
@@ -133,9 +131,8 @@ protected:
 	class CreateIndex
 	{
 	public:
-		CreateIndex(TriSoup &_ts, AuxStruct &_g)
+		CreateIndex(TriSoup &_ts)
 		  : ts(_ts)
-		  , g(_g)
 		{
 		}
 
@@ -143,18 +140,19 @@ protected:
 		{
 			index_t idx = InvalidIndex;
 			{ // lock for new index
-				std::lock_guard<tbb::spin_mutex> lock(g.new_vertex_mutex);
+				std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
 				idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
 			}
 			ip->store(idx, std::memory_order_relaxed); // assign a valid index
 		}
 
 	private:
-		TriSoup   &ts;
-		AuxStruct &g;
+		TriSoup &ts;
 	};
 
 protected:
+	index_t get_e_id(TTIHelper &ha, index_t ea);
+
 	bool get_v_in_seg(TTIHelper &ha, index_t va, TTIHelper &hb, index_t eb);
 
 	index_t get_v_in_seg(TTIHelper &ha, index_t va, TTIHelper &hb);
@@ -198,15 +196,17 @@ protected:
 	  TTIHelper &ha, index_t ea, TTIHelper &hb,
 	  phmap::flat_hash_set<index_t> &inter_list);
 
-	void add_symbolic_segment(index_t v0, index_t v1, index_t ta, index_t tb);
+	void add_symbolic_segment(index_t v0, index_t v1, TTIHelper &ha,
+	                          TTIHelper &hb);
 
 	index_t add_edge_cross_coplanar_edge(
-	  index_t ea, index_t eb, index_t t,
+	  TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb,
 	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
 
-	index_t add_edge_cross_noncoplanar_edge(index_t ea, index_t eb);
+	index_t add_edge_cross_noncoplanar_edge(TTIHelper &ha, index_t ea,
+	                                        TTIHelper &hb, index_t eb);
 
-	index_t add_edge_cross_tri(index_t ea, index_t tb);
+	index_t add_edge_cross_tri(TTIHelper &ha, index_t ea, TTIHelper &hb);
 };
 
 } // namespace OMC

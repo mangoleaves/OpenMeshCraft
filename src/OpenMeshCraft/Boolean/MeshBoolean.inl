@@ -87,14 +87,8 @@ public: /* Traits ***********************************************************/
 public: /* Auxiliary data structures *****************************************/
 	// tree
 	using Tree        = Arr_Tree_Intersection<Traits>;
-	// point arena
-	using PntArena    = PointArena<Traits>;
-	// triangle soup
-	using TriSoup     = TriangleSoup<Traits>;
 	// fast triangle mesh
 	using FastTriMesh = FastTriMesh<Traits>;
-	// auxiliary structure
-	using AuxStruct   = AuxiliaryStructure<Traits>;
 	// label
 	using Label       = Label;
 	using Labels      = Labels;

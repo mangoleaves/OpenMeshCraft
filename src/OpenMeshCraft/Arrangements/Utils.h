@@ -314,7 +314,7 @@ template <typename T>
 inline void remove_duplicates(std::vector<T> &values)
 {
 	std::sort(values.begin(), values.end());
-	values.erase(std::unique(values.begin(), values.end()), values.end());
+	values.resize(std::unique(values.begin(), values.end()) - values.begin());
 }
 
 template <typename T, size_t N>
@@ -328,14 +328,14 @@ template <typename T>
 inline void remove_duplicates(tbb::concurrent_vector<T> &values)
 {
 	std::sort(values.begin(), values.end());
-	values.erase(std::unique(values.begin(), values.end()), values.end());
+	values.resize(std::unique(values.begin(), values.end()) - values.begin());
 }
 
 template <typename T>
 inline void parallel_remove_duplicates(std::vector<T> &values)
 {
 	tbb::parallel_sort(values.begin(), values.end());
-	values.erase(std::unique(values.begin(), values.end()), values.end());
+	values.resize(std::unique(values.begin(), values.end()) - values.begin());
 }
 
 template <typename T, typename Alloc,
