@@ -145,7 +145,7 @@ TEST_F(test_Arrangements, TestDataSet)
 
 			auto start = OMC::Logger::elapse_reset();
 
-			arrangements.meshArrangements(false, true);
+			arrangements.meshArrangements(false, false);
 
 			double total_time = OMC::Logger::elapsed(start).count();
 			std::cout << total_time << " s\n";

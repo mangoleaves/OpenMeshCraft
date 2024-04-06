@@ -8,7 +8,6 @@
 #include "TriangleSoup.h"
 
 // Sub-algorithms of arrangements
-#include "DetectBBI.h"
 #include "DetectClassifyTTIs.h"
 #include "Triangulation.h"
 
@@ -105,6 +104,7 @@ public: /* Constructors ******************************************************/
 	MeshArrangements_Impl(MeshArrangements_Stats *_stats   = nullptr,
 	                      bool                    _verbose = false)
 	  : tree(_stats)
+	  , point_tree(nullptr)
 	  , stats(_stats)
 	  , verbose(_verbose)
 	{
@@ -166,6 +166,7 @@ public:
 	/* Auxiliary data */
 	/// tree build on arr_in_tris (NOTE: not on in_tris)
 	Tree                     tree;
+	Tree                     point_tree;
 	/// information of removed duplicate triangles (maybe used again)
 	std::vector<DuplTriInfo> dupl_triangles;
 
@@ -242,37 +243,16 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 
 	/***** Arrangements *****/
 
-	OMC_ARR_START_ELAPSE(start_di);
-
-	// Detect intersections between triangles.
-	// * The intersections (pairs of intersected triangles) will
-	//   be stored in BBI_pairs.
-	// * Will ignore intersection between triangles with the same labels if
-	//   ignore_intersection_in_same_mesh is enabled.
-	//   This feature is designed for mesh boolean.
-	DetectBBI<Traits> DI(arr_out_verts, arr_in_tris, arr_in_labels,
-	                     arr_out_labels.num, tree, BBI_pairs,
-	                     ignore_intersection_in_same_mesh, stats, verbose);
-
-	OMC_ARR_SAVE_ELAPSED(start_di, di_elapsed, "Detect intersections");
-
-	if (BBI_pairs.empty())
-	{
-		arr_out_tris           = arr_in_tris;
-		arr_out_labels.surface = arr_in_labels;
-		arr_out_labels.inside.resize(arr_out_tris.size() / 3);
-		return;
-	}
-
 	OMC_ARR_START_ELAPSE(start_ci);
 
 	// build triangle soup
 	initBeforeDetectClassify();
 
 	// Classify intersections.
-	DetectClassifyTTIs<Traits> DCI(tri_soup, BBI_pairs, stats, verbose);
+	DetectClassifyTTIs<Traits> DCI(
+	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
 
-	tree.clear_points();
+	point_tree.clear_points();
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
@@ -574,7 +554,8 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	idx_arenas = std::vector<IdxArena>(tbb::this_task_arena::max_concurrency());
 
 	// refine its shape
-	tree.shape_refine(BBI_pairs.size());
+	point_tree = tree;
+	point_tree.shape_refine(BBI_pairs.size());
 
 	TriSoup &ts = tri_soup;
 
@@ -587,7 +568,7 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	ts.pnt_arenas = &pnt_arenas;
 	ts.idx_arenas = &idx_arenas;
 	ts.initialize();
-	ts.buildVMap(&tree);
+	ts.buildVMap(&point_tree);
 }
 
 template <typename Traits>
@@ -596,6 +577,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 	// clear unused data
 	BBI_pairs.clear();
 	tree.clear();
+	point_tree.clear();
 
 	// initialize merged triangle soup and auxiliary structure
 	arr_out_verts.resize(arr_out_verts.size() + tri_soup.numVerts() -
