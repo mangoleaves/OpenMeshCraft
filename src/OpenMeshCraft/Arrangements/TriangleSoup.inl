@@ -16,9 +16,9 @@ void TriangleSoup<Traits>::initialize()
 
 	tri_edges.resize(numOrigTris() * 3, InvalidIndex);
 
+	tri_has_intersections.resize(numOrigTris(), false);
 	coplanar_tris.resize(numOrigTris());
 	coplanar_edges.resize(numOrigTris());
-	tri_has_intersections.resize(numOrigTris(), false);
 
 	tri2pts.resize(numOrigTris());
 	edge2pts.reserve(numOrigVerts());
@@ -111,16 +111,16 @@ index_t TriangleSoup<Traits>::triVertID(index_t t_id, index_t off) const
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVert(index_t t_id, index_t off) const
-  -> const GPoint &
+auto TriangleSoup<Traits>::triVert(index_t t_id,
+                                   index_t off) const -> const GPoint &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vert(triangles[3 * t_id + off]);
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVertPtr(index_t t_id, index_t off) const
-  -> const NT *
+auto TriangleSoup<Traits>::triVertPtr(index_t t_id,
+                                      index_t off) const -> const NT *
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vertPtr(triangles[3 * t_id + off]);
@@ -173,8 +173,7 @@ void TriangleSoup<Traits>::buildVMap(Tree *tree)
 {
 	tree->clear_points();
 	v_map = std::make_unique<AuxPointMap_Tree<Traits>>(tree);
-	tbb::parallel_for(index_t(0), numVerts(),
-	                  [this](index_t v_id)
+	tbb::parallel_for(index_t(0), numVerts(), [this](index_t v_id)
 	                  { v_map->insert(vertices[v_id], indices[v_id]); });
 }
 
@@ -266,10 +265,13 @@ TriangleSoup<Traits>::coplanarEdges(index_t t_id) const
 }
 
 template <typename Traits>
-void TriangleSoup<Traits>::setTriangleHasIntersections(index_t t_id)
+void TriangleSoup<Traits>::setTriangleHasIntersections(index_t tA_id,
+                                                       index_t tB_id)
 {
-	OMC_EXPENSIVE_ASSERT(t_id < tri_has_intersections.size(), "out of range");
-	tri_has_intersections[t_id] = true;
+	OMC_EXPENSIVE_ASSERT(tA_id < tri_has_intersections.size(), "out of range");
+	OMC_EXPENSIVE_ASSERT(tB_id < tri_has_intersections.size(), "out of range");
+	tri_has_intersections[tA_id] = true;
+	tri_has_intersections[tB_id] = true;
 }
 
 template <typename Traits>

@@ -18,8 +18,8 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
   , idx_arenas(*ts.idx_arenas)
-	, labels(ts.tri_labels)
-	, tree(_tree)
+  , labels(ts.tri_labels)
+  , tree(_tree)
   , ignore_same_label(_ignore_same_label)
   , stats(_stats)
   , verbose(_verbose)
@@ -88,6 +88,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 		if (ignore_same_label)
 		{
+			GPoint::clear_global_cached_values();
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
 				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -104,7 +105,6 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 
-					GPoint::clear_global_cached_values();
 					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
 					                             idx_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
@@ -113,6 +113,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 		}
 		else
 		{
+			GPoint::clear_global_cached_values();
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
 				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -126,7 +127,6 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 
-					GPoint::clear_global_cached_values();
 					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
 					                             idx_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
@@ -168,6 +168,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 		{
 			if (ignore_same_label)
 			{
+				GPoint::clear_global_cached_values();
 				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
 				{
 					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -181,7 +182,6 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 							continue; // early reject.
 
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-						GPoint::clear_global_cached_values();
 						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
 						                             idx_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());
@@ -190,6 +190,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 			}
 			else
 			{
+				GPoint::clear_global_cached_values();
 				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
 				{
 					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -200,7 +201,6 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 							continue; // early reject.
 
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-						GPoint::clear_global_cached_values();
 						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
 						                             idx_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());

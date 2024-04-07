@@ -87,7 +87,7 @@ TEST_F(test_Arrangements, TestDataSet)
 	std::fstream log_file;
 	log_file.open(log_path, std::ios::out | std::ios::app);
 
-	log_file << "filename,pp,tree,di,ci,tr,time\n";
+	log_file << "filename,pp,tree,ci,tr,time\n";
 
 	std::string             models_dir = config.get<std::string>("models_dir");
 	boost::filesystem::path model_dir_path(models_dir);
@@ -153,10 +153,9 @@ TEST_F(test_Arrangements, TestDataSet)
 			log_file << std::fixed;
 			log_file << iter->path().filename().string();
 			log_file << "," << stats.pp_elapsed << "," << stats.tree_elapsed << ","
-			         << stats.di_elapsed << "," << stats.ci_elapsed << ","
-			         << stats.tr_elapsed << "," << total_time << ","
-			         << result_points.size() << "," << result_triangles.size()
-			         << std::endl;
+			         << stats.ci_elapsed << "," << stats.tr_elapsed << ","
+			         << total_time << "," << result_points.size() << ","
+			         << result_triangles.size() << std::endl;
 		}
 	}
 	log_file.close();

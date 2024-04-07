@@ -58,13 +58,9 @@ struct MeshArrangements_Stats
 	                          // duplicate triangles
 	double tree_elapsed = 0.; // timings of building tree
 
-	/* Detect intersections ******************************************/
+	/* detect and classify intersection ******************************/
 
-	double di_elapsed = 0.; // timings of detecting intersection
-
-	/* classify intersection *****************************************/
-
-	double ci_elapsed = 0.; // timings of classifying intersection
+	double ci_elapsed = 0.; // timings of detection and classification
 
 	/* triangulation *************************************************/
 

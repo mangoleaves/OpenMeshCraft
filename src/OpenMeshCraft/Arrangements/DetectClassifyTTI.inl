@@ -124,8 +124,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	// otherwise they intersect.
 	// each triangle has one sharing edge and other two coplanar edges.
 	ts.addCoplanarTriangles(ha.t_id, hb.t_id);
-	ts.setTriangleHasIntersections(ha.t_id);
-	ts.setTriangleHasIntersections(hb.t_id);
+	ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
 	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 2);
 
@@ -271,8 +270,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		{
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 8);
 			ts.addCoplanarTriangles(ha.t_id, hb.t_id);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 
 		OMC_EXPENSIVE_ASSERT(
@@ -341,8 +339,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			index_t v0_id = *(inter_list.begin());
 			index_t v1_id = *(++inter_list.begin());
 			add_symbolic_segment(v0_id, v1_id, ha, hb);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 13);
 			return; // all possible intersections are found, return.
@@ -362,8 +359,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			if (!inter_list.empty())
 			{
 				ts.addCoplanarEdge(hb.t_id, get_e_id(ha, copl_ea));
-				ts.setTriangleHasIntersections(ha.t_id);
-				ts.setTriangleHasIntersections(hb.t_id);
+				ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 			}
 		}
 		return; // whether intersections are found or not, return.
@@ -399,8 +395,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			index_t v0_id = *(inter_list.begin());
 			index_t v1_id = *(++inter_list.begin());
 			add_symbolic_segment(v0_id, v1_id, ha, hb);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 	}
 	else if (ebv0_wrt_ta == Sign::ZERO || ebv1_wrt_ta == Sign::ZERO)
@@ -417,8 +412,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			if (!inter_list.empty())
 			{
 				ts.addCoplanarEdge(ha.t_id, get_e_id(hb, copl_eb));
-				ts.setTriangleHasIntersections(ha.t_id);
-				ts.setTriangleHasIntersections(hb.t_id);
+				ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 			}
 		}
 	}
@@ -549,8 +543,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		{
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 23);
 			ts.addCoplanarTriangles(ha.t_id, hb.t_id);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 
 		return;
@@ -572,7 +565,6 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	if (_singleCoplanarEdge(orAB, edge_id))
 	{
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 24);
-		// CASE: a single edge of ta is coplanar to tb    (e.g. orAB: 1 0 0)
 		if (coplanar_seg_tri_do_intersect(ha, edge_id, hb))
 		{
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 25);
@@ -581,8 +573,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 			if (!inter_list.empty())
 			{
 				ts.addCoplanarEdge(hb.t_id, get_e_id(ha, edge_id));
-				ts.setTriangleHasIntersections(ha.t_id);
-				ts.setTriangleHasIntersections(hb.t_id);
+				ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 			}
 		}
 		return; // whether intersections are found or not, return.
@@ -595,8 +586,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		if (classify_coplanr_vtx_intersections(ha, vtx_id, hb, inter_list))
 		{
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 27);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 		return; // whether intersections are found or not, return.
 	}
@@ -667,8 +657,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		index_t v1_id = *(++inter_list.begin());
 
 		add_symbolic_segment(v0_id, v1_id, ha, hb);
-		ts.setTriangleHasIntersections(ha.t_id);
-		ts.setTriangleHasIntersections(hb.t_id);
+		ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 33);
 		return; // all possible intersections are found, return.
@@ -694,8 +683,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 			if (!inter_list.empty())
 			{
 				ts.addCoplanarEdge(ha.t_id, get_e_id(hb, edge_id));
-				ts.setTriangleHasIntersections(ha.t_id);
-				ts.setTriangleHasIntersections(hb.t_id);
+				ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 			}
 		}
 		return; // whether intersections are found or not, return.
@@ -708,8 +696,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		if (classify_coplanr_vtx_intersections(hb, vtx_id, ha, inter_list))
 		{
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 38);
-			ts.setTriangleHasIntersections(ha.t_id);
-			ts.setTriangleHasIntersections(hb.t_id);
+			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 		return; // whether intersections are found or not, return.
 	}
@@ -756,8 +743,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		index_t v1_id = *(++inter_list.begin());
 
 		add_symbolic_segment(v0_id, v1_id, ha, hb);
-		ts.setTriangleHasIntersections(ha.t_id);
-		ts.setTriangleHasIntersections(hb.t_id);
+		ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 	}
 }
 
@@ -1180,8 +1166,8 @@ bool DetectClassifyTTI<Traits>::classify_coplanr_vtx_intersections(
  * @param inter_list list to store intersection points.
  * @param copl_edge_crosses list to store coplanar intersection points.
  * @return true if intersections are detected.
- * @note this func assume that `ea` and `tb` definitely intersect, it won't check
- * and then classify.
+ * @note this func assume that `ea` and `tb` definitely intersect, it won't
+ * check and then classify.
  */
 template <typename Traits>
 bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
