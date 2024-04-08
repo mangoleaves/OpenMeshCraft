@@ -33,10 +33,10 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	parallelOnSmallNodes(small_nodes);
 	parallelOnLargeNodes(large_nodes);
 
-	// post process
+	// post process of TTI checks
+	ts.fixAllIndices();
 	ts.removeAllDuplicates();
 	ts.calcPlaneAndOrient();
-	sortEdgePointsList();
 
 	GPoint::disable_global_cached_values();
 
@@ -239,49 +239,6 @@ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
 }
 
 template <typename Traits>
-void DetectClassifyTTIs<Traits>::sortEdgePointsList()
-{
-	// sort points on edge
-	tbb::parallel_for(
-	  size_t(0), ts.numEdges(),
-	  [this](index_t e_id)
-	  {
-		  if (ts.edgePointsList(e_id).empty())
-			  return;
-		  // add two end points into list
-		  index_t ev0 = ts.edge(e_id).first, ev1 = ts.edge(e_id).second;
-
-		  std::array<double, 3> dim_diff = {
-		    std::fabs(ts.vert(ev0).x() - ts.vert(ev1).x()),
-		    std::fabs(ts.vert(ev0).y() - ts.vert(ev1).y()),
-		    std::fabs(ts.vert(ev0).z() - ts.vert(ev1).z())};
-		  size_t dim =
-		    std::max_element(dim_diff.begin(), dim_diff.end()) - dim_diff.begin();
-
-		  ts.addVertexInEdge(e_id, ev0);
-		  ts.addVertexInEdge(e_id, ev1);
-		  if (dim == 0)
-			  ts.sortEdgeList(e_id,
-			                  [this](index_t a, index_t b) {
-				                  return LessThan3D().on_x(ts.vert(a), ts.vert(b)) ==
-				                         Sign::NEGATIVE;
-			                  });
-		  else if (dim == 1)
-			  ts.sortEdgeList(e_id,
-			                  [this](index_t a, index_t b) {
-				                  return LessThan3D().on_y(ts.vert(a), ts.vert(b)) ==
-				                         Sign::NEGATIVE;
-			                  });
-		  else
-			  ts.sortEdgeList(e_id,
-			                  [this](index_t a, index_t b) {
-				                  return LessThan3D().on_z(ts.vert(a), ts.vert(b)) ==
-				                         Sign::NEGATIVE;
-			                  });
-	  });
-}
-
-template <typename Traits>
 void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 {
 	std::vector<std::pair<index_t, index_t>> coplanar_tris;
@@ -319,16 +276,18 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 		// TODO // OPT
 		// How often does an edge really intersect triangle in coplanar triangle
 		// pair? Do we need to store exact coplanar tri-edge pair?
+		// TODO // OPT
+		// Can we store the two intersected point between a triangle and a coplanar
+		// edge? so we can fastly find points in the triangle.
 		for (index_t e_id : {e0_id, e1_id, e2_id})
 			if (is_valid_idx(e_id))
 			{
 				bool inside = false;
 
-				const tbb::concurrent_vector<index_t> &e2p = ts.edgePointsList(e_id);
+				const auto &e2p = ts.edgePointsList(e_id);
 
-				for (int i = 1; i < (int)e2p.size() - 1; i++)
-				{ // skip two endpoints of edge
-					index_t p_id = e2p[i];
+				for (index_t p_id : e2p)
+				{
 					/*p_id is not on vertex and p_id insides triangle */
 					if (p_id != cv0_id && p_id != cv1_id && p_id != cv2_id &&
 					    pointInsideTriangle(p_id, copl_t_id))
@@ -355,11 +314,11 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 		// intersection points inside triangle
 		bool inside = false;
 
-		const tbb::concurrent_vector<index_t> &e2p = ts.edgePointsList(copl_e_id);
+		const auto &e2p = ts.edgePointsList(copl_e_id);
 
-		for (int i = 1; i < (int)e2p.size() - 1; i++)
+		for (index_t p_id : e2p)
 		{
-			index_t p_id = e2p[i];
+			/*p_id is not on vertex and p_id insides triangle */
 			if (p_id != v0_id && p_id != v1_id && p_id != v2_id &&
 			    pointInsideTriangle(p_id, t_id))
 			{
@@ -386,7 +345,7 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 		}
 	};
 
-#if 1
+#ifdef OMC_ARR_DC_TTI_PARA
 	tbb::parallel_for_each(coplanar_tris.begin(), coplanar_tris.end(),
 	                       propagate_copl_tri);
 	tbb::parallel_for_each(coplanar_tri_edge.begin(), coplanar_tri_edge.end(),

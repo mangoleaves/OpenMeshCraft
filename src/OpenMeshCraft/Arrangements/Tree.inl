@@ -65,17 +65,9 @@ bool Arr_TreeShapeRefinePred::operator()(const Tree &tree, const Node &node,
 }
 
 template <typename AppTraits>
-void Arr_Tree_Intersection<AppTraits>::shape_refine(
-  size_t num_intersection_pairs)
+void Arr_Tree_Intersection<AppTraits>::shape_refine()
 {
-	if (num_intersection_pairs < 1000)
-		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.5);
-	else if (num_intersection_pairs < 10000)
-		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.2);
-	else if (num_intersection_pairs < 100000)
-		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.1);
-	else if (num_intersection_pairs >= 100000)
-		this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.05);
+	this->m_shape_refine_pred = typename BaseT::ShapeRefinePred(0.1);
 
 	BaseT::shape_refine();
 }

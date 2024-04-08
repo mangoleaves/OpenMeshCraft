@@ -39,7 +39,7 @@ public: /* types *************************************************************/
 
 public: /* functions about types **********************************************/
 	enum class PointType : uint32_t
-	{
+	{ // make sure simpler point has smaller value
 		Explicit = 0,
 		Implicit = 1,
 		SSI      = 2,

@@ -234,7 +234,7 @@ public: /* build and refine ***********************************************/
 	                             const size_t                   reserve_tris,
 	                             const MeshArrangements_Config &config);
 
-	void shape_refine(size_t num_intersection_pairs);
+	void shape_refine();
 
 public: /* Query and update Interfaces ************************************/
 	template <typename QPrimT>

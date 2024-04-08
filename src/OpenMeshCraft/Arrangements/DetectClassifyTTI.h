@@ -47,108 +47,10 @@ protected:
 	PntArena &pnt_arena;
 	IdxArena &idx_arena;
 
-	struct TTIHelper
-	{
-		static const index_t UncachedIndex   = (index_t)(-2);
-		static const char    UncachedBoolean = (char)(-1);
-
-		static bool is_cached(index_t idx) { return idx != UncachedIndex; }
-		static bool is_cached(char boolean) { return boolean != UncachedBoolean; }
-
-		index_t t_id;
-		int     t_nmax;
-
-		// vectices from triangle
-		std::array<EPoint, 3>     p;
-		// pointers to vertices.
-		std::array<const NT *, 3> v;
-
-		// indices of vertices from triangle.
-		std::array<index_t, 3> v_id;
-		// indices of edges from triangle.
-		std::array<index_t, 3> e_id;
-
-		// position of sub-simplex of this triangle with respect to sub-simplex of
-		// another triangle
-		std::array<index_t, 3> v_in_vtx;
-		std::array<index_t, 3> v_in_seg;
-		std::array<char, 3>    v_in_tri;
-
-		// cached orientations
-		// Sign::UNCERTAIN means "not cached/calculated"
-		std::array<std::array<Sign, 3>, 3> v_wrt_seg;
-		std::array<std::array<Sign, 3>, 3> seg_wrt_seg;
-
-		// clang-format off
-		// v_in_vtx will always be set.
-		void init_v_in_seg() { v_in_seg = {UncachedIndex, UncachedIndex, UncachedIndex}; }
-		void init_v_in_tri() { v_in_tri = {UncachedBoolean, UncachedBoolean, UncachedBoolean}; }
-
-		void init_v_wrt_seg() { v_wrt_seg = {
-				std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-			  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-			  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})}; }
-		void init_seg_wrt_seg() { seg_wrt_seg = {
-		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
-		  	std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})}; }
-
-		bool contains_vtx(index_t vidx) { return v_id[0] == vidx || v_id[1] == vidx || v_id[2] == vidx; }
-		// clang-format on
-	};
-
-	struct CoplanarEEI // Edge-Edge-Intersection
-	{
-		index_t ea; // global index of edge a
-		index_t eb; // global index of edge b
-		index_t p;  // global index of the intersection point
-
-		CoplanarEEI(index_t _ea, index_t _eb, index_t _p)
-		  : ea(_ea)
-		  , eb(_eb)
-		  , p(_p)
-		{
-		}
-
-		// used in hash set
-		bool operator==(const CoplanarEEI &rhs) const { return p == rhs.p; }
-		// used to check if two intersection points are same.
-		bool is_same(index_t query_ea, index_t query_eb) const
-		{
-			return (query_ea == ea && query_eb == eb) ||
-			       (query_ea == eb && query_eb == ea);
-		}
-	};
-
-	struct Hasher
-	{
-		index_t operator()(const CoplanarEEI &c) const
-		{
-			return std::hash<index_t>()(c.p);
-		}
-	};
-
-	class CreateIndex
-	{
-	public:
-		CreateIndex(TriSoup &_ts)
-		  : ts(_ts)
-		{
-		}
-
-		void operator()(const GPoint *pp, std::atomic<index_t> *ip)
-		{
-			index_t idx = InvalidIndex;
-			{ // lock for new index
-				std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
-				idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
-			}
-			ip->store(idx, std::memory_order_relaxed); // assign a valid index
-		}
-
-	private:
-		TriSoup &ts;
-	};
+	struct TTIHelper;
+	struct CoplanarEEI;
+	struct Hasher;
+	struct CreateIndex;
 
 protected:
 	index_t get_e_id(TTIHelper &ha, index_t ea);
@@ -199,14 +101,30 @@ protected:
 	void add_symbolic_segment(index_t v0, index_t v1, TTIHelper &ha,
 	                          TTIHelper &hb);
 
-	index_t add_edge_cross_coplanar_edge(
+	void add_vertex_in_tri(TTIHelper &ha, TTIHelper &hb, index_t vb);
+
+	OMC_NODISCARD index_t add_vertex_in_edge(TTIHelper &ha, index_t ea,
+	                                         TTIHelper &hb, index_t vb);
+
+	OMC_NODISCARD index_t add_edge_cross_coplanar_edge(
 	  TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb,
 	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
 
-	index_t add_edge_cross_noncoplanar_edge(TTIHelper &ha, index_t ea,
-	                                        TTIHelper &hb, index_t eb);
+	OMC_NODISCARD index_t add_edge_cross_noncoplanar_edge(TTIHelper &ha,
+	                                                      index_t    ea,
+	                                                      TTIHelper &hb,
+	                                                      index_t    eb);
 
-	index_t add_edge_cross_tri(TTIHelper &ha, index_t ea, TTIHelper &hb);
+	OMC_NODISCARD index_t add_edge_cross_tri(TTIHelper &ha, index_t ea,
+	                                         TTIHelper &hb);
+
+	OMC_NODISCARD std::pair<index_t, bool> add_SSI(index_t ea_id, index_t eb_id,
+	                                               IPoint_SSI           *new_v,
+	                                               std::atomic<index_t> *new_idx);
+
+	OMC_NODISCARD std::pair<index_t, bool> add_LPI(index_t e_id, index_t t_id,
+	                                               IPoint_LPI           *new_v,
+	                                               std::atomic<index_t> *new_idx);
 };
 
 } // namespace OMC

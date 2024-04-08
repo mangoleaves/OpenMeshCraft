@@ -836,6 +836,7 @@ Sign LessThan3D_Indirect<FT, IT, ET>::on(const PointT &a, const PointT &b,
 		return on_y(a, b);
 	if (dim == 2)
 		return on_z(a, b);
+	OMC_EXIT("should not happen");
 }
 
 template <typename FT, typename IT, typename ET>

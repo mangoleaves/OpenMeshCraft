@@ -214,8 +214,6 @@ class IdxArena
 {
 public:
 	std::deque<std::atomic<index_t>> indices; // points' indices
-	/// NOTE indices is not global unique, each local patch may have
-	/// different local index of a global unique point.
 
 public:
 	void recycle(std::atomic<index_t> *idx_ptr) { recycled_idx.push(idx_ptr); }

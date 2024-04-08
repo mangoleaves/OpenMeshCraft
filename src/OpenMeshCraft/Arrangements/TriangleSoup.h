@@ -22,6 +22,7 @@ public: /* Types **************************************************************/
 	using NT                 = typename Traits::NT;
 	using GPoint             = typename Traits::GPoint;
 	using OrientOn2D         = typename Traits::OrientOn2D;
+	using LessThan3D         = typename Traits::LessThan3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
 	using PntArena = PointArena<Traits>;
@@ -47,6 +48,9 @@ public: /* Types **************************************************************/
 	/// mutex for reading and writing Seg2Tris.
 	using SegMutexes = std::vector<tbb::spin_mutex>;
 
+	struct EdgeComparator;
+	using Edge2PntsSet = std::set<index_t, EdgeComparator>;
+
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
 
@@ -61,6 +65,7 @@ public:
 	tbb::concurrent_vector<GPoint *>               vertices;
 	/// implement indices of vertices (used in v_map)
 	tbb::concurrent_vector<std::atomic<index_t> *> indices;
+	// TODO make use of indices, remove IdxArena if possible.
 
 	/// triangles
 	std::vector<index_t> triangles;
@@ -140,7 +145,8 @@ protected:
 	std::vector<tbb::concurrent_vector<index_t>> tri2pts;
 
 	// store intersection points on edge
-	tbb::concurrent_vector<tbb::concurrent_vector<index_t>> edge2pts;
+	tbb::concurrent_vector<Edge2PntsSet>    edge2pts;
+	tbb::concurrent_vector<tbb::spin_mutex> edge2pts_mutex;
 
 	// store contrained segments on triangles
 	std::vector<tbb::concurrent_vector<UIPair>> tri2segs;
@@ -179,11 +185,25 @@ public: /* Add **************************************************************/
 
 	/* Intersection points and contrained segments */
 
+	/* -- vertex in triangle -- */
+
 	void addVertexInTriangle(index_t t_id, index_t v_id);
+
+	/* -- vertex in edge -- */
+
+	tbb::spin_mutex &getE2PMutex(index_t e_id);
+
+	index_t findVertexInEdge(index_t e_id, const GPoint &pnt) const;
 
 	void addVertexInEdge(index_t e_id, index_t v_id);
 
+	void fixVertexInEdge(index_t e_id, index_t old_vid, index_t new_vid);
+
+	/* -- segment in triangle -- */
+
 	void addSegmentInTriangle(index_t t_id, const UIPair &seg);
+
+	void addTrianglesInSegment(const UIPair &seg, index_t t_id);
 
 	void addTrianglesInSegment(const UIPair &seg, index_t tA_id, index_t tB_id);
 
@@ -214,7 +234,7 @@ public: /* Query ***********************************************************/
 
 	const tbb::concurrent_vector<index_t> &trianglePointsList(index_t t_id) const;
 
-	const tbb::concurrent_vector<index_t> &edgePointsList(index_t e_id) const;
+	const Edge2PntsSet &edgePointsList(index_t e_id) const;
 
 	const tbb::concurrent_vector<UIPair> &
 	triangleSegmentsList(index_t t_id) const;
@@ -230,12 +250,11 @@ public: /* Query ***********************************************************/
 public: /* Modify *********************************************************/
 	void buildVMap(Tree *tree);
 
+	void fixAllIndices();
+
 	void removeAllDuplicates();
 
 	void calcPlaneAndOrient();
-
-	template <typename Comparator>
-	void sortEdgeList(index_t eid, Comparator comp);
 };
 
 } // namespace OMC

@@ -5,6 +5,127 @@
 namespace OMC {
 
 template <typename Traits>
+struct DetectClassifyTTI<Traits>::TTIHelper
+{
+	static const index_t UncachedIndex   = (index_t)(-2);
+	static const char    UncachedBoolean = (char)(-1);
+
+	static bool is_cached(index_t idx) { return idx != UncachedIndex; }
+	static bool is_cached(char boolean) { return boolean != UncachedBoolean; }
+
+	index_t t_id;
+	int     t_nmax;
+
+	// vectices from triangle
+	std::array<EPoint, 3>     p;
+	// pointers to vertices.
+	std::array<const NT *, 3> v;
+
+	// indices of vertices from triangle.
+	std::array<index_t, 3> v_id;
+	// indices of edges from triangle.
+	std::array<index_t, 3> e_id;
+
+	// position of sub-simplex of this triangle with respect to sub-simplex of
+	// another triangle
+	std::array<index_t, 3> v_in_vtx;
+	std::array<index_t, 3> v_in_seg;
+	std::array<char, 3>    v_in_tri;
+
+	// cached orientations
+	// Sign::UNCERTAIN means "not cached/calculated"
+	std::array<std::array<Sign, 3>, 3> v_wrt_seg;
+	std::array<std::array<Sign, 3>, 3> seg_wrt_seg;
+
+	// v_in_vtx will always be set.
+	void init_v_in_seg()
+	{
+		v_in_seg = {UncachedIndex, UncachedIndex, UncachedIndex};
+	}
+	void init_v_in_tri()
+	{
+		v_in_tri = {UncachedBoolean, UncachedBoolean, UncachedBoolean};
+	}
+
+	void init_v_wrt_seg()
+	{
+		v_wrt_seg = {
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})};
+	}
+	void init_seg_wrt_seg()
+	{
+		seg_wrt_seg = {
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN}),
+		  std::array<Sign, 3>({Sign::UNCERTAIN, Sign::UNCERTAIN, Sign::UNCERTAIN})};
+	}
+
+	bool contains_vtx(index_t vidx)
+	{
+		return v_id[0] == vidx || v_id[1] == vidx || v_id[2] == vidx;
+	}
+};
+
+template <typename Traits>
+struct DetectClassifyTTI<Traits>::CoplanarEEI // Edge-Edge-Intersection
+{
+	index_t ea; // global index of edge a
+	index_t eb; // global index of edge b
+	index_t p;  // global index of the intersection point
+
+	CoplanarEEI(index_t _ea, index_t _eb, index_t _p)
+	  : ea(_ea)
+	  , eb(_eb)
+	  , p(_p)
+	{
+	}
+
+	// used in hash set
+	bool operator==(const CoplanarEEI &rhs) const { return p == rhs.p; }
+	// used to check if two intersection points are same.
+	bool is_same(index_t query_ea, index_t query_eb) const
+	{
+		return (query_ea == ea && query_eb == eb) ||
+		       (query_ea == eb && query_eb == ea);
+	}
+};
+
+template <typename Traits>
+struct DetectClassifyTTI<Traits>::Hasher
+{
+	index_t operator()(const CoplanarEEI &c) const
+	{
+		return std::hash<index_t>()(c.p);
+	}
+};
+
+template <typename Traits>
+struct DetectClassifyTTI<Traits>::CreateIndex
+{
+public:
+	CreateIndex(TriSoup &_ts)
+	  : ts(_ts)
+	{
+	}
+
+	index_t operator()(const GPoint *pp, std::atomic<index_t> *ip)
+	{
+		index_t idx = InvalidIndex;
+		{ // lock for new index
+			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
+			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
+		}
+		ip->store(idx, std::memory_order_relaxed); // assign a valid index
+		return idx;
+	}
+
+private:
+	TriSoup &ts;
+};
+
+template <typename Traits>
 DetectClassifyTTI<Traits>::DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena,
                                              IdxArena &_idx_arena)
   : ts(_ts)
@@ -645,8 +766,6 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		// later stages.
 
 		// Check if an edge from tB is coplanar to tA and intersects tA.
-		// TODO remove orBA, two intersection points are on one edge of tB.
-		// How often does this case happen?
 		if (_singleCoplanarEdge(orBA, edge_id))
 		{
 			if (coplanar_seg_tri_do_intersect(hb, edge_id, ha))
@@ -1127,8 +1246,8 @@ bool DetectClassifyTTI<Traits>::classify_coplanr_vtx_intersections(
 
 	if (TTIHelper::is_cached(ha.v_in_seg[va]) && is_valid_idx(ha.v_in_seg[va]))
 	{ // strictly inside an edge of `tb`
-		ts.addVertexInEdge(get_e_id(hb, ha.v_in_seg[va]), ha.v_id[va]);
-		inter_list.insert(ha.v_id[va]);
+		index_t pid = add_vertex_in_edge(hb, ha.v_in_seg[va], ha, va);
+		inter_list.insert(pid);
 		return true;
 	}
 
@@ -1143,8 +1262,8 @@ bool DetectClassifyTTI<Traits>::classify_coplanr_vtx_intersections(
 		{ // on the support line of ebi
 			if (get_v_in_seg(ha, va, hb, i))
 			{ // strictly inside ebi
-				ts.addVertexInEdge(get_e_id(hb, i), ha.v_id[va]);
-				inter_list.insert(ha.v_id[va]);
+				index_t pid = add_vertex_in_edge(hb, i, ha, va);
+				inter_list.insert(pid);
 				ha.v_in_seg[va] = i;
 				return true;
 			}
@@ -1154,7 +1273,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanr_vtx_intersections(
 	}
 
 	// strictly inside `tb`
-	ts.addVertexInTriangle(hb.t_id, ha.v_id[va]);
+	add_vertex_in_tri(hb, ha, va);
 	inter_list.insert(ha.v_id[va]);
 	return true;
 }
@@ -1188,14 +1307,14 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	index_t ev0_in_seg = get_v_in_seg(ha, ev0, hb);
 	if (is_valid_idx(ev0_in_seg))
 	{
-		ts.addVertexInEdge(get_e_id(hb, ev0_in_seg), ha.v_id[ev0]);
-		inter_list.insert(ha.v_id[ev0]);
+		index_t pid = add_vertex_in_edge(hb, ev0_in_seg, ha, ev0);
+		inter_list.insert(pid);
 	}
 	index_t ev1_in_seg = get_v_in_seg(ha, ev1, hb);
 	if (is_valid_idx(ev1_in_seg))
 	{
-		ts.addVertexInEdge(get_e_id(hb, ev1_in_seg), ha.v_id[ev1]);
-		inter_list.insert(ha.v_id[ev1]);
+		index_t pid = add_vertex_in_edge(hb, ev1_in_seg, ha, ev1);
+		inter_list.insert(pid);
 	}
 
 	if (is_valid_idx(ev0_in_seg) && is_valid_idx(ev1_in_seg))
@@ -1217,7 +1336,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	bool ev1_in_tri = get_v_in_tri(ha, ev1, hb);
 	if (ev1_in_tri)
 	{
-		ts.addVertexInTriangle(hb.t_id, ha.v_id[ev1]);
+		add_vertex_in_tri(hb, ha, ev1);
 		inter_list.insert(ha.v_id[ev1]);
 	}
 
@@ -1231,7 +1350,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	bool ev0_in_tri = get_v_in_tri(ha, ev0, hb);
 	if (ev0_in_tri)
 	{
-		ts.addVertexInTriangle(hb.t_id, ha.v_id[ev0]);
+		add_vertex_in_tri(hb, ha, ev0);
 		inter_list.insert(ha.v_id[ev0]);
 	}
 
@@ -1309,18 +1428,18 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 	if (vb0_in_ea)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 0]);
-		inter_list.insert(hb.v_id[/*vb*/ 0]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 0);
+		inter_list.insert(pid);
 	}
 	if (vb1_in_ea)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 1]);
-		inter_list.insert(hb.v_id[/*vb*/ 1]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 1);
+		inter_list.insert(pid);
 	}
 	if (vb2_in_ea)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 2]);
-		inter_list.insert(hb.v_id[/*vb*/ 2]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 2);
+		inter_list.insert(pid);
 	}
 
 	if (
@@ -1514,8 +1633,8 @@ bool DetectClassifyTTI<Traits>::classify_noncoplanar_edge_intersections(
 	{
 		if (hb.v_in_seg[i] == ea)
 		{
-			ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ i]);
-			inter_list.insert(hb.v_id[/*vb*/ i]);
+			index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ i);
+			inter_list.insert(pid);
 			return true;
 		}
 	}
@@ -1526,8 +1645,8 @@ bool DetectClassifyTTI<Traits>::classify_noncoplanar_edge_intersections(
 	// `ea` cross vb0
 	if (vol_ea_eb0 == Sign::ZERO && vol_ea_eb2 == Sign::ZERO)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 0]);
-		inter_list.insert(hb.v_id[/*vb*/ 0]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 0);
+		inter_list.insert(pid);
 		hb.v_in_seg[/*vb*/ 0] = ea;
 		return true;
 	}
@@ -1535,16 +1654,16 @@ bool DetectClassifyTTI<Traits>::classify_noncoplanar_edge_intersections(
 	// `ea` cross vb1
 	if (vol_ea_eb0 == Sign::ZERO && vol_ea_eb1 == Sign::ZERO)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 1]);
-		inter_list.insert(hb.v_id[/*vb*/ 1]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 1);
+		inter_list.insert(pid);
 		hb.v_in_seg[/*vb*/ 1] = ea;
 		return true;
 	}
 	// `ea` cross vb2
 	if (vol_ea_eb1 == Sign::ZERO && vol_ea_eb2 == Sign::ZERO)
 	{
-		ts.addVertexInEdge(get_e_id(ha, ea), hb.v_id[/*vb*/ 2]);
-		inter_list.insert(hb.v_id[/*vb*/ 2]);
+		index_t pid = add_vertex_in_edge(ha, ea, hb, /*vb*/ 2);
+		inter_list.insert(pid);
 		hb.v_in_seg[/*vb*/ 2] = ea;
 		return true;
 	}
@@ -1590,7 +1709,7 @@ void DetectClassifyTTI<Traits>::add_symbolic_segment(index_t v0, index_t v1,
                                                      TTIHelper &ha,
                                                      TTIHelper &hb)
 {
-	OMC_EXPENSIVE_ASSERT(v0 != v1, "trying to add a 0-lenght symbolic edge");
+	OMC_EXPENSIVE_ASSERT(v0 != v1, "trying to add a 0-length symbolic edge");
 	UIPair seg = uniquePair(v0, v1);
 
 	// check if (v0,v1) is an edge of ta
@@ -1608,6 +1727,57 @@ void DetectClassifyTTI<Traits>::add_symbolic_segment(index_t v0, index_t v1,
 
 /**
  * @param ha helper for triangle `ta`
+ * @param hb helper for triangle `tb`
+ * @param vb **LOCAL** index of a vertex of triangle `tb`
+ */
+template <typename Traits>
+void DetectClassifyTTI<Traits>::add_vertex_in_tri(TTIHelper &ha, TTIHelper &hb,
+                                                  index_t vb)
+{
+	ts.addVertexInTriangle(ha.t_id, hb.v_id[vb]);
+}
+
+/**
+ * @param ha helper for triangle `ta`
+ * @param ea **LOCAL** index of an edge of triangle `ta`
+ * @param hb helper for triangle `tb`
+ * @param vb **LOCAL** index of a vertex of triangle `tb`
+ * @return index_t
+ */
+template <typename Traits>
+index_t DetectClassifyTTI<Traits>::add_vertex_in_edge(TTIHelper &ha, index_t ea,
+                                                      TTIHelper &hb, index_t vb)
+{
+	index_t ea_id = get_e_id(ha, ea);
+	index_t vb_id = hb.v_id[vb];
+
+	// get the mutex
+	tbb::spin_mutex &ea_mutex = ts.getE2PMutex(ea_id);
+
+	// lock until add or fix end.
+	std::lock_guard<tbb::spin_mutex> lock(ea_mutex);
+
+	index_t found_vid = ts.findVertexInEdge(ea_id, ts.vert(vb_id));
+	if (is_valid_idx(found_vid))
+	{
+		if (ts.vert(found_vid).point_type() != GPoint::PointType::Explicit ||
+		    vb_id < found_vid)
+		{
+			ts.fixVertexInEdge(ea_id, /*old*/ found_vid, /*new*/ vb_id);
+			return vb_id;
+		}
+		else
+			return found_vid;
+	}
+	else
+	{
+		ts.addVertexInEdge(ea_id, vb_id);
+		return vb_id;
+	}
+}
+
+/**
+ * @param ha helper for triangle `ta`
  * @param ea **LOCAL** index of an edge of triangle `ta`
  * @param hb helper for triangle `tb`
  * @param eb **LOCAL** index of an edge of triangle `tb`
@@ -1619,38 +1789,35 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
   TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb,
   phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses)
 {
-	index_t ea_gid = get_e_id(ha, ea);
-	index_t eb_gid = get_e_id(hb, eb);
+	index_t ea_id = get_e_id(ha, ea);
+	index_t eb_id = get_e_id(hb, eb);
 
 	// find intersection point in existed points
 	for (const CoplanarEEI &c : copl_edge_crosses)
-		if (c.is_same(ea_gid, eb_gid))
+		if (c.is_same(ea_id, eb_id))
 			return c.p;
-	// otherwise find it in global point set or create a new point
+	// otherwise find it or create a new point
 
 	IPoint_SSI *new_v = pnt_arena.emplace(CreateSSI()(
 	  ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]), ts.vert(hb.v_id[eb]),
 	  ts.vert(hb.v_id[(eb + 1) % 3]), intToPlane(hb.t_nmax)));
 
-	std::atomic<index_t> *idx_ptr = idx_arena.emplace(InvalidIndex);
-	// index creation is deferred until succeesfully inserting point.
+	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
+	// index creation is delayed until point succeesfully is inserted.
 
-	// <index of point, succeed to insert?>
-	std::pair<index_t, bool> ins =
-	  ts.addVertexInSortedList(new_v, idx_ptr, CreateIndex(ts));
-	if (!ins.second)
+	// try to add the point
+	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v, new_idx);
+
+	if (!new_vertex_created)
 	{
-		OMC_ASSERT(ins.first != InvalidIndex, "");
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(idx_ptr);
+		idx_arena.recycle(new_idx);
 	}
 
-	ts.addVertexInEdge(ea_gid, ins.first);
-	ts.addVertexInEdge(eb_gid, ins.first);
-	copl_edge_crosses.insert(CoplanarEEI(ea_gid, eb_gid, ins.first));
-
-	return ins.first;
+	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
+	copl_edge_crosses.insert(CoplanarEEI(ea_id, eb_id, added_vid));
+	return added_vid;
 }
 
 /**
@@ -1694,25 +1861,22 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 	  CreateSSI()(ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]),
 	              ts.vert(hb.v_id[eb]), ts.vert(hb.v_id[(eb + 1) % 3]), plane));
 
-	std::atomic<index_t> *idx_ptr = idx_arena.emplace(InvalidIndex);
-	// index creation is deferred until succeesfully inserting point.
+	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
+	// index creation is delayed until point is succeesfully inserted.
 
-	// <index of point, succeed to insert?>
-	std::pair<index_t, bool> ins =
-	  ts.addVertexInSortedList(new_v, idx_ptr, CreateIndex(ts));
+	// try to add the point
+	auto [added_vid, new_vertex_created] =
+	  add_SSI(get_e_id(ha, ea), get_e_id(hb, eb), new_v, new_idx);
 
-	if (!ins.second)
+	if (!new_vertex_created)
 	{
-		OMC_ASSERT(ins.first != InvalidIndex, "");
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(idx_ptr);
+		idx_arena.recycle(new_idx);
 	}
 
-	ts.addVertexInEdge(get_e_id(ha, ea), ins.first);
-	ts.addVertexInEdge(get_e_id(hb, eb), ins.first);
-
-	return ins.first;
+	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
+	return added_vid;
 }
 
 /**
@@ -1730,25 +1894,193 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_tri(TTIHelper &ha, index_t ea,
 	  CreateLPI()(ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]),
 	              ts.vert(hb.v_id[0]), ts.vert(hb.v_id[1]), ts.vert(hb.v_id[2])));
 
-	std::atomic<index_t> *idx_ptr = idx_arena.emplace(InvalidIndex);
-	// index creation is deferred until succeesfully inserting point.
+	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
+	// index creation is delayed until point is succeesfully inserted.
 
-	// <index of LPI point, succeed to insert?>
-	std::pair<index_t, bool> ins =
-	  ts.addVertexInSortedList(new_v, idx_ptr, CreateIndex(ts));
+	// try to add the point
+	auto [added_vid, new_vertex_created] =
+	  add_LPI(get_e_id(ha, ea), hb.t_id, new_v, new_idx);
 
-	if (!ins.second)
+	if (!new_vertex_created)
 	{
-		OMC_ASSERT(ins.first != InvalidIndex, "");
 		IPoint_LPI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(idx_ptr);
+		idx_arena.recycle(new_idx);
 	}
 
-	ts.addVertexInTriangle(hb.t_id, ins.first);
-	ts.addVertexInEdge(get_e_id(ha, ea), ins.first);
+	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
 
-	return ins.first;
+	return added_vid;
+}
+
+/**
+ * @brief Add a new SSI point.
+ * @param ea_id **GLOBAL** index of an edge
+ * @param eb_id **GLOBAL** index of an edge
+ * @param new_v the new point
+ * @param new_idx the new index
+ * @return std::pair<index_t, bool> The first index is the index of the result
+ * point (existed point or newly added point). The second boolean is true if
+ * it succeeds to add the point, otherwise it fails because there is already an
+ * existed point.
+ */
+template <typename Traits>
+std::pair<index_t, bool>
+DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
+                                   IPoint_SSI           *new_v,
+                                   std::atomic<index_t> *new_idx)
+{
+	// get mutexes of edges.
+	index_t          min_eid   = std::min(ea_id, eb_id);
+	index_t          max_eid   = std::max(ea_id, eb_id);
+	tbb::spin_mutex &min_mutex = ts.getE2PMutex(min_eid);
+	tbb::spin_mutex &max_mutex = ts.getE2PMutex(max_eid);
+
+	// lock until add or fix end.
+	std::lock_guard<tbb::spin_mutex> min_lock(min_mutex);
+	std::lock_guard<tbb::spin_mutex> max_lock(max_mutex);
+
+	index_t found_vid_in_ea = ts.findVertexInEdge(ea_id, AsGP()(*new_v));
+	index_t found_vid_in_eb = ts.findVertexInEdge(eb_id, AsGP()(*new_v));
+
+	bool    new_vertex_created = false;
+	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
+
+	if (is_valid_idx(found_vid_in_ea) && is_valid_idx(found_vid_in_eb))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (found_vid_in_ea == found_vid_in_eb)
+		{
+			suitable_vid = found_vid_in_ea;
+		}
+		else
+		{
+			if (ts.vert(found_vid_in_ea).point_type() <
+			    ts.vert(found_vid_in_eb).point_type())
+			{
+				suitable_vid = found_vid_in_ea;
+				fix_vid      = found_vid_in_eb;
+			}
+			else if (ts.vert(found_vid_in_ea).point_type() >
+			         ts.vert(found_vid_in_eb).point_type())
+			{
+				suitable_vid = found_vid_in_eb;
+				fix_vid      = found_vid_in_ea;
+			}
+			else // same type
+			{
+				suitable_vid = std::min(found_vid_in_ea, found_vid_in_eb);
+				fix_vid      = std::max(found_vid_in_ea, found_vid_in_eb);
+			}
+			index_t fix_edge = fix_vid == found_vid_in_ea ? ea_id : eb_id;
+			ts.fixVertexInEdge(/*edge*/ fix_edge, /*old*/ fix_vid,
+			                   /*new*/ suitable_vid);
+		}
+	}
+	else if (is_valid_idx(found_vid_in_ea))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (ts.vert(found_vid_in_ea).point_type() <= new_v->point_type())
+		{
+			suitable_vid = found_vid_in_ea;
+			ts.addVertexInEdge(eb_id, found_vid_in_ea);
+		}
+		else // ts.vert(found_vid_in_ea).point_type() > new_v->point_type()
+		{
+			CreateIndex create_idx(ts);
+			suitable_vid = create_idx(new_v, new_idx);
+			fix_vid      = found_vid_in_ea;
+			ts.addVertexInEdge(eb_id, suitable_vid);
+			ts.fixVertexInEdge(/*edge*/ ea_id, /*old*/ fix_vid,
+			                   /*new*/ suitable_vid);
+			new_vertex_created = true;
+		}
+	}
+	else if (is_valid_idx(found_vid_in_eb))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (ts.vert(found_vid_in_eb).point_type() <= new_v->point_type())
+		{
+			suitable_vid = found_vid_in_eb;
+			ts.addVertexInEdge(ea_id, found_vid_in_eb);
+		}
+		else // ts.vert(found_vid_in_eb).point_type() > new_v->point_type()
+		{
+			CreateIndex create_idx(ts);
+			suitable_vid = create_idx(new_v, new_idx);
+			fix_vid      = found_vid_in_eb;
+			ts.addVertexInEdge(ea_id, suitable_vid);
+			ts.fixVertexInEdge(/*edge*/ eb_id, /*old*/ fix_vid,
+			                   /*new*/ suitable_vid);
+			new_vertex_created = true;
+		}
+	}
+	else
+	{
+		CreateIndex create_idx(ts);
+		suitable_vid = create_idx(new_v, new_idx);
+		ts.addVertexInEdge(ea_id, suitable_vid);
+		ts.addVertexInEdge(eb_id, suitable_vid);
+		new_vertex_created = true;
+	}
+
+	return std::pair<index_t, bool>(suitable_vid, new_vertex_created);
+}
+
+/**
+ * @brief add an LPI point
+ * @param e_id **GLOBAL** index of an edge
+ * @param t_id **GLOBAL** index of a triangle
+ * @param new_v the new point
+ * @param new_idx the new index
+ * @return std::pair<index_t, bool> The first index is the index of the result
+ * point (existed point or newly added point). The second boolean is true if
+ * it succeeds to add the point, otherwise it fails because there is already an
+ * existed point.
+ */
+template <typename Traits>
+std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(
+  index_t e_id, index_t t_id, IPoint_LPI *new_v, std::atomic<index_t> *new_idx)
+{
+	// get mutexes of edges.
+	tbb::spin_mutex &mutex = ts.getE2PMutex(e_id);
+
+	// lock until add or fix end.
+	std::lock_guard<tbb::spin_mutex> lock(mutex);
+
+	index_t found_vid = ts.findVertexInEdge(e_id, AsGP()(*new_v));
+
+	bool    new_vertex_created = false;
+	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
+
+	if (is_valid_idx(found_vid))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (ts.vert(found_vid).point_type() <= new_v->point_type())
+		{
+			suitable_vid = found_vid;
+		}
+		else // ts.vert(found_vid).point_type() > new_v->point_type()
+		{
+			CreateIndex create_idx(ts);
+			suitable_vid = create_idx(new_v, new_idx);
+			fix_vid      = found_vid;
+			ts.fixVertexInEdge(/*edge*/ e_id, /*old*/ fix_vid,
+			                   /*new*/ suitable_vid);
+			new_vertex_created = true;
+		}
+	}
+	else // not found
+	{
+		CreateIndex create_idx(ts);
+		suitable_vid = create_idx(new_v, new_idx);
+		ts.addVertexInEdge(e_id, suitable_vid);
+		new_vertex_created = true;
+	}
+
+	ts.addVertexInTriangle(t_id, suitable_vid);
+
+	return std::pair<index_t, bool>(suitable_vid, new_vertex_created);
 }
 
 } // namespace OMC

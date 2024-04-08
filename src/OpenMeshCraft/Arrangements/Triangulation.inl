@@ -160,21 +160,44 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::sortedVertexListAlongSegment(
-  const tbb::concurrent_vector<index_t> &point_list, index_t v0_id,
+  const typename TriSoup::Edge2PntsSet &point_list, index_t v0_id,
   index_t v1_id, std::vector<index_t> &out_point_list)
 {
-	// FIXME if point set is changed to edge based point set.
 	if (point_list.empty())
 		return;
+	out_point_list.reserve(point_list.size() + 2);
 
-	out_point_list = std::vector<index_t>(point_list.begin(), point_list.end());
-	if (out_point_list.front() == v1_id) // first element must be v0
+	out_point_list.push_back(v0_id);
+
+	uint32_t axis = point_list.key_comp().axis;
+	if (ts.vertPtr(v0_id)[axis] < ts.vertPtr(v1_id)[axis])
+		out_point_list.insert(out_point_list.end(), point_list.begin(),
+		                      point_list.end());
+	else
+		out_point_list.insert(out_point_list.end(), point_list.rbegin(),
+		                      point_list.rend());
+
+	out_point_list.push_back(v1_id);
+
+#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+	for (size_t i = 0; i < out_point_list.size() - 1; i++)
 	{
-		std::reverse(out_point_list.begin(), out_point_list.end());
+		if (ts.vertPtr(v0_id)[axis] < ts.vertPtr(v1_id)[axis])
+		{
+			OMC_ASSERT(LessThan3D().on(ts.vert(out_point_list[i]),
+			                           ts.vert(out_point_list[i + 1]),
+			                           axis) == Sign::NEGATIVE,
+			           "wrong order");
+		}
+		else
+		{
+			OMC_ASSERT(LessThan3D().on(ts.vert(out_point_list[i]),
+			                           ts.vert(out_point_list[i + 1]),
+			                           axis) == Sign::POSITIVE,
+			           "wrong order");
+		}
 	}
-
-	OMC_ASSERT(out_point_list.front() == v0_id && out_point_list.back() == v1_id,
-	           "Sorted list not correct");
+#endif
 }
 
 template <typename Traits>

@@ -180,8 +180,6 @@ public:
 	bool                    verbose;
 
 private: /* Private middle data *******************************************/
-	/// intersection list detected by tree.
-	std::vector<UIPair>   BBI_pairs;
 	/// point arena for explicit points
 	PntArena              exp_pnt_arena;
 	/// index arena for explicit points
@@ -252,10 +250,11 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	DetectClassifyTTIs<Traits> DCI(
 	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
 
-	point_tree.clear_points();
-
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
+#if 0
 	OMC_ARR_START_ELAPSE(start_tr);
+
+	tri_soup.buildVMap(&point_tree);	// TODO replace point_tree with tree.
 
 	// Triangulation.
 	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
@@ -264,6 +263,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
+#endif
 }
 
 template <typename Traits>
@@ -555,7 +555,7 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 
 	// refine its shape
 	point_tree = tree;
-	point_tree.shape_refine(BBI_pairs.size());
+	point_tree.shape_refine();
 
 	TriSoup &ts = tri_soup;
 
@@ -568,14 +568,12 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	ts.pnt_arenas = &pnt_arenas;
 	ts.idx_arenas = &idx_arenas;
 	ts.initialize();
-	ts.buildVMap(&point_tree);
 }
 
 template <typename Traits>
 void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 {
 	// clear unused data
-	BBI_pairs.clear();
 	tree.clear();
 	point_tree.clear();
 

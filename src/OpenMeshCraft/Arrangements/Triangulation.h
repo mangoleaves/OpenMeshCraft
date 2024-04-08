@@ -54,9 +54,10 @@ private:
 
 	/* Split triangle and edges by constraint points ****************************/
 
-	void sortedVertexListAlongSegment(
-	  const tbb::concurrent_vector<index_t> &point_list, index_t v0_id,
-	  index_t v1_id, std::vector<index_t> &out_point_list);
+	void
+	sortedVertexListAlongSegment(const typename TriSoup::Edge2PntsSet &point_list,
+	                             index_t v0_id, index_t v1_id,
+	                             std::vector<index_t> &out_point_list);
 
 	void splitSingleTriangle(FastTriMesh                &subm,
 	                         const std::vector<index_t> &points);
