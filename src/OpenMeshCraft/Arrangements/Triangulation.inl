@@ -163,6 +163,7 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
   const typename TriSoup::Edge2PntsSet &point_list, index_t v0_id,
   index_t v1_id, std::vector<index_t> &out_point_list)
 {
+	// FIXME point_list contains end points.
 	if (point_list.empty())
 		return;
 	out_point_list.reserve(point_list.size() + 2);

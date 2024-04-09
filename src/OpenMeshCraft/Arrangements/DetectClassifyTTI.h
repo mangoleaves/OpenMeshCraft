@@ -49,8 +49,11 @@ protected:
 
 	struct TTIHelper;
 	struct CoplanarEEI;
-	struct Hasher;
 	struct CreateIndex;
+
+	using IntersectionPoints = InlinedVector<index_t, 4>;
+	using IntersectionTypes  = InlinedVector<PointInSimplexType, 4>;
+	using CoplanarEEIList    = InlinedVector<CoplanarEEI, 4>;
 
 protected:
 	index_t get_e_id(TTIHelper &ha, index_t ea);
@@ -70,6 +73,8 @@ protected:
 	size_t get_vtx_wrt_sector(TTIHelper &ha, index_t va, TTIHelper &hb,
 	                          index_t eb);
 
+	size_t find_vtx_correspondence(TTIHelper &ha, TTIHelper &hb);
+
 	bool seg_seg_do_intersect(TTIHelper &ha, index_t ea, TTIHelper &hb,
 	                          index_t eb, Sign eb0_wrt_ea, Sign eb1_wrt_ea);
 
@@ -77,6 +82,9 @@ protected:
 
 	bool noncoplanar_seg_tri_do_intersect(TTIHelper &ha, index_t ea,
 	                                      TTIHelper &hb);
+
+	bool intersection_on_one_edge(const IntersectionTypes &intersection_types,
+	                              index_t                 &edge_id);
 
 protected:
 	void check_TTI_share_edge(TTIHelper &ha, TTIHelper &hb);
@@ -87,36 +95,34 @@ protected:
 
 	bool
 	classify_coplanr_vtx_intersections(TTIHelper &ha, index_t va, TTIHelper &hb,
-	                                   phmap::flat_hash_set<index_t> &inter_list);
+	                                   IntersectionPoints &intersection_points,
+	                                   IntersectionTypes  &intersection_types);
 
 	bool classify_coplanar_edge_intersections(
 	  TTIHelper &ha, index_t ea, TTIHelper &hb,
-	  phmap::flat_hash_set<index_t>             &inter_list,
-	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
+	  CoplanarEEIList *copl_edge_crosses = nullptr);
 
 	bool classify_noncoplanar_edge_intersections(
 	  TTIHelper &ha, index_t ea, TTIHelper &hb,
-	  phmap::flat_hash_set<index_t> &inter_list);
+	  IntersectionPoints &intersection_points,
+	  IntersectionTypes  &intersection_types);
 
 	void add_symbolic_segment(index_t v0, index_t v1, TTIHelper &ha,
 	                          TTIHelper &hb);
 
-	void add_vertex_in_tri(TTIHelper &ha, TTIHelper &hb, index_t vb);
+	index_t add_vertex_in_tri(TTIHelper &ha, TTIHelper &hb, index_t vb);
 
-	OMC_NODISCARD index_t add_vertex_in_edge(TTIHelper &ha, index_t ea,
-	                                         TTIHelper &hb, index_t vb);
+	index_t add_vertex_in_edge(TTIHelper &ha, index_t ea, TTIHelper &hb,
+	                           index_t vb);
 
-	OMC_NODISCARD index_t add_edge_cross_coplanar_edge(
-	  TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb,
-	  phmap::flat_hash_set<CoplanarEEI, Hasher> &copl_edge_crosses);
+	index_t add_edge_cross_coplanar_edge(TTIHelper &ha, index_t ea, TTIHelper &hb,
+	                                     index_t          eb,
+	                                     CoplanarEEIList *copl_edge_crosses);
 
-	OMC_NODISCARD index_t add_edge_cross_noncoplanar_edge(TTIHelper &ha,
-	                                                      index_t    ea,
-	                                                      TTIHelper &hb,
-	                                                      index_t    eb);
+	index_t add_edge_cross_noncoplanar_edge(TTIHelper &ha, index_t ea,
+	                                        TTIHelper &hb, index_t eb);
 
-	OMC_NODISCARD index_t add_edge_cross_tri(TTIHelper &ha, index_t ea,
-	                                         TTIHelper &hb);
+	index_t add_edge_cross_tri(TTIHelper &ha, index_t ea, TTIHelper &hb);
 
 	OMC_NODISCARD std::pair<index_t, bool> add_SSI(index_t ea_id, index_t eb_id,
 	                                               IPoint_SSI           *new_v,

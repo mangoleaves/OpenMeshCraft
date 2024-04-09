@@ -19,15 +19,23 @@ template <typename Traits>
 class TriangleSoup
 {
 public: /* Types **************************************************************/
-	using NT                 = typename Traits::NT;
-	using GPoint             = typename Traits::GPoint;
+	using NT         = typename Traits::NT;
+	using EPoint     = typename Traits::EPoint;
+	using GPoint     = typename Traits::GPoint;
+	using IPoint_SSI = typename Traits::IPoint_SSI;
+	using IPoint_LPI = typename Traits::IPoint_LPI;
+	using IPoint_TPI = typename Traits::IPoint_TPI;
+
 	using OrientOn2D         = typename Traits::OrientOn2D;
 	using LessThan3D         = typename Traits::LessThan3D;
+	using CollinearPoints3D  = typename Traits::CollinearPoints3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
 	using PntArena = PointArena<Traits>;
 
 	using Tree = Arr_Tree_Intersection<Traits>;
+
+	/* ----- Edge related structures ----- */
 
 	/// <smaller vertex index, larger vertex index>
 	using Edge           = UIPair;
@@ -38,6 +46,12 @@ public: /* Types **************************************************************/
 	/// mutex for reading and writing EdgeMap.
 	using EdgeMapMutexes = std::vector<tbb::spin_mutex>;
 
+	/* ----- [c]oplana[r]/[c]olinea[r] (CCr) edges related structures ----- */
+
+	struct CCrEdgeInfo;
+
+	/* ----- seg2tris related structures ----- */
+
 	/// <smaller vertex index, larger vertex index>
 	using Seg      = UIPair;
 	/// map a segment to its related triangles.
@@ -47,6 +61,8 @@ public: /* Types **************************************************************/
 	using Seg2Tris = std::vector<phmap::flat_hash_map<Seg, std::vector<index_t>>>;
 	/// mutex for reading and writing Seg2Tris.
 	using SegMutexes = std::vector<tbb::spin_mutex>;
+
+	/* ----- edge2pts related structures ----- */
 
 	struct EdgeComparator;
 	using Edge2PntsSet = std::set<index_t, EdgeComparator>;
@@ -131,12 +147,19 @@ public: /* Triangles **********************************************************/
 protected:
 	/***** Below data are calculated by arrangements  ******/
 
+	bool any_index_fixed;
+
 	// does triangle have intersections
 	std::vector<uint8_t> tri_has_intersections;
 
-	// coplanar related data
+	// coplanar triangle
 	std::vector<tbb::concurrent_vector<index_t>> coplanar_tris;
-	std::vector<tbb::concurrent_vector<index_t>> coplanar_edges;
+
+	// coplanar edge
+	std::vector<tbb::concurrent_vector<CCrEdgeInfo>> coplanar_edges;
+
+	// colinear edge
+	tbb::concurrent_vector<tbb::concurrent_vector<CCrEdgeInfo>> colinear_edges;
 
 	// map point coordinates to vertex id
 	std::unique_ptr<AuxPointMap<Traits>> v_map;
@@ -173,11 +196,15 @@ public:
 	tbb::spin_mutex new_tris_mutex;
 
 public: /* Add **************************************************************/
-	/* Coplanar */
+	/* Coplanar and colinear */
 
 	void addCoplanarTriangles(index_t ta, index_t tb);
 
-	void addCoplanarEdge(index_t t_id, index_t e_id);
+	void addCoplanarEdge(index_t t_id, index_t e_id, index_t v0_id,
+	                     index_t v1_id);
+
+	void addColinearEdge(index_t e0_id, index_t e1_id, index_t v0_id,
+	                     index_t v1_id);
 
 	/* Has intersection */
 
@@ -220,11 +247,13 @@ public: /* Add **************************************************************/
 	                                index_t                     pos);
 
 public: /* Query ***********************************************************/
-	/* Coplanar */
+	/* Coplanar and colinear */
 
 	const tbb::concurrent_vector<index_t> &coplanarTriangles(index_t t_id) const;
 
-	const tbb::concurrent_vector<index_t> &coplanarEdges(index_t t_id) const;
+	const tbb::concurrent_vector<CCrEdgeInfo> &coplanarEdges(index_t t_id) const;
+
+	const tbb::concurrent_vector<CCrEdgeInfo> &colinearEdges(index_t e_id) const;
 
 	/* Has intersection */
 
@@ -253,6 +282,8 @@ public: /* Modify *********************************************************/
 	void fixAllIndices();
 
 	void removeAllDuplicates();
+
+	void addEndPointsToE2P();
 
 	void calcPlaneAndOrient();
 };

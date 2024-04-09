@@ -6,7 +6,7 @@
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 
-#define OMC_ARR_DC_TTI_PARA
+// #define OMC_ARR_DC_TTI_PARA
 
 namespace OMC {
 
@@ -25,22 +25,27 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
   , verbose(_verbose)
 {
 	// check Triangle-Triangle-Intersection
-	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
-
 	std::vector<index_t> leaf_nodes = tree.all_leaf_nodes();
 	std::vector<index_t> small_nodes, large_nodes;
 	partitionNodes(leaf_nodes, small_nodes, large_nodes);
+
+	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
 	parallelOnSmallNodes(small_nodes);
 	parallelOnLargeNodes(large_nodes);
+	GPoint::disable_global_cached_values();
+
+	// add end points to all ts.edge2pts
+	ts.addEndPointsToE2P();
+
+	// post fix intersection points between colinear edges
+	fixColinearEdgesIntersections();
 
 	// post process of TTI checks
 	ts.fixAllIndices();
 	ts.removeAllDuplicates();
 	ts.calcPlaneAndOrient();
 
-	GPoint::disable_global_cached_values();
-
-	// propagate
+	// propagate intersection points from edges to coplanar triangles
 	propagateCoplanarTrianglesIntersections();
 }
 
@@ -239,133 +244,140 @@ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
 }
 
 template <typename Traits>
+void DetectClassifyTTIs<Traits>::fixColinearEdgesIntersections()
+{
+	auto fix_colinear_edge = [this](index_t e_id)
+	{
+		// mutex to lock current edge
+		tbb::spin_mutex &e_mutex = ts.getE2PMutex(e_id);
+
+		// we need a copy instead of a reference,
+		// otherwise the traversal will collapse.
+		const typename TriSoup::Edge2PntsSet e2p = ts.edgePointsList(e_id);
+
+		const tbb::concurrent_vector<typename TriSoup::CCrEdgeInfo>
+		  &ccr_edge_infos = ts.colinearEdges(e_id);
+
+		for (const typename TriSoup::CCrEdgeInfo &edge_info : ccr_edge_infos)
+		{
+			index_t coli_e_id = edge_info.e_id;
+			index_t v0_id     = edge_info.v0_id;
+			index_t v1_id     = edge_info.v1_id;
+
+			OMC_EXPENSIVE_ASSERT(e_id < coli_e_id, "edge indices error");
+
+			tbb::spin_mutex &coli_e_mutex = ts.getE2PMutex(coli_e_id);
+
+			// lock until fix end.
+			std::lock_guard<tbb::spin_mutex> e_lock(e_mutex);
+			std::lock_guard<tbb::spin_mutex> coli_e_lock(coli_e_mutex);
+
+			bool overlap = false;
+			for (index_t p_id : e2p)
+			{
+				if (!overlap)
+				{
+					if (p_id == v0_id || p_id == v1_id) // step into overlap interval
+						overlap = true;
+					continue;
+				}
+
+				// already inside overlap interval
+				if (p_id == v0_id || p_id == v1_id) // step out of overlap interval
+					break; // end traversal current colianar edge
+				// else, current p_id is inside the overlap interval
+				// check if point is already in coli_e2p
+				index_t found_vid = ts.findVertexInEdge(coli_e_id, ts.vert(p_id));
+				if (!is_valid_idx(found_vid))
+					continue; // can't find a coincident point, continue to next.
+				if (p_id == found_vid)
+					continue; // find a same point with same index, continue to next.
+				// two coincident points have different indices, need fix.
+				if (ts.vert(p_id).point_type() < ts.vert(found_vid).point_type())
+				{
+					ts.fixVertexInEdge(coli_e_id, found_vid, p_id);
+				}
+				else if (ts.vert(found_vid).point_type() < ts.vert(p_id).point_type())
+				{
+					ts.fixVertexInEdge(e_id, p_id, found_vid);
+				}
+				else if (p_id < found_vid) // same type, but p_id smaller
+				{
+					ts.fixVertexInEdge(coli_e_id, found_vid, p_id);
+				}
+				else // same type, but found_vid smaller
+				{
+					ts.fixVertexInEdge(e_id, p_id, found_vid);
+				}
+			} // end for e2p
+		} // end for ccr_edge_infos
+	}; // end fix_colinear_edge
+
+#ifdef OMC_ARR_DC_TTI_PARA
+	tbb::parallel_for(size_t(0), ts.numEdges(), fix_colinear_edge);
+#else
+	for (size_t e_id = 0; e_id < ts.numEdges(); e_id++)
+		fix_colinear_edge(e_id);
+#endif
+}
+
+template <typename Traits>
 void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 {
-	std::vector<std::pair<index_t, index_t>> coplanar_tris;
-	coplanar_tris.reserve(1024);
-	for (index_t t_id = 0; t_id < ts.numTris(); t_id++)
-		for (index_t copl_t_id : ts.coplanarTriangles(t_id))
-			coplanar_tris.emplace_back(t_id, copl_t_id);
-
-	std::vector<std::pair<index_t, index_t>> coplanar_tri_edge;
-	coplanar_tri_edge.reserve(1024);
-	for (index_t t_id = 0; t_id < ts.numTris(); t_id++)
-		for (index_t copl_e_id : ts.coplanarEdges(t_id))
-			coplanar_tri_edge.emplace_back(t_id, copl_e_id);
-
-	// tri 2 pnts <t_id, p_id>
-	std::vector<std::vector<std::pair<index_t, index_t>>> new_tri2pnts;
-	new_tri2pnts.resize(tbb::this_task_arena::max_concurrency());
 	// mutexes on tri
 	std::vector<tbb::spin_mutex> tri_mutexes(ts.numTris());
 
-	auto propagate_copl_tri =
-	  [this, &new_tri2pnts](std::pair<index_t, index_t> copl_pair)
+	auto propagate_copl_edge = [this, &tri_mutexes](index_t t_id)
 	{
-		index_t t_id = copl_pair.first, copl_t_id = copl_pair.second;
-		int     thread_id = tbb::this_task_arena::current_thread_index();
+		const tbb::concurrent_vector<typename TriSoup::CCrEdgeInfo>
+		  &ccr_edge_infos = ts.coplanarEdges(t_id);
 
-		index_t e0_id = ts.triEdgeID(t_id, 0);
-		index_t e1_id = ts.triEdgeID(t_id, 1);
-		index_t e2_id = ts.triEdgeID(t_id, 2);
+		for (const typename TriSoup::CCrEdgeInfo &edge_info : ccr_edge_infos)
+		{
+			index_t copl_e_id = edge_info.e_id;
+			index_t v0_id     = edge_info.v0_id;
+			index_t v1_id     = edge_info.v1_id;
 
-		index_t cv0_id = ts.triVertID(copl_t_id, 0);
-		index_t cv1_id = ts.triVertID(copl_t_id, 1);
-		index_t cv2_id = ts.triVertID(copl_t_id, 2);
+			// intersection points inside triangle
+			bool inside = false;
 
-		// TODO // OPT
-		// How often does an edge really intersect triangle in coplanar triangle
-		// pair? Do we need to store exact coplanar tri-edge pair?
-		// TODO // OPT
-		// Can we store the two intersected point between a triangle and a coplanar
-		// edge? so we can fastly find points in the triangle.
-		for (index_t e_id : {e0_id, e1_id, e2_id})
-			if (is_valid_idx(e_id))
+			const tbb::concurrent_vector<index_t> &t2p = ts.trianglePointsList(t_id);
+			const typename TriSoup::Edge2PntsSet  &e2p = ts.edgePointsList(copl_e_id);
+
+			for (index_t p_id : e2p)
 			{
-				bool inside = false;
-
-				const auto &e2p = ts.edgePointsList(e_id);
-
-				for (index_t p_id : e2p)
+				if (!inside)
 				{
-					/*p_id is not on vertex and p_id insides triangle */
-					if (p_id != cv0_id && p_id != cv1_id && p_id != cv2_id &&
-					    pointInsideTriangle(p_id, copl_t_id))
-					{
+					if (p_id == v0_id || p_id == v1_id) // step from outside to inside
 						inside = true;
-						new_tri2pnts[thread_id].emplace_back(copl_t_id, p_id);
-					}
-					else if (inside) // we step from inside to outside
-						break;
+				}
+				else // already inside
+				{
+					if (p_id == v0_id || p_id == v1_id) // step from inside to outside
+						break;                            // end traversal current edge.
+					// else, current p_id is inside triangle
+					OMC_EXPENSIVE_ASSERT(pointInsideTriangle(p_id, t_id),
+					                     "point is not in triangle");
+					// check if point is already in t2p
+					if (std::find(t2p.begin(), t2p.end(), p_id) == t2p.end())
+						// if not, add it
+						ts.addVertexInTriangle(t_id, p_id);
 				}
 			}
-	};
-
-	auto propagate_copl_edge =
-	  [this, &new_tri2pnts](std::pair<index_t, index_t> copl_pair)
-	{
-		index_t t_id = copl_pair.first, copl_e_id = copl_pair.second;
-		int     thread_id = tbb::this_task_arena::current_thread_index();
-
-		index_t v0_id = ts.triVertID(t_id, 0);
-		index_t v1_id = ts.triVertID(t_id, 1);
-		index_t v2_id = ts.triVertID(t_id, 2);
-
-		// intersection points inside triangle
-		bool inside = false;
-
-		const auto &e2p = ts.edgePointsList(copl_e_id);
-
-		for (index_t p_id : e2p)
-		{
-			/*p_id is not on vertex and p_id insides triangle */
-			if (p_id != v0_id && p_id != v1_id && p_id != v2_id &&
-			    pointInsideTriangle(p_id, t_id))
-			{
-				inside = true;
-				new_tri2pnts[thread_id].emplace_back(t_id, p_id);
-			}
-			else if (inside) // we step from inside to outside
-				break;
-		}
-	};
-
-	auto collect = [this, &tri_mutexes, &new_tri2pnts](int thread_id)
-	{
-		for (const std::pair<index_t, index_t> &t_p : new_tri2pnts[thread_id])
-		{
-			std::lock_guard<tbb::spin_mutex> lock(tri_mutexes[t_p.first]);
-
-			const tbb::concurrent_vector<index_t> &t2p =
-			  ts.trianglePointsList(t_p.first);
-			// check if point is in triangle
-			if (std::find(t2p.begin(), t2p.end(), t_p.second) == t2p.end())
-				// if not, add it
-				ts.addVertexInTriangle(t_p.first, t_p.second);
 		}
 	};
 
 #ifdef OMC_ARR_DC_TTI_PARA
-	tbb::parallel_for_each(coplanar_tris.begin(), coplanar_tris.end(),
-	                       propagate_copl_tri);
-	tbb::parallel_for_each(coplanar_tri_edge.begin(), coplanar_tri_edge.end(),
-	                       propagate_copl_edge);
-	tbb::parallel_for(0, tbb::this_task_arena::max_concurrency(), collect);
+	tbb::parallel_for(size_t(0), ts.numTris(), propagate_copl_edge);
 #else
-	std::for_each(coplanar_tris.begin(), coplanar_tris.end(), propagate_copl_tri);
-	std::for_each(coplanar_tri_edge.begin(), coplanar_tri_edge.end(),
-	              propagate_copl_edge);
-	std::ranges::for_each(
-	  std::views::iota(0, tbb::this_task_arena::max_concurrency()), collect);
+	for (size_t t_id = 0; t_id < ts.numTris(); t_id++)
+		propagate_copl_edge(t_id);
 #endif
 }
 
 template <typename Traits>
 bool DetectClassifyTTIs<Traits>::pointInsideTriangle(index_t p_id, index_t t_id)
-{
-	// TODO // OPT
-	// merge this func to where it is called. avoid duplicate calls to ts.vert,
-	// ts.triVert, ts.triOrientation and ts.triPlane.
+{ // TODO if there is no bug, remove this.
 	const GPoint &p   = ts.vert(p_id);
 	const GPoint &tv0 = ts.triVert(t_id, 0);
 	const GPoint &tv1 = ts.triVert(t_id, 1);

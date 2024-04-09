@@ -4,6 +4,31 @@
 
 namespace OMC {
 
+/**
+ * @brief Points on a coplanar edge are inside a coplanar triangle if and only
+ * if they are between two intersection points.
+ */
+template <typename Traits>
+struct TriangleSoup<Traits>::CCrEdgeInfo
+{
+	index_t e_id;  // index of the coplanar/colinear edge
+	index_t v0_id; // index of one intersected point
+	index_t v1_id; // index of another intersected point
+
+	CCrEdgeInfo()  = default;
+	~CCrEdgeInfo() = default;
+
+	CCrEdgeInfo(index_t _e_id, index_t _v0_id, index_t _v1_id)
+	  : e_id(_e_id)
+	  , v0_id(_v0_id)
+	  , v1_id(_v1_id)
+	{
+	}
+
+	bool operator<(const CCrEdgeInfo &rhs) const { return e_id < rhs.e_id; }
+	bool operator==(const CCrEdgeInfo &rhs) const { return e_id == rhs.e_id; }
+};
+
 template <typename Traits>
 struct TriangleSoup<Traits>::EdgeComparator
 {
@@ -47,6 +72,8 @@ void TriangleSoup<Traits>::initialize()
 	edge_mutexes = std::vector<tbb::spin_mutex>(numOrigVerts());
 
 	tri_edges.resize(numOrigTris() * 3, InvalidIndex);
+
+	any_index_fixed = false;
 
 	tri_has_intersections.resize(numOrigTris(), false);
 	coplanar_tris.resize(numOrigTris());
@@ -138,6 +165,7 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 			                     "size mismatch.");
 
 			edge2pts_mutex.emplace_back();
+			colinear_edges.emplace_back();
 		}
 		// 2. get new edge's index
 		index_t edge_id = edges_iter - edges.begin();
@@ -164,16 +192,16 @@ index_t TriangleSoup<Traits>::triVertID(index_t t_id, index_t off) const
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVert(index_t t_id, index_t off) const
-  -> const GPoint &
+auto TriangleSoup<Traits>::triVert(index_t t_id,
+                                   index_t off) const -> const GPoint &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vert(triangles[3 * t_id + off]);
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVertPtr(index_t t_id, index_t off) const
-  -> const NT *
+auto TriangleSoup<Traits>::triVertPtr(index_t t_id,
+                                      index_t off) const -> const NT *
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vertPtr(triangles[3 * t_id + off]);
@@ -294,6 +322,7 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 	// fix global index
 	indices[old_vid]->store(new_vid, std::memory_order_relaxed);
 	// fixing indices in tri2pts, tri2segs, seg2tris is delayed.
+	any_index_fixed = true;
 }
 
 template <typename Traits>
@@ -353,13 +382,28 @@ void TriangleSoup<Traits>::addCoplanarTriangles(index_t ta, index_t tb)
 }
 
 template <typename Traits>
-void TriangleSoup<Traits>::addCoplanarEdge(index_t t_id, index_t e_id)
+void TriangleSoup<Traits>::addCoplanarEdge(index_t t_id, index_t e_id,
+                                           index_t v0_id, index_t v1_id)
 {
 	OMC_EXPENSIVE_ASSERT(t_id < coplanar_edges.size(), "out of range");
 
 	if (coplanar_edges[t_id].empty())
 		coplanar_edges[t_id].reserve(8);
-	coplanar_edges[t_id].push_back(e_id);
+	coplanar_edges[t_id].emplace_back(e_id, v0_id, v1_id);
+}
+
+template <typename Traits>
+void TriangleSoup<Traits>::addColinearEdge(index_t e0_id, index_t e1_id,
+                                           index_t v0_id, index_t v1_id)
+{
+	OMC_EXPENSIVE_ASSERT(e0_id < colinear_edges.size(), "out of range");
+	OMC_EXPENSIVE_ASSERT(e1_id < colinear_edges.size(), "out of range");
+
+	index_t min_eid = std::min(e0_id, e1_id);
+	index_t max_eid = std::max(e0_id, e1_id);
+	if (colinear_edges[min_eid].empty())
+		colinear_edges[min_eid].reserve(4);
+	colinear_edges[min_eid].emplace_back(max_eid, v0_id, v1_id);
 }
 
 template <typename Traits>
@@ -371,11 +415,19 @@ TriangleSoup<Traits>::coplanarTriangles(index_t t_id) const
 }
 
 template <typename Traits>
-const tbb::concurrent_vector<index_t> &
-TriangleSoup<Traits>::coplanarEdges(index_t t_id) const
+auto TriangleSoup<Traits>::coplanarEdges(index_t t_id) const
+  -> const tbb::concurrent_vector<CCrEdgeInfo> &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < coplanar_edges.size(), "out of range");
 	return coplanar_edges[t_id];
+}
+
+template <typename Traits>
+auto TriangleSoup<Traits>::colinearEdges(index_t e_id) const
+  -> const tbb::concurrent_vector<CCrEdgeInfo> &
+{
+	OMC_EXPENSIVE_ASSERT(e_id < colinear_edges.size(), "out of range");
+	return colinear_edges[e_id];
 }
 
 template <typename Traits>
@@ -482,7 +534,8 @@ void TriangleSoup<Traits>::fixAllIndices()
 		indices[orig_vidx]->store(fix_vidx, std::memory_order_relaxed);
 	};
 
-	tbb::parallel_for(numOrigVerts(), numVerts(), fix_vertex_idx);
+	if (any_index_fixed)
+		tbb::parallel_for(numOrigVerts(), numVerts(), fix_vertex_idx);
 
 #ifdef OMC_ENABLE_EXPENSIVE_ASSERT
 	tbb::parallel_for(
@@ -502,8 +555,11 @@ void TriangleSoup<Traits>::fixAllIndices()
 	// 2. fix indices stored in tri2pts
 	auto fix_tri2pts = [this](tbb::concurrent_vector<index_t> &t2p)
 	{
-		for (index_t &i : t2p)
-			i = indices[i]->load(std::memory_order_relaxed);
+		if (any_index_fixed)
+		{
+			for (index_t &i : t2p)
+				i = indices[i]->load(std::memory_order_relaxed);
+		}
 		remove_duplicates(t2p);
 	};
 	tbb::parallel_for_each(tri2pts.begin(), tri2pts.end(), fix_tri2pts);
@@ -513,10 +569,13 @@ void TriangleSoup<Traits>::fixAllIndices()
 	{
 		tbb::concurrent_vector<UIPair> &t2s = tri2segs[t_id];
 
-		for (UIPair &seg : t2s)
+		if (any_index_fixed)
 		{
-			seg = uniquePair(indices[seg.first]->load(std::memory_order_relaxed),
-			                 indices[seg.second]->load(std::memory_order_relaxed));
+			for (UIPair &seg : t2s)
+			{
+				seg = uniquePair(indices[seg.first]->load(std::memory_order_relaxed),
+				                 indices[seg.second]->load(std::memory_order_relaxed));
+			}
 		}
 
 		remove_duplicates(t2s);
@@ -525,31 +584,53 @@ void TriangleSoup<Traits>::fixAllIndices()
 			addTrianglesInSegment(seg, t_id);
 	};
 	tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
+
+	// 4. fix indices stored in coplanar_edges
+	auto fix_coplanar_edges = [this](index_t t_id)
+	{
+		tbb::concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
+
+		remove_duplicates(ce);
+		if (any_index_fixed)
+		{
+			for (CCrEdgeInfo &edge_info : ce)
+			{
+				edge_info.v0_id =
+				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
+				edge_info.v1_id =
+				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
+			}
+		}
+	};
+	tbb::parallel_for(size_t(0), numOrigTris(), fix_coplanar_edges);
+
+	// 5. fix indices stored in colinear_edges
+	auto fix_colinear_edges = [this](index_t e_id)
+	{
+		tbb::concurrent_vector<CCrEdgeInfo> &ce = colinear_edges[e_id];
+
+		remove_duplicates(ce);
+		if (any_index_fixed)
+		{
+			for (CCrEdgeInfo &edge_info : ce)
+			{
+				edge_info.v0_id =
+				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
+				edge_info.v1_id =
+				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
+			}
+		}
+	};
+	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edges);
 }
 
 template <typename Traits>
 void TriangleSoup<Traits>::removeAllDuplicates()
 {
-	auto removeDuplOnTris = [this](size_t t_id)
-	{
-		remove_duplicates(coplanar_tris[t_id]);
-		remove_duplicates(coplanar_edges[t_id]);
-		// remove_duplicates(tri2pts[t_id]);	// moved to fixAllIndices
-		// remove_duplicates(tri2segs[t_id]);	// moved to fixAllIndices
-	};
-	tbb::parallel_for(size_t(0), numOrigTris(), removeDuplOnTris);
+	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
+	                  { remove_duplicates(coplanar_tris[t_id]); });
 
-	// note: seg2tris are generated in fixAllIndices without duplicates
-
-	// tbb::parallel_for_each(
-	//   seg2tris.begin(), seg2tris.end(),
-	//   [this](phmap::flat_hash_map<UIPair, std::vector<index_t>> &s2t)
-	//   {
-	// 	  for (auto &iter : s2t)
-	// 		  remove_duplicates(iter.second);
-	//   });
-
-#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+#if defined(OMC_ENABLE_EXPENSIVE_ASSERT) && 1
 	struct Comparator
 	{
 		TriangleSoup<Traits> &ts;
@@ -566,8 +647,9 @@ void TriangleSoup<Traits>::removeAllDuplicates()
 	};
 	auto checkDuplOnTris = [this](index_t t_id)
 	{
-		std::set<index_t, Comparator> point_set(Comparator(*this));
-		size_t                        cnt = 0;
+		std::set<index_t, Comparator> point_set =
+		  std::set<index_t, Comparator>(Comparator(*this));
+		size_t cnt = 0;
 		point_set.insert(triVertID(t_id, 0));
 		point_set.insert(triVertID(t_id, 1));
 		point_set.insert(triVertID(t_id, 2));
@@ -577,8 +659,9 @@ void TriangleSoup<Traits>::removeAllDuplicates()
 			if (is_valid_idx(triEdgeID(t_id, j)))
 			{
 				const auto &e2p = edgePointsList(triEdgeID(t_id, j));
+				OMC_ASSERT(e2p.size() >= 2, "miss two endpoints.");
 				point_set.insert(e2p.begin(), e2p.end());
-				cnt += e2p.size();
+				cnt += e2p.size() - 2;
 			}
 		}
 		point_set.insert(trianglePointsList(t_id).begin(),
@@ -586,8 +669,33 @@ void TriangleSoup<Traits>::removeAllDuplicates()
 		cnt += trianglePointsList(t_id).size();
 		OMC_ASSERT(point_set.size() == cnt, "duplicate vertex detected");
 	};
-	tbb::parallel_for(size_t(0), numOrigTris(), checkDulpOnTris);
+	for (size_t t_id = 0; t_id < numOrigTris(); t_id++)
+		checkDuplOnTris(t_id);
 #endif
+}
+
+template <typename Traits>
+void TriangleSoup<Traits>::addEndPointsToE2P()
+{
+	auto add_end_points_to_edge2pts = [this](size_t e_id)
+	{
+		const Edge &e    = edge(e_id);
+		index_t     ev0  = e.first;
+		index_t     ev1  = e.second;
+		uint32_t    axis = edge2pts[e_id].key_comp().axis;
+		if (vert(ev0)[axis] < vert(ev1)[axis])
+		{
+			edge2pts[e_id].insert(edge2pts[e_id].begin(), ev0);
+			edge2pts[e_id].insert(edge2pts[e_id].end(), ev1);
+		}
+		else
+		{
+			edge2pts[e_id].insert(edge2pts[e_id].begin(), ev1);
+			edge2pts[e_id].insert(edge2pts[e_id].end(), ev0);
+		}
+	};
+
+	tbb::parallel_for(size_t(0), numEdges(), add_end_points_to_edge2pts);
 }
 
 template <typename Traits>
