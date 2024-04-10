@@ -532,12 +532,8 @@ index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
 template <typename Traits>
 void TriangleSoup<Traits>::removeDuplicatesBeforeFix()
 {
-	tbb::parallel_for(size_t(0), numOrigTris(),
-	                  [this](size_t t_id)
-	                  {
-		                  remove_duplicates(coplanar_tris[t_id]);
-		                  remove_duplicates(coplanar_edges[t_id]);
-	                  });
+	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
+	                  { remove_duplicates(coplanar_tris[t_id]); });
 
 	tbb::parallel_for(size_t(0), numEdges(), [this](index_t e_id)
 	                  { remove_duplicates(colinear_edges[e_id]); });
@@ -682,6 +678,25 @@ void TriangleSoup<Traits>::fixAllIndices()
 			addTrianglesInSegment(seg, t_id);
 	};
 	tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
+
+	// 4. fix indices stored in coplanar_edges
+	auto fix_coplanar_edges = [this](index_t t_id)
+	{
+		tbb::concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
+
+		remove_duplicates(ce);
+		if (any_index_fixed)
+		{
+			for (CCrEdgeInfo &edge_info : ce)
+			{
+				edge_info.v0_id =
+				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
+				edge_info.v1_id =
+				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
+			}
+		}
+	};
+	tbb::parallel_for(size_t(0), numOrigTris(), fix_coplanar_edges);
 
 #if defined(OMC_ENABLE_EXPENSIVE_ASSERT)
 	struct Comparator
