@@ -1,19 +1,21 @@
 #pragma once
 
 #include "AuxStructure.h"
-#include "Utils.h"
-
-// clang-format off
-#include "OpenMeshCraft/Utils/DisableWarnings.h"
-#include "parallel_hashmap/phmap.h"
-#include "OpenMeshCraft/Utils/EnableWarnings.h"
-// clang-format on
 
 #include <bitset>
 #include <map>
 #include <vector>
 
 namespace OMC {
+
+#define OMC_ARR_TS_PARA
+#ifdef OMC_ARR_TS_PARA
+template <typename T>
+using concurrent_vector = tbb::concurrent_vector<T>;
+#else	// serial, std::vector is more friendly for debug
+template <typename T>
+using concurrent_vector = std::vector<T>;
+#endif
 
 template <typename Traits>
 class TriangleSoup
@@ -65,7 +67,8 @@ public: /* Types **************************************************************/
 	/* ----- edge2pts related structures ----- */
 
 	struct EdgeComparator;
-	using Edge2PntsSet = std::set<index_t, EdgeComparator>;
+	using Edge2PntsSet =
+	  boost::container::flat_set<index_t, EdgeComparator, std::vector<index_t>>;
 
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
@@ -78,9 +81,9 @@ public:
 	/***** Below data should be set by user ******/
 
 	/// implement vertices
-	tbb::concurrent_vector<GPoint *>               vertices;
+	concurrent_vector<GPoint *>               vertices;
 	/// implement indices of vertices (used in v_map)
-	tbb::concurrent_vector<std::atomic<index_t> *> indices;
+	concurrent_vector<std::atomic<index_t> *> indices;
 	// TODO make use of indices, remove IdxArena if possible.
 
 	/// triangles
@@ -99,15 +102,15 @@ protected:
 	size_t num_orig_vtxs;
 	size_t num_orig_tris;
 
-	tbb::concurrent_vector<UIPair> edges;
+	concurrent_vector<UIPair> edges;
 	/// map an edge(index pair) to a unique edge index.
 	/// 1. map smaller vertex index by std::vector.
 	/// 2. map larger vertex index by flat hash map.
-	EdgeMap                        edge_map;
+	EdgeMap                   edge_map;
 	/// mutex for reading and writing EdgeMap.
-	EdgeMapMutexes                 edge_mutexes;
+	EdgeMapMutexes            edge_mutexes;
 	/// triangle edges
-	std::vector<index_t>           tri_edges;
+	std::vector<index_t>      tri_edges;
 
 public: /* Size queries *******************************************************/
 	size_t numVerts() const { return vertices.size(); }
@@ -153,26 +156,27 @@ protected:
 	std::vector<uint8_t> tri_has_intersections;
 
 	// coplanar triangle
-	std::vector<tbb::concurrent_vector<index_t>> coplanar_tris;
+	std::vector<concurrent_vector<index_t>> coplanar_tris;
 
 	// coplanar edge
-	std::vector<tbb::concurrent_vector<CCrEdgeInfo>> coplanar_edges;
+	std::vector<concurrent_vector<CCrEdgeInfo>> coplanar_edges;
 
 	// colinear edge
-	tbb::concurrent_vector<tbb::concurrent_vector<CCrEdgeInfo>> colinear_edges;
+	concurrent_vector<concurrent_vector<CCrEdgeInfo>> colinear_edges;
 
 	// map point coordinates to vertex id
 	std::unique_ptr<AuxPointMap<Traits>> v_map;
 
 	// store intersection points on triangles
-	std::vector<tbb::concurrent_vector<index_t>> tri2pts;
+	std::vector<concurrent_vector<index_t>> tri2pts;
 
 	// store intersection points on edge
-	tbb::concurrent_vector<Edge2PntsSet>    edge2pts;
+	concurrent_vector<Edge2PntsSet>         edge2pts;
+	// mutexes for edge2pts (must be tbb::concurrent_vector)
 	tbb::concurrent_vector<tbb::spin_mutex> edge2pts_mutex;
 
 	// store contrained segments on triangles
-	std::vector<tbb::concurrent_vector<UIPair>> tri2segs;
+	std::vector<concurrent_vector<UIPair>> tri2segs;
 
 	// reverse map contrained segments to triangles on where they locate
 	Seg2Tris   seg2tris;
@@ -249,11 +253,11 @@ public: /* Add **************************************************************/
 public: /* Query ***********************************************************/
 	/* Coplanar and colinear */
 
-	const tbb::concurrent_vector<index_t> &coplanarTriangles(index_t t_id) const;
+	const concurrent_vector<index_t> &coplanarTriangles(index_t t_id) const;
 
-	const tbb::concurrent_vector<CCrEdgeInfo> &coplanarEdges(index_t t_id) const;
+	const concurrent_vector<CCrEdgeInfo> &coplanarEdges(index_t t_id) const;
 
-	const tbb::concurrent_vector<CCrEdgeInfo> &colinearEdges(index_t e_id) const;
+	const concurrent_vector<CCrEdgeInfo> &colinearEdges(index_t e_id) const;
 
 	/* Has intersection */
 
@@ -261,12 +265,11 @@ public: /* Query ***********************************************************/
 
 	/* Intersection points and contrained segments */
 
-	const tbb::concurrent_vector<index_t> &trianglePointsList(index_t t_id) const;
+	const concurrent_vector<index_t> &trianglePointsList(index_t t_id) const;
 
 	const Edge2PntsSet &edgePointsList(index_t e_id) const;
 
-	const tbb::concurrent_vector<UIPair> &
-	triangleSegmentsList(index_t t_id) const;
+	const concurrent_vector<UIPair> &triangleSegmentsList(index_t t_id) const;
 
 	const std::vector<index_t> &segmentTrianglesList(const UIPair &seg) const;
 
@@ -279,9 +282,11 @@ public: /* Query ***********************************************************/
 public: /* Modify *********************************************************/
 	void buildVMap(Tree *tree);
 
-	void fixAllIndices();
+	void removeDuplicatesBeforeFix();
 
-	void removeAllDuplicates();
+	void fixColinearEdgesIntersections();
+
+	void fixAllIndices();
 
 	void addEndPointsToE2P();
 

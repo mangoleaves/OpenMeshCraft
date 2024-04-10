@@ -82,6 +82,8 @@ public: /* Constructors (Copy, Move, Assign) and Destructor */
 
 	void shallow_copy(NodeCRef rhs);
 
+	void clear_boxes();
+
 	~AdapOrthNode() {}
 
 public: /* Queries */
@@ -225,6 +227,13 @@ void AdapOrthNode<Traits>::shallow_copy(NodeCRef rhs)
 	m_tbox          = rhs.m_tbox;
 	m_size          = 0;
 	m_child_map     = rhs.m_child_map;
+}
+
+/// @brief clear boxes stored in node to save memory
+template <typename Traits>
+void AdapOrthNode<Traits>::clear_boxes()
+{
+	m_boxes = std::vector<index_t>();
 }
 
 /// @brief Access one child by local index.

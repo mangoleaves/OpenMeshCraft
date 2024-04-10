@@ -163,42 +163,12 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
   const typename TriSoup::Edge2PntsSet &point_list, index_t v0_id,
   index_t v1_id, std::vector<index_t> &out_point_list)
 {
-	// FIXME point_list contains end points.
 	if (point_list.empty())
 		return;
-	out_point_list.reserve(point_list.size() + 2);
-
-	out_point_list.push_back(v0_id);
-
-	uint32_t axis = point_list.key_comp().axis;
-	if (ts.vertPtr(v0_id)[axis] < ts.vertPtr(v1_id)[axis])
-		out_point_list.insert(out_point_list.end(), point_list.begin(),
-		                      point_list.end());
-	else
-		out_point_list.insert(out_point_list.end(), point_list.rbegin(),
-		                      point_list.rend());
-
-	out_point_list.push_back(v1_id);
-
-#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
-	for (size_t i = 0; i < out_point_list.size() - 1; i++)
-	{
-		if (ts.vertPtr(v0_id)[axis] < ts.vertPtr(v1_id)[axis])
-		{
-			OMC_ASSERT(LessThan3D().on(ts.vert(out_point_list[i]),
-			                           ts.vert(out_point_list[i + 1]),
-			                           axis) == Sign::NEGATIVE,
-			           "wrong order");
-		}
-		else
-		{
-			OMC_ASSERT(LessThan3D().on(ts.vert(out_point_list[i]),
-			                           ts.vert(out_point_list[i + 1]),
-			                           axis) == Sign::POSITIVE,
-			           "wrong order");
-		}
-	}
-#endif
+	out_point_list = std::vector<index_t>(point_list.begin(), point_list.end());
+	if (out_point_list.front() == v1_id) // first element must be v0
+		std::reverse(out_point_list.begin(), out_point_list.end());
+	OMC_ASSERT(out_point_list.front() == v0_id, "missing endpoint.");
 }
 
 template <typename Traits>
@@ -336,7 +306,7 @@ void Triangulation<Traits>::splitSingleEdge(FastTriMesh &subm, index_t v0_id,
                                             index_t               v1_id,
                                             std::vector<index_t> &points)
 {
-	if (points.empty())
+	if (points.size() <= 2)	// only two end points
 		return;
 
 	index_t e_id = subm.edgeID(v0_id, v1_id);
@@ -969,12 +939,11 @@ index_t Triangulation<Traits>::createTPI(
 }
 
 template <typename Traits>
-auto Triangulation<Traits>::computeTriangleOfSegment(FastTriMesh  &subm,
-                                                     const UIPair &seg)
-  -> std::array<const GPoint *, 3>
+auto Triangulation<Traits>::computeTriangleOfSegment(
+  FastTriMesh &subm, const UIPair &seg) -> std::array<const GPoint *, 3>
 {
 	const std::vector<index_t> &seg_tris = ts.segmentTrianglesList(seg);
-	const tbb::concurrent_vector<index_t> &copl_tris =
+	const concurrent_vector<index_t> &copl_tris =
 	  ts.coplanarTriangles(subm.meshInfo());
 
 	for (index_t t_id : seg_tris)

@@ -98,7 +98,7 @@ public: /* Acess and Modify **************************************************/
 			// but we only use this CStyleVector for simple types, just memcpy them.
 			if (keep_data && m_size != 0)
 				memcpy(tmp_data, m_data, sizeof(T) * m_size);
-			// m_data may not be nullptr even if m_size != 0.
+			// m_data may not be nullptr even if m_size == 0.
 			if (m_data)
 				free(m_data);
 			// set m_data and m_size
@@ -114,6 +114,27 @@ public: /* Acess and Modify **************************************************/
 	{
 		if (m_size == m_capacity)
 			return;
+		if (m_size != 0)
+		{	// shrink capacity to fit size while keeping original data.
+			// out of memory exception may be throwed by malloc, just let it throw.
+			T *tmp_data = (T *)malloc(m_size * sizeof(T));
+			// it's better to use copy constructor of T.
+			// but we only use this CStyleVector for simple types, just memcpy them.
+			memcpy(tmp_data, m_data, sizeof(T) * m_size);
+			// free original memory
+			free(m_data);
+			// set m_data and m_size
+			m_data     = tmp_data;
+			m_capacity = m_size;
+		}
+		else // m_size == 0
+		{
+			// m_data may not be nullptr even if m_size == 0.
+			if (m_data)
+				free(m_data);
+			m_data     = nullptr;
+			m_capacity = 0;
+		}
 	}
 
 public: /* Iterator **********************************************************/
@@ -143,6 +164,10 @@ public: /* Iterator **********************************************************/
 		T &operator*() { return *cur_elem; }
 		T *operator->() const { return cur_elem; }
 		T *operator->() { return cur_elem; }
+		bool operator<(const iterator &rhs) const { return cur_elem < rhs.cur_elem; }
+		bool operator<=(const iterator &rhs) const { return cur_elem <= rhs.cur_elem; }
+		bool operator>(const iterator &rhs) const { return cur_elem > rhs.cur_elem; }
+		bool operator>=(const iterator &rhs) const { return cur_elem >= rhs.cur_elem; }
 		bool operator==(const iterator &rhs) const { return cur_elem == rhs.cur_elem; }
 		bool operator!=(const iterator &rhs) const { return cur_elem != rhs.cur_elem; }
 	public:
@@ -176,6 +201,10 @@ public: /* Iterator **********************************************************/
 		T &operator*() { return *cur_elem; }
 		T *operator->() const { return cur_elem; }
 		T *operator->() { return cur_elem; }
+		bool operator<(const const_iterator &rhs) const { return cur_elem < rhs.cur_elem; }
+		bool operator<=(const const_iterator &rhs) const { return cur_elem <= rhs.cur_elem; }
+		bool operator>(const const_iterator &rhs) const { return cur_elem > rhs.cur_elem; }
+		bool operator>=(const const_iterator &rhs) const { return cur_elem >= rhs.cur_elem; }
 		bool operator==(const const_iterator &rhs) const { return cur_elem == rhs.cur_elem; }
 		bool operator!=(const const_iterator &rhs) const { return cur_elem != rhs.cur_elem; }
 	public:

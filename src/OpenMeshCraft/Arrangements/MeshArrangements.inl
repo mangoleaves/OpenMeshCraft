@@ -104,7 +104,6 @@ public: /* Constructors ******************************************************/
 	MeshArrangements_Impl(MeshArrangements_Stats *_stats   = nullptr,
 	                      bool                    _verbose = false)
 	  : tree(_stats)
-	  , point_tree(nullptr)
 	  , stats(_stats)
 	  , verbose(_verbose)
 	{
@@ -166,7 +165,6 @@ public:
 	/* Auxiliary data */
 	/// tree build on arr_in_tris (NOTE: not on in_tris)
 	Tree                     tree;
-	Tree                     point_tree;
 	/// information of removed duplicate triangles (maybe used again)
 	std::vector<DuplTriInfo> dupl_triangles;
 
@@ -251,10 +249,11 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
-#if 0
 	OMC_ARR_START_ELAPSE(start_tr);
 
-	tri_soup.buildVMap(&point_tree);	// TODO replace point_tree with tree.
+	tree.clear_boxes();
+	tree.shape_refine();
+	tri_soup.buildVMap(&tree);
 
 	// Triangulation.
 	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
@@ -263,7 +262,6 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
-#endif
 }
 
 template <typename Traits>
@@ -296,8 +294,7 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(),
-		                   [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -553,14 +550,10 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	pnt_arenas = std::vector<PntArena>(tbb::this_task_arena::max_concurrency());
 	idx_arenas = std::vector<IdxArena>(tbb::this_task_arena::max_concurrency());
 
-	// refine its shape
-	point_tree = tree;
-	point_tree.shape_refine();
-
 	TriSoup &ts = tri_soup;
 
-	ts.vertices = tbb::concurrent_vector<GPoint *>(arr_out_verts.begin(),
-	                                               arr_out_verts.end());
+	ts.vertices =
+	  concurrent_vector<GPoint *>(arr_out_verts.begin(), arr_out_verts.end());
 	for (index_t i = 0; i < ts.vertices.size(); i++)
 		ts.indices.push_back(exp_idx_arena.emplace(i));
 	ts.triangles  = std::move(arr_in_tris);
@@ -575,7 +568,6 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 {
 	// clear unused data
 	tree.clear();
-	point_tree.clear();
 
 	// initialize merged triangle soup and auxiliary structure
 	arr_out_verts.resize(arr_out_verts.size() + tri_soup.numVerts() -

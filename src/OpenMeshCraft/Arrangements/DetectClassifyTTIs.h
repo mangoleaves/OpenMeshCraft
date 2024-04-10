@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AuxStructure.h"
+#include "TriangleSoup.h"
 
 namespace OMC {
 
@@ -75,8 +75,6 @@ protected:
 	void cacheBoxesInNode(const typename Tree::Node             &node,
 	                      CStyleVector<typename Tree::TreeBbox> &cached_boxes,
 	                      bool cache_labels, CStyleVector<Label> &cached_labels);
-
-	void fixColinearEdgesIntersections();
 
 	void propagateCoplanarTrianglesIntersections();
 

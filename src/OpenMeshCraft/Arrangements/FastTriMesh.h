@@ -4,28 +4,22 @@
 
 #include "OpenMeshCraft/Utils/IndexDef.h"
 
-// clang-format off
-#include "OpenMeshCraft/Utils/DisableWarnings.h"
-#include "parallel_hashmap/phmap.h"
-#include "OpenMeshCraft/Utils/EnableWarnings.h"
-// clang-format on
-
 namespace OMC {
 
 enum class Sign;
 
 class SplitTree;
 
-#if 1
+#if 0	// OpenMeshCraft::InlinedVector, friendly for debug
 template <typename T>
 using AuxVector16 = InlinedVector<T, 16>;
 template <typename T>
 using AuxVector4 = InlinedVector<T, 4>;
-#else
+#else	// absl::InlinedVector, possibly faster?
 template <typename T>
-using AuxVector16 = std::vector<T>;
+using AuxVector16 = absl::InlinedVector<T, 16>;
 template <typename T>
-using AuxVector4 = std::vector<T>;
+using AuxVector4 = absl::InlinedVector<T, 4>;
 #endif
 
 template <typename Traits>

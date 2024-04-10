@@ -2,12 +2,6 @@
 
 #include "Utils.h"
 
-// clang-format off
-#include "OpenMeshCraft/Utils/DisableWarnings.h"
-#include "parallel_hashmap/btree.h"
-#include "OpenMeshCraft/Utils/EnableWarnings.h"
-// clang-format on
-
 #include <mutex>
 #include <set>
 

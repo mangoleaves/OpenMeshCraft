@@ -125,8 +125,11 @@ public: /* Constructors and Destructor *************************************/
 	 */
 	void shape_refine();
 
-	/** @brief Clear the tree.  */
+	/** @brief Clear the tree. */
 	void clear();
+
+	/** @brief clear boxes stored in tree to save memory */
+	void clear_boxes();
 
 protected: /* Modifiers ******************************************************/
 	/**

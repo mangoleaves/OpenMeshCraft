@@ -186,6 +186,15 @@ void AdapOrthTree<Traits>::clear()
 }
 
 template <typename Traits>
+void AdapOrthTree<Traits>::clear_boxes()
+{
+	for (Node &nd : m_nodes)
+		nd.clear_boxes();
+	m_boxes.clear();
+	m_boxes.shrink_to_fit();
+}
+
+template <typename Traits>
 auto AdapOrthTree<Traits>::new_children(size_t n_children) -> index_t
 {
 	std::lock_guard<tbb::spin_mutex> lock(m_new_children_mutex);

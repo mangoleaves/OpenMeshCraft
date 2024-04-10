@@ -6,7 +6,7 @@
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 
-// #define OMC_ARR_DC_TTI_PARA
+#define OMC_ARR_DC_TTI_PARA
 
 namespace OMC {
 
@@ -36,13 +36,12 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 
 	// add end points to all ts.edge2pts
 	ts.addEndPointsToE2P();
-
-	// post fix intersection points between colinear edges
-	fixColinearEdgesIntersections();
-
-	// post process of TTI checks
+	// remove duplicates during parallel execution
+	ts.removeDuplicatesBeforeFix();
+	// post fix of indices
+	ts.fixColinearEdgesIntersections();
 	ts.fixAllIndices();
-	ts.removeAllDuplicates();
+	// calculate orthogonal planes and orientations
 	ts.calcPlaneAndOrient();
 
 	// propagate intersection points from edges to coplanar triangles
@@ -244,84 +243,6 @@ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
 }
 
 template <typename Traits>
-void DetectClassifyTTIs<Traits>::fixColinearEdgesIntersections()
-{
-	auto fix_colinear_edge = [this](index_t e_id)
-	{
-		// mutex to lock current edge
-		tbb::spin_mutex &e_mutex = ts.getE2PMutex(e_id);
-
-		// we need a copy instead of a reference,
-		// otherwise the traversal will collapse.
-		const typename TriSoup::Edge2PntsSet e2p = ts.edgePointsList(e_id);
-
-		const tbb::concurrent_vector<typename TriSoup::CCrEdgeInfo>
-		  &ccr_edge_infos = ts.colinearEdges(e_id);
-
-		for (const typename TriSoup::CCrEdgeInfo &edge_info : ccr_edge_infos)
-		{
-			index_t coli_e_id = edge_info.e_id;
-			index_t v0_id     = edge_info.v0_id;
-			index_t v1_id     = edge_info.v1_id;
-
-			OMC_EXPENSIVE_ASSERT(e_id < coli_e_id, "edge indices error");
-
-			tbb::spin_mutex &coli_e_mutex = ts.getE2PMutex(coli_e_id);
-
-			// lock until fix end.
-			std::lock_guard<tbb::spin_mutex> e_lock(e_mutex);
-			std::lock_guard<tbb::spin_mutex> coli_e_lock(coli_e_mutex);
-
-			bool overlap = false;
-			for (index_t p_id : e2p)
-			{
-				if (!overlap)
-				{
-					if (p_id == v0_id || p_id == v1_id) // step into overlap interval
-						overlap = true;
-					continue;
-				}
-
-				// already inside overlap interval
-				if (p_id == v0_id || p_id == v1_id) // step out of overlap interval
-					break; // end traversal current colianar edge
-				// else, current p_id is inside the overlap interval
-				// check if point is already in coli_e2p
-				index_t found_vid = ts.findVertexInEdge(coli_e_id, ts.vert(p_id));
-				if (!is_valid_idx(found_vid))
-					continue; // can't find a coincident point, continue to next.
-				if (p_id == found_vid)
-					continue; // find a same point with same index, continue to next.
-				// two coincident points have different indices, need fix.
-				if (ts.vert(p_id).point_type() < ts.vert(found_vid).point_type())
-				{
-					ts.fixVertexInEdge(coli_e_id, found_vid, p_id);
-				}
-				else if (ts.vert(found_vid).point_type() < ts.vert(p_id).point_type())
-				{
-					ts.fixVertexInEdge(e_id, p_id, found_vid);
-				}
-				else if (p_id < found_vid) // same type, but p_id smaller
-				{
-					ts.fixVertexInEdge(coli_e_id, found_vid, p_id);
-				}
-				else // same type, but found_vid smaller
-				{
-					ts.fixVertexInEdge(e_id, p_id, found_vid);
-				}
-			} // end for e2p
-		} // end for ccr_edge_infos
-	}; // end fix_colinear_edge
-
-#ifdef OMC_ARR_DC_TTI_PARA
-	tbb::parallel_for(size_t(0), ts.numEdges(), fix_colinear_edge);
-#else
-	for (size_t e_id = 0; e_id < ts.numEdges(); e_id++)
-		fix_colinear_edge(e_id);
-#endif
-}
-
-template <typename Traits>
 void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 {
 	// mutexes on tri
@@ -329,7 +250,7 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 
 	auto propagate_copl_edge = [this, &tri_mutexes](index_t t_id)
 	{
-		const tbb::concurrent_vector<typename TriSoup::CCrEdgeInfo>
+		const concurrent_vector<typename TriSoup::CCrEdgeInfo>
 		  &ccr_edge_infos = ts.coplanarEdges(t_id);
 
 		for (const typename TriSoup::CCrEdgeInfo &edge_info : ccr_edge_infos)
@@ -341,7 +262,7 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 			// intersection points inside triangle
 			bool inside = false;
 
-			const tbb::concurrent_vector<index_t> &t2p = ts.trianglePointsList(t_id);
+			const concurrent_vector<index_t> &t2p = ts.trianglePointsList(t_id);
 			const typename TriSoup::Edge2PntsSet  &e2p = ts.edgePointsList(copl_e_id);
 
 			for (index_t p_id : e2p)

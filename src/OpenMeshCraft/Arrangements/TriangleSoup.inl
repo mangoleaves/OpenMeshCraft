@@ -157,8 +157,15 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 			// lock until all adding operations end.
 			std::lock_guard<tbb::spin_mutex> lock_add_edge(new_edge_mutex);
 
+#ifdef OMC_ARR_TS_PARA
 			edges_iter = edges.push_back(edge);
 			e2p_iter   = edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
+#else
+			edges.push_back(edge);
+			edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
+			edges_iter = edges.end() - 1;
+			e2p_iter   = edge2pts.end() - 1;
+#endif
 
 			OMC_EXPENSIVE_ASSERT(e2p_iter - edge2pts.begin() ==
 			                       edges_iter - edges.begin(),
@@ -260,7 +267,7 @@ template <typename Traits>
 void TriangleSoup<Traits>::addVertexInTriangle(index_t t_id, index_t v_id)
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2pts.size(), "out of range");
-	tbb::concurrent_vector<index_t> &points = tri2pts[t_id];
+	concurrent_vector<index_t> &points = tri2pts[t_id];
 	if (points.empty())
 		points.reserve(8);
 	points.push_back(v_id);
@@ -315,10 +322,14 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 	// fix index in edge2pts
 	Edge2PntsSet &points = edge2pts[e_id];
 	auto          iter   = points.find(old_vid);
+#if 0 // std::set
 	auto          hint   = iter;
 	++hint;
 	points.erase(iter);
 	points.insert(hint, new_vid);
+#else // boost::container::flat_set
+	*iter = new_vid;
+#endif
 	// fix global index
 	indices[old_vid]->store(new_vid, std::memory_order_relaxed);
 	// fixing indices in tri2pts, tri2segs, seg2tris is delayed.
@@ -330,7 +341,7 @@ void TriangleSoup<Traits>::addSegmentInTriangle(index_t t_id, const UIPair &seg)
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2segs.size(), "out of range");
 	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
-	tbb::concurrent_vector<UIPair> &segments = tri2segs[t_id];
+	concurrent_vector<UIPair> &segments = tri2segs[t_id];
 	if (segments.empty())
 		segments.reserve(8);
 	segments.push_back(seg);
@@ -407,7 +418,7 @@ void TriangleSoup<Traits>::addColinearEdge(index_t e0_id, index_t e1_id,
 }
 
 template <typename Traits>
-const tbb::concurrent_vector<index_t> &
+const concurrent_vector<index_t> &
 TriangleSoup<Traits>::coplanarTriangles(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < coplanar_tris.size(), "out of range");
@@ -416,7 +427,7 @@ TriangleSoup<Traits>::coplanarTriangles(index_t t_id) const
 
 template <typename Traits>
 auto TriangleSoup<Traits>::coplanarEdges(index_t t_id) const
-  -> const tbb::concurrent_vector<CCrEdgeInfo> &
+  -> const concurrent_vector<CCrEdgeInfo> &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < coplanar_edges.size(), "out of range");
 	return coplanar_edges[t_id];
@@ -424,7 +435,7 @@ auto TriangleSoup<Traits>::coplanarEdges(index_t t_id) const
 
 template <typename Traits>
 auto TriangleSoup<Traits>::colinearEdges(index_t e_id) const
-  -> const tbb::concurrent_vector<CCrEdgeInfo> &
+  -> const concurrent_vector<CCrEdgeInfo> &
 {
 	OMC_EXPENSIVE_ASSERT(e_id < colinear_edges.size(), "out of range");
 	return colinear_edges[e_id];
@@ -448,7 +459,7 @@ bool TriangleSoup<Traits>::triangleHasIntersections(index_t t_id) const
 }
 
 template <typename Traits>
-const tbb::concurrent_vector<index_t> &
+const concurrent_vector<index_t> &
 TriangleSoup<Traits>::trianglePointsList(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2pts.size(), "out of range");
@@ -464,7 +475,7 @@ auto TriangleSoup<Traits>::edgePointsList(index_t e_id) const
 }
 
 template <typename Traits>
-const tbb::concurrent_vector<UIPair> &
+const concurrent_vector<UIPair> &
 TriangleSoup<Traits>::triangleSegmentsList(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2segs.size(), "out of range");
@@ -519,6 +530,93 @@ index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
 }
 
 template <typename Traits>
+void TriangleSoup<Traits>::removeDuplicatesBeforeFix()
+{
+	tbb::parallel_for(size_t(0), numOrigTris(),
+	                  [this](size_t t_id)
+	                  {
+		                  remove_duplicates(coplanar_tris[t_id]);
+		                  remove_duplicates(coplanar_edges[t_id]);
+	                  });
+
+	tbb::parallel_for(size_t(0), numEdges(), [this](index_t e_id)
+	                  { remove_duplicates(colinear_edges[e_id]); });
+}
+
+template <typename Traits>
+void TriangleSoup<Traits>::fixColinearEdgesIntersections()
+{
+	auto fix_colinear_edge = [this](index_t e_id)
+	{
+		// mutex to lock current edge
+		tbb::spin_mutex    &e_mutex = getE2PMutex(e_id);
+		const Edge2PntsSet &e2p     = edgePointsList(e_id);
+
+		const concurrent_vector<CCrEdgeInfo> &ccr_edge_infos = colinearEdges(e_id);
+		for (const CCrEdgeInfo &edge_info : ccr_edge_infos)
+		{
+			index_t coli_e_id = edge_info.e_id;
+			index_t v0_id     = edge_info.v0_id;
+			index_t v1_id     = edge_info.v1_id;
+
+			OMC_EXPENSIVE_ASSERT(e_id < coli_e_id, "edge indices error");
+
+			tbb::spin_mutex &coli_e_mutex = getE2PMutex(coli_e_id);
+
+			// lock until fix end.
+			std::lock_guard<tbb::spin_mutex> e_lock(e_mutex);
+			std::lock_guard<tbb::spin_mutex> coli_e_lock(coli_e_mutex);
+
+			bool overlap = false;
+			for (index_t p_id : e2p)
+			{
+				if (!overlap)
+				{
+					if (p_id == v0_id || p_id == v1_id) // step into overlap interval
+						overlap = true;
+					continue;
+				}
+
+				// already inside overlap interval
+				if (p_id == v0_id || p_id == v1_id) // step out of overlap interval
+					break; // end traversal current colianar edge
+				// else, current p_id is inside the overlap interval
+				// check if point is already in coli_e2p
+				index_t found_vid = findVertexInEdge(coli_e_id, vert(p_id));
+				if (!is_valid_idx(found_vid))
+					continue; // can't find a coincident point, continue to next.
+				if (p_id == found_vid)
+					continue; // find a same point with same index, continue to next.
+				// two coincident points have different indices, need fix.
+				if (vert(p_id).point_type() < vert(found_vid).point_type())
+				{
+					fixVertexInEdge(coli_e_id, found_vid, p_id);
+				}
+				else if (vert(found_vid).point_type() < vert(p_id).point_type())
+				{
+					fixVertexInEdge(e_id, p_id, found_vid);
+				}
+				else if (p_id < found_vid) // same type, but p_id smaller
+				{
+					fixVertexInEdge(coli_e_id, found_vid, p_id);
+				}
+				else // same type, but found_vid smaller
+				{
+					fixVertexInEdge(e_id, p_id, found_vid);
+				}
+			} // end for e2p
+		} // end for ccr_edge_infos
+	}; // end fix_colinear_edge
+
+#ifdef OMC_ARR_TS_PARA
+	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edge);
+#else
+	for (size_t e_id = 0; e_id < numEdges(); e_id++)
+		fix_colinear_edge(e_id);
+#endif
+}
+
+template <typename Traits>
 void TriangleSoup<Traits>::fixAllIndices()
 {
 	// 1. fix global indices
@@ -553,7 +651,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 #endif
 
 	// 2. fix indices stored in tri2pts
-	auto fix_tri2pts = [this](tbb::concurrent_vector<index_t> &t2p)
+	auto fix_tri2pts = [this](concurrent_vector<index_t> &t2p)
 	{
 		if (any_index_fixed)
 		{
@@ -567,7 +665,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 	// 3. fix indices stored in tri2segs
 	auto fix_tri2segs = [this](index_t t_id)
 	{
-		tbb::concurrent_vector<UIPair> &t2s = tri2segs[t_id];
+		concurrent_vector<UIPair> &t2s = tri2segs[t_id];
 
 		if (any_index_fixed)
 		{
@@ -585,52 +683,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 	};
 	tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
 
-	// 4. fix indices stored in coplanar_edges
-	auto fix_coplanar_edges = [this](index_t t_id)
-	{
-		tbb::concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
-
-		remove_duplicates(ce);
-		if (any_index_fixed)
-		{
-			for (CCrEdgeInfo &edge_info : ce)
-			{
-				edge_info.v0_id =
-				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
-				edge_info.v1_id =
-				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
-			}
-		}
-	};
-	tbb::parallel_for(size_t(0), numOrigTris(), fix_coplanar_edges);
-
-	// 5. fix indices stored in colinear_edges
-	auto fix_colinear_edges = [this](index_t e_id)
-	{
-		tbb::concurrent_vector<CCrEdgeInfo> &ce = colinear_edges[e_id];
-
-		remove_duplicates(ce);
-		if (any_index_fixed)
-		{
-			for (CCrEdgeInfo &edge_info : ce)
-			{
-				edge_info.v0_id =
-				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
-				edge_info.v1_id =
-				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
-			}
-		}
-	};
-	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edges);
-}
-
-template <typename Traits>
-void TriangleSoup<Traits>::removeAllDuplicates()
-{
-	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
-	                  { remove_duplicates(coplanar_tris[t_id]); });
-
-#if defined(OMC_ENABLE_EXPENSIVE_ASSERT) && 1
+#if defined(OMC_ENABLE_EXPENSIVE_ASSERT)
 	struct Comparator
 	{
 		TriangleSoup<Traits> &ts;

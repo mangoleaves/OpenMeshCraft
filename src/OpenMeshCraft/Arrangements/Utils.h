@@ -2,8 +2,11 @@
 
 // clang-format off
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
-#include "tbb/tbb.h"
+#include "absl/container/inlined_vector.h"
+#include "boost/container/flat_set.hpp"
 #include "parallel_hashmap/phmap.h"
+#include "parallel_hashmap/btree.h"
+#include "tbb/tbb.h"
 #include "OpenMeshCraft/Utils/EnableWarnings.h"
 // clang-format on
 

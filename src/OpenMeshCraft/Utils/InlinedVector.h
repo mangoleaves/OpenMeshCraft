@@ -1,7 +1,8 @@
 #pragma once
 
 namespace OMC {
-/// @brief It's similar to absl::inlined_vector, but more simple.
+/// @brief It's similar to absl::inlined_vector, but more simple and more
+/// friendly for debug.
 /// @note Use this inlined vector to store simple types!!!
 /// I don't know what will happen for complex types. :(
 template <typename T, size_t N>
@@ -93,14 +94,15 @@ public: /* Modifier **********************************************************/
 	}
 
 	void resize(size_t s)
-	{ /* do nothing */
-		OMC_THROW_NOT_IMPLEMENTED();
+	{
+		if (s > N) // need heap data
+			heap_data.resize(s - N);
+		else // s <= N, only inlined data is needed.
+			heap_data.clear();
+		cur_elem_size = s;
 	}
 
-	void reserve(size_t s)
-	{ /* do nothing */
-		OMC_THROW_NOT_IMPLEMENTED();
-	}
+	void reserve(size_t s) { OMC_THROW_NOT_IMPLEMENTED(); }
 
 public: /* Access ************************************************************/
 	const T &operator[](size_t idx) const
@@ -119,6 +121,9 @@ public: /* Access ************************************************************/
 			return heap_data[idx - N];
 	}
 
+	T       &front() { return operator[](0); }
+	const T &front() const { return operator[](0); }
+
 	T       &back() { return operator[](cur_elem_size - 1); }
 	const T &back() const { return operator[](cur_elem_size - 1); }
 
@@ -129,7 +134,7 @@ public: /* Access ************************************************************/
 public: /* Iterator **********************************************************/
 	      // These iterators are very simple and unsafe, use them carefully.
 	      // clang-format off
-	class NoSkipIterator
+	class iterator
 	{
 	public:
 		using iterator_category = std::bidirectional_iterator_tag;
@@ -138,28 +143,37 @@ public: /* Iterator **********************************************************/
 		using pointer           = T*;
 		using reference         = T&;
 	public:
-		NoSkipIterator(InlinedVector *_vec, difference_type _cur_idx)
+		iterator(InlinedVector *_vec, difference_type _cur_idx)
 		  : vec(_vec) , cur_idx(_cur_idx) {}
-		NoSkipIterator &operator++() { cur_idx++; return *this; }
-		NoSkipIterator &operator--() { cur_idx--; return *this; }
-		NoSkipIterator operator++(int) { NoSkipIterator cpy(*this); cur_idx++; return cpy; }
-		NoSkipIterator operator--(int) { NoSkipIterator cpy(*this); cur_idx--; return cpy; }
+		iterator &operator++() { cur_idx++; return *this; }
+		iterator &operator--() { cur_idx--; return *this; }
+		iterator operator++(int) { iterator cpy(*this); cur_idx++; return cpy; }
+		iterator operator--(int) { iterator cpy(*this); cur_idx--; return cpy; }
+		iterator &operator+=(size_t step) { cur_idx += step; return *this; }
+		iterator operator+(size_t step) const { iterator cpy(*this); cpy.cur_idx += step; return cpy; }
+		iterator &operator-=(size_t step) { cur_idx -= step; return *this; }
+		iterator operator-(size_t step) const { iterator cpy(*this); cpy.cur_idx -= step; return cpy; }
+		size_t operator-(const iterator& other) const { return cur_idx - other.cur_idx; }
 		T &operator*() const { return vec->operator[](cur_idx); }
 		T &operator*() { return vec->operator[](cur_idx); }
 		T *operator->() const { return &vec->operator[](cur_idx); }
 		T *operator->() { return &vec->operator[](cur_idx); }
-		bool operator==(const NoSkipIterator &rhs) const { return cur_idx == rhs.cur_idx; }
-		bool operator!=(const NoSkipIterator &rhs) const { return cur_idx != rhs.cur_idx; }
+		bool operator<(const iterator &rhs) const { return cur_idx < rhs.cur_idx; }
+		bool operator<=(const iterator &rhs) const { return cur_idx <= rhs.cur_idx; }
+		bool operator>(const iterator &rhs) const { return cur_idx > rhs.cur_idx; }
+		bool operator>=(const iterator &rhs) const { return cur_idx >= rhs.cur_idx; }
+		bool operator==(const iterator &rhs) const { return cur_idx == rhs.cur_idx; }
+		bool operator!=(const iterator &rhs) const { return cur_idx != rhs.cur_idx; }
 	public:
 		InlinedVector   *vec;
 		difference_type  cur_idx;
 	};
-	using iterator = NoSkipIterator;
+	using iterator = iterator;
 
-	NoSkipIterator begin() {return NoSkipIterator(this, 0);}
-	NoSkipIterator end() {return NoSkipIterator(this, (typename NoSkipIterator::difference_type)cur_elem_size);}
+	iterator begin() {return iterator(this, 0);}
+	iterator end() {return iterator(this, (typename iterator::difference_type)cur_elem_size);}
 
-	class NoSkipConstIterator
+	class const_iterator
 	{
 	public:
 		using iterator_category = std::bidirectional_iterator_tag;
@@ -168,28 +182,37 @@ public: /* Iterator **********************************************************/
 		using pointer           = const T*;
 		using reference         = const T&;
 	public:
-		NoSkipConstIterator(const InlinedVector *_vec, difference_type _cur_idx)
+		const_iterator(const InlinedVector *_vec, difference_type _cur_idx)
 		  : vec(_vec) , cur_idx(_cur_idx) {}
-		NoSkipConstIterator &operator++() { cur_idx++; return *this; }
-		NoSkipConstIterator &operator--() { cur_idx--; return *this; }
-		NoSkipConstIterator operator++(int) { NoSkipConstIterator cpy(*this); cur_idx++; return cpy; }
-		NoSkipConstIterator operator--(int) { NoSkipConstIterator cpy(*this); cur_idx--; return cpy; }
+		const_iterator &operator++() { cur_idx++; return *this; }
+		const_iterator &operator--() { cur_idx--; return *this; }
+		const_iterator operator++(int) { const_iterator cpy(*this); cur_idx++; return cpy; }
+		const_iterator operator--(int) { const_iterator cpy(*this); cur_idx--; return cpy; }
+		const_iterator &operator+=(size_t step) { cur_idx += step; return *this; }
+		const_iterator operator+(size_t step) { const_iterator cpy(*this); cpy.cur_idx += step; return cpy; }
+		const_iterator &operator-=(size_t step) { cur_idx -= step; return *this; }
+		const_iterator operator-(size_t step) { const_iterator cpy(*this); cpy.cur_idx -= step; return cpy; }
+		size_t operator-(const const_iterator& other) const { return cur_idx - other.cur_idx; }
 		const T &operator*() const { return vec->operator[](cur_idx); }
 		const T &operator*() { return vec->operator[](cur_idx); }
 		const T *operator->() const { return &vec->operator[](cur_idx); }
 		const T *operator->() { return &vec->operator[](cur_idx); }
-		bool operator==(const NoSkipConstIterator &rhs) const { return cur_idx == rhs.cur_idx; }
-		bool operator!=(const NoSkipConstIterator &rhs) const { return cur_idx != rhs.cur_idx; }
+		bool operator<(const const_iterator &rhs) const { return cur_idx < rhs.cur_idx; }
+		bool operator<=(const const_iterator &rhs) const { return cur_idx <= rhs.cur_idx; }
+		bool operator>(const const_iterator &rhs) const { return cur_idx > rhs.cur_idx; }
+		bool operator>=(const const_iterator &rhs) const { return cur_idx >= rhs.cur_idx; }
+		bool operator==(const const_iterator &rhs) const { return cur_idx == rhs.cur_idx; }
+		bool operator!=(const const_iterator &rhs) const { return cur_idx != rhs.cur_idx; }
 	public:
 		const InlinedVector   *vec;
 		difference_type       cur_idx;
 	};
-	using const_iterator = NoSkipConstIterator;
+	using const_iterator = const_iterator;
 
-	NoSkipConstIterator cbegin() const {return NoSkipConstIterator(this, 0);}
-	NoSkipConstIterator cend() const {return NoSkipConstIterator(this, (typename NoSkipConstIterator::difference_type)cur_elem_size);}
-	NoSkipConstIterator begin() const {return NoSkipConstIterator(this, 0);}
-	NoSkipConstIterator end() const {return NoSkipConstIterator(this, (typename NoSkipConstIterator::difference_type)cur_elem_size);}
+	const_iterator cbegin() const {return const_iterator(this, 0);}
+	const_iterator cend() const {return const_iterator(this, (typename const_iterator::difference_type)cur_elem_size);}
+	const_iterator begin() const {return const_iterator(this, 0);}
+	const_iterator end() const {return const_iterator(this, (typename const_iterator::difference_type)cur_elem_size);}
 	      // clang-format on
 
 public:

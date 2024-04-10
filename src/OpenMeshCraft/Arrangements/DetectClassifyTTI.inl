@@ -752,6 +752,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 33);
 		return; // all possible intersections are found, return.
 	}
+	// intersection_types is not used after here.
 
 	// =========================================================================
 	// check of B respect to A
@@ -770,9 +771,6 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 34);
 		return;
 	}
-
-	intersection_points.clear();
-	intersection_types.clear();
 
 	if (_singleCoplanarEdge(orBA, edge_id))
 	{
@@ -834,6 +832,11 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 			  hb, (vtx_id + 2) % 3, ha, intersection_points, intersection_types);
 		}
 	}
+
+	std::sort(intersection_points.begin(), intersection_points.end());
+	intersection_points.resize(
+	  std::unique(intersection_points.begin(), intersection_points.end()) -
+	  intersection_points.begin());
 
 	OMC_EXPENSIVE_ASSERT(
 	  intersection_points.size() <= 2,
@@ -1159,23 +1162,27 @@ bool DetectClassifyTTI<Traits>::coplanar_seg_tri_do_intersect(TTIHelper &ha,
 	index_t eav0 = ea, eav1 = (ea + 1) % 3;
 
 	Sign tb_ori = OrientOn2D()(hb.v[0], hb.v[1], hb.v[2], hb.t_nmax);
+	OMC_EXPENSIVE_ASSERT(tb_ori != Sign::ZERO, "degenerate triangle");
 
 	Sign eav0_wrt_eb0 = get_v_wrt_seg(ha, eav0, hb, 0);
 	Sign eav1_wrt_eb0 = get_v_wrt_seg(ha, eav1, hb, 0);
 
-	if (eav0_wrt_eb0 != tb_ori && eav1_wrt_eb0 != tb_ori)
+	if (eav0_wrt_eb0 != Sign::ZERO && eav1_wrt_eb0 != Sign::ZERO &&
+	    eav0_wrt_eb0 != tb_ori && eav1_wrt_eb0 != tb_ori)
 		return false; // ea and tb are separated by eb0
 
 	Sign eav0_wrt_eb1 = get_v_wrt_seg(ha, eav0, hb, 1);
 	Sign eav1_wrt_eb1 = get_v_wrt_seg(ha, eav1, hb, 1);
 
-	if (eav0_wrt_eb1 != tb_ori && eav1_wrt_eb1 != tb_ori)
+	if (eav0_wrt_eb1 != Sign::ZERO && eav1_wrt_eb1 != Sign::ZERO &&
+	    eav0_wrt_eb1 != tb_ori && eav1_wrt_eb1 != tb_ori)
 		return false; // ea and tb are separated by eb1
 
 	Sign eav0_wrt_eb2 = get_v_wrt_seg(ha, eav0, hb, 2);
 	Sign eav1_wrt_eb2 = get_v_wrt_seg(ha, eav1, hb, 2);
 
-	if (eav0_wrt_eb2 != tb_ori && eav1_wrt_eb2 != tb_ori)
+	if (eav0_wrt_eb2 != Sign::ZERO && eav1_wrt_eb2 != Sign::ZERO &&
+	    eav0_wrt_eb2 != tb_ori && eav1_wrt_eb2 != tb_ori)
 		return false; // ea and tb are separated by eb2
 
 	Sign vb0_wrt_ea, vb1_wrt_ea, vb2_wrt_ea;
