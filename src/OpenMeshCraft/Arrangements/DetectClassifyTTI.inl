@@ -4,6 +4,8 @@
 
 namespace OMC {
 
+#define ARR_DC_FILTER_ORIENT3D
+
 template <typename Traits>
 struct DetectClassifyTTI<Traits>::TTIHelper
 {
@@ -279,8 +281,63 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	index_t eav0 = ea, eav1 = (ea + 1) % 3; // two endpoints of ea
 	index_t ebv0 = eb, ebv1 = (eb + 1) % 3; // two endpoints of eb
 
+#ifdef ARR_DC_FILTER_ORIENT3D
+	Sign eav0_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav0]);
+	Sign eav1_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav1]);
+	bool t_nmax_init = false;
+	bool v_wrt_seg_init = false;
+
+	if (eav0_wrt_tb == Sign::UNCERTAIN && eav1_wrt_tb == Sign::UNCERTAIN)
+	{ // it is possible that two triangles are coplanar.
+		// we avoid expensive exact orient3d and filter out the no intersection case
+		// by orient2d.
+		ha.t_nmax   = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+		hb.t_nmax   = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		t_nmax_init = true;
+		if (ha.t_nmax == hb.t_nmax)
+		{
+			ha.init_v_wrt_seg();
+			hb.init_v_wrt_seg();
+			v_wrt_seg_init = true;
+			Sign ori_ta    = OrientOn2D()(ha.v[0], ha.v[1], ha.v[2], ha.t_nmax);
+			Sign ori_tb    = OrientOn2D()(hb.v[0], hb.v[1], hb.v[2], hb.t_nmax);
+			// use four lines adajcent to shared vertex to separate two triangles
+			Sign eav0_wrt_line, eav1_wrt_line;
+			eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 1) % 3);
+			eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 1) % 3);
+			if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+			    eav0_wrt_line != ori_tb)
+				return;
+			eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 2) % 3);
+			eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 2) % 3);
+			if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+			    eav0_wrt_line != ori_tb)
+				return;
+			Sign ebv0_wrt_line, ebv1_wrt_line;
+			ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 1) % 3);
+			ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 1) % 3);
+			if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+			    ebv0_wrt_line != ori_ta)
+				return;
+			ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 2) % 3);
+			ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 2) % 3);
+			if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+			    ebv0_wrt_line != ori_ta)
+				return;
+		}
+		// fail to filter out, go back to original pipeline
+		eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
+		eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
+	}
+	else if (eav0_wrt_tb == Sign::UNCERTAIN)
+		eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
+	else if (eav1_wrt_tb == Sign::UNCERTAIN)
+		eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
+		// go back to original pipeline
+#else
 	Sign eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
 	Sign eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
+#endif
 
 	if (eav0_wrt_tb != Sign::ZERO && eav0_wrt_tb == eav1_wrt_tb)
 		return; // above or below `tb`, do not intersect
@@ -290,10 +347,23 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 5);
 
 		{ // initialize cache
+#ifdef ARR_DC_FILTER_ORIENT3D
+			if (!t_nmax_init)
+			{
+				ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+				hb.t_nmax = ha.t_nmax;
+			}
+			if (!v_wrt_seg_init)
+			{
+				ha.init_v_wrt_seg();
+				hb.init_v_wrt_seg();
+			}
+#else
 			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
 			hb.t_nmax = ha.t_nmax;
 			ha.init_v_wrt_seg();
 			hb.init_v_wrt_seg();
+#endif
 		}
 
 		size_t eav0_wrt_sector = get_vtx_wrt_sector(ha, eav0, hb, eb);
@@ -363,15 +433,28 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 
 	// go on classifying intersections on `tb`
 	{ // initialize cache
+#ifdef ARR_DC_FILTER_ORIENT3D
+		if (!t_nmax_init)
+		{
+			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		}
+		if (!v_wrt_seg_init)
+		{
+			ha.init_v_wrt_seg();
+			hb.init_v_wrt_seg();
+		}
+#else
 		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
 		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.init_v_wrt_seg();
+		hb.init_v_wrt_seg();
+#endif
 		ha.init_v_in_seg();
 		ha.init_v_in_tri();
-		ha.init_v_wrt_seg();
 		ha.init_seg_wrt_seg();
 		hb.init_v_in_seg();
 		hb.init_v_in_tri();
-		hb.init_v_wrt_seg();
 		hb.init_seg_wrt_seg();
 	}
 

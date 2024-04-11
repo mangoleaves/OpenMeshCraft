@@ -410,6 +410,14 @@ Sign Orient3D_Indirect<FT, IT, ET>::with_cached_minors(
 }
 
 template <typename FT, typename IT, typename ET>
+Sign Orient3D_Indirect<FT, IT, ET>::filter(const FT *a, const FT *b,
+                                           const FT *c, const FT *d)
+{
+	return orient3d_filtered(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2],
+	                         d[0], d[1], d[2]);
+}
+
+template <typename FT, typename IT, typename ET>
 Sign OrientOn2D_Indirect<FT, IT, ET>::operator()(const PointT &a,
                                                  const PointT &b,
                                                  const PointT &c, int n_max)

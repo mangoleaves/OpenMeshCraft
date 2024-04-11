@@ -219,6 +219,9 @@ public: // for cache
 	/// Cached data are calculated for pa, pb and pc. The query point is pd.
 	static Sign with_cached_minors(const FT *pa, const FT *pb, const FT *pc,
 	                               const FT *pd, const FT *minor, const FT *perm);
+
+public: // separated filter stage
+	Sign filter(const FT *a, const FT *b, const FT *c, const FT *d);
 };
 
 /**
