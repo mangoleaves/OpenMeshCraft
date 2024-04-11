@@ -250,8 +250,8 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 
 	auto propagate_copl_edge = [this, &tri_mutexes](index_t t_id)
 	{
-		const concurrent_vector<typename TriSoup::CCrEdgeInfo>
-		  &ccr_edge_infos = ts.coplanarEdges(t_id);
+		const concurrent_vector<typename TriSoup::CCrEdgeInfo> &ccr_edge_infos =
+		  ts.coplanarEdges(t_id);
 
 		for (const typename TriSoup::CCrEdgeInfo &edge_info : ccr_edge_infos)
 		{
@@ -262,8 +262,8 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 			// intersection points inside triangle
 			bool inside = false;
 
-			const concurrent_vector<index_t> &t2p = ts.trianglePointsList(t_id);
-			const typename TriSoup::Edge2PntsSet  &e2p = ts.edgePointsList(copl_e_id);
+			const concurrent_vector<index_t>     &t2p = ts.trianglePointsList(t_id);
+			const typename TriSoup::Edge2PntsSet &e2p = ts.edgePointsList(copl_e_id);
 
 			for (index_t p_id : e2p)
 			{

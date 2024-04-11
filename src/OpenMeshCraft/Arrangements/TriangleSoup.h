@@ -12,7 +12,7 @@ namespace OMC {
 #ifdef OMC_ARR_TS_PARA
 template <typename T>
 using concurrent_vector = tbb::concurrent_vector<T>;
-#else	// serial, std::vector is more friendly for debug
+#else // serial, std::vector is more friendly for debug
 template <typename T>
 using concurrent_vector = std::vector<T>;
 #endif
@@ -239,6 +239,9 @@ public: /* Add **************************************************************/
 	void addTrianglesInSegment(const UIPair &seg, index_t tA_id, index_t tB_id);
 
 	/* Map point to unique index */
+
+	std::pair<index_t, bool> addVertexInSortedList(const GPoint         *pp,
+	                                               std::atomic<index_t> *ip);
 
 	template <typename GetIndex>
 	std::pair<index_t, bool> addVertexInSortedList(const GPoint         *pp,

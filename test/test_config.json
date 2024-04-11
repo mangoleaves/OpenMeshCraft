@@ -3,11 +3,13 @@
     "TestIfCrash": {
       "dir": "./data/arrangements_data/",
       "filename": "CamelBox.stl",
-      "verbose": true
+      "verbose": true,
+      "write": false
     },
     "TestDataSet": {
       "models_dir": "who-knows",
       "verbose": false,
+      "num_vf": true,
       "skip_step": 0,
       "set_parameter": true,
       "parameters": {
@@ -31,6 +33,11 @@
   "AABBTreeIntersection": {
     "SetUp": {
       "model_path": "./data/boolean_data/bunny25k.obj"
+    }
+  },
+  "BinaryTree": {
+    "SetUp": {
+      "filename": "./data/arrangements_data/318844.stl"
     }
   },
   "AdapOrthTree": {

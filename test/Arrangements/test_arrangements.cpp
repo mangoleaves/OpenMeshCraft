@@ -55,11 +55,11 @@ TEST_F(test_Arrangements, TestIfCrash)
 
 	auto start = OMC::Logger::elapse_reset();
 
-	Arrangements arrangements(/*verbose*/ config.get<bool>("verbose"));
+	Arrangements arrangements(config.get<bool>("verbose"));
 
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
-	arrangements.meshArrangements(false, true);
+	arrangements.meshArrangements(false, config.get<bool>("write"));
 
 	std::cout << "complex mesh arrangement uses "
 	          << OMC::Logger::elapsed(start).count() << " s\n";
@@ -94,6 +94,7 @@ TEST_F(test_Arrangements, TestDataSet)
 	boost::filesystem::directory_iterator endIter;
 
 	bool verbose = config.get<bool>("verbose");
+	bool num_vf  = config.get<bool>("num_vf");
 
 	bool set_parameter = config.get<bool>("set_parameter", false);
 
@@ -145,7 +146,7 @@ TEST_F(test_Arrangements, TestDataSet)
 
 			auto start = OMC::Logger::elapse_reset();
 
-			arrangements.meshArrangements(false, false);
+			arrangements.meshArrangements(false, num_vf);
 
 			double total_time = OMC::Logger::elapsed(start).count();
 			std::cout << total_time << " s\n";

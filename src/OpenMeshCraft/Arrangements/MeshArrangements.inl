@@ -224,9 +224,14 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	// (so, multiple bits in arr_in_labels(std::bitset) are possibly set to true)
 	removeDegenerateAndDuplicatedTriangles();
 
+	// After removing degenerate triangles, there are possibly isolated vertices.
+	// Remove them before arrangements pipeline if it is neccessary one day.
+	// But even if isolated vertices are not removed here, they will be removed
+	// when outputing explicit results. Because the unreferenced vertices (i.e.,
+	// isolated vertices) won't be output.
+
 	OMC_ARR_SAVE_ELAPSED(start_rdt, rdt_elapsed,
 	                     "Remove degenerate and duplicate triangles");
-
 	OMC_ARR_START_ELAPSE(start_tree);
 
 	// initialize tree from triangle soup (vertices and triangles)
@@ -251,6 +256,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
 
+	// build vertices map to store TPI (Triplet-Planes-Intersection points)
 	tree.clear_boxes();
 	tree.shape_refine();
 	tri_soup.buildVMap(&tree);
@@ -258,7 +264,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	// Triangulation.
 	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
 
-	// merge connected components after all done.
+	// clear unused data, collect vertices, triangles and labels.
 	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
@@ -570,10 +576,9 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 	tree.clear();
 
 	// initialize merged triangle soup and auxiliary structure
-	arr_out_verts.resize(arr_out_verts.size() + tri_soup.numVerts() -
-	                     tri_soup.numOrigVerts());
-	std::copy(tri_soup.vertices.begin(), tri_soup.vertices.end(),
-	          arr_out_verts.begin());
+	arr_out_verts.resize(tri_soup.numVerts());
+	std::copy(std::execution::par_unseq, tri_soup.vertices.begin(),
+	          tri_soup.vertices.end(), arr_out_verts.begin());
 
 	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 }
@@ -592,7 +597,6 @@ void MeshArrangements_Impl<Traits>::computeExplicitResult(
 		final_labels->resize(arr_out_tris.size() / 3);
 	}
 
-#if 0
 	// loop over triangles and fix vertex indices
 	size_t               num_vertices = 0;
 	std::vector<index_t> vertex_index(arr_out_verts.size(), InvalidIndex);
@@ -627,30 +631,6 @@ void MeshArrangements_Impl<Traits>::computeExplicitResult(
 		                  final_points[vertex_index[v_id]] =
 		                    iPoint(ep.x(), ep.y(), ep.z());
 	                  });
-#else
-	// loop over triangles and fix vertex indices.
-	// current arrangements algorithm guarantees that
-	// indices in arr_out_tris are compact and unique.
-	tbb::parallel_for(size_t(0), arr_out_tris.size() / 3,
-	                  [this, &final_tris, &final_labels](size_t t_id)
-	                  {
-		                  final_tris[t_id] =
-		                    iTri(arr_out_tris[t_id * 3], arr_out_tris[t_id * 3 + 1],
-		                         arr_out_tris[t_id * 3 + 2]);
-
-		                  if (final_labels)
-			                  (*final_labels)[t_id] = arr_out_labels.surface[t_id];
-	                  });
-	// loop over vertices.
-	final_points.resize(arr_out_verts.size());
-	tbb::parallel_for(index_t(0), arr_out_verts.size(),
-	                  [this, &final_points](index_t v_id)
-	                  {
-		                  const GPoint *gp   = arr_out_verts[v_id];
-		                  EPoint        ep   = ToEP()(*gp);
-		                  final_points[v_id] = iPoint(ep.x(), ep.y(), ep.z());
-	                  });
-#endif
 }
 
 /*****************************************************************************/

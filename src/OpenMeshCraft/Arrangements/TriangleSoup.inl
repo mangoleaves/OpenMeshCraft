@@ -509,6 +509,16 @@ Sign TriangleSoup<Traits>::triOrient(index_t t_id) const
 }
 
 template <typename Traits>
+std::pair<index_t, bool>
+TriangleSoup<Traits>::addVertexInSortedList(const GPoint         *pp,
+                                            std::atomic<index_t> *ip)
+{
+	auto [insert_ip, insert_res] =
+	  static_cast<AuxPointMap_Tree<Traits> *>(v_map.get())->insert(pp, ip);
+	return std::pair<index_t, bool>(insert_ip->load(), insert_res);
+}
+
+template <typename Traits>
 template <typename GetIndex>
 std::pair<index_t, bool> TriangleSoup<Traits>::addVertexInSortedList(
   const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx)
