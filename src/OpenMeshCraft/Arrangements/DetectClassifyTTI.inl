@@ -1944,9 +1944,31 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 	}
 	// otherwise find it or create a new point
 
+	// fix the vertex sequential of created implicit point
+	index_t min_eid, max_eid;
+	index_t min_min_vid, min_max_vid, max_min_vid, max_max_vid;
+	if (ea_id < eb_id)
+	{
+		min_eid     = ea_id;
+		min_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		min_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		max_eid     = eb_id;
+		max_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		max_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+	}
+	else
+	{
+		min_eid     = eb_id;
+		min_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		min_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		max_eid     = ea_id;
+		max_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+	}
+
 	IPoint_SSI *new_v = pnt_arena.emplace(CreateSSI()(
-	  ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]), ts.vert(hb.v_id[eb]),
-	  ts.vert(hb.v_id[(eb + 1) % 3]), intToPlane(hb.t_nmax)));
+	  ts.vert(min_min_vid), ts.vert(min_max_vid), ts.vert(max_min_vid),
+	  ts.vert(max_max_vid), intToPlane(hb.t_nmax)));
 
 	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
 	// index creation is delayed until point succeesfully is inserted.
@@ -1984,12 +2006,8 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 	{
 		static std::array<index_t, 12> _tri = {0, 1, 2, 0, 1, 3, 0, 2, 3, 1, 2, 3};
 
-		std::array<const NT *, 4> _pnts = {
-		  ts.vert(ha.v_id[ea]).data(),
-		  ts.vert(ha.v_id[(ea + 1) % 3]).data(),
-		  ts.vert(hb.v_id[eb]).data(),
-		  ts.vert(hb.v_id[(eb + 1) % 3]).data(),
-		};
+		std::array<const NT *, 4> _pnts = {ha.v[ea], ha.v[(ea + 1) % 3], hb.v[eb],
+		                                   hb.v[(eb + 1) % 3]};
 
 		for (size_t i = 0; i < 12; i += 3)
 		{
@@ -2004,16 +2022,39 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 		OMC_ASSERT(plane != -1, "segments can't be projected to 2D.");
 	}
 
+	// fix the vertex sequential of created implicit point
+	index_t ea_id = get_e_id(ha, ea);
+	index_t eb_id = get_e_id(hb, eb);
+	index_t min_eid, max_eid;
+	index_t min_min_vid, min_max_vid, max_min_vid, max_max_vid;
+	if (ea_id < eb_id)
+	{
+		min_eid     = ea_id;
+		min_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		min_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		max_eid     = eb_id;
+		max_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		max_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+	}
+	else
+	{
+		min_eid     = eb_id;
+		min_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		min_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
+		max_eid     = ea_id;
+		max_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+	}
+
 	IPoint_SSI *new_v = pnt_arena.emplace(
-	  CreateSSI()(ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]),
-	              ts.vert(hb.v_id[eb]), ts.vert(hb.v_id[(eb + 1) % 3]), plane));
+	  CreateSSI()(ts.vert(min_min_vid), ts.vert(min_max_vid),
+	              ts.vert(max_min_vid), ts.vert(max_max_vid), plane));
 
 	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
 	// index creation is delayed until point is succeesfully inserted.
 
 	// try to add the point
-	auto [added_vid, new_vertex_created] =
-	  add_SSI(get_e_id(ha, ea), get_e_id(hb, eb), new_v, new_idx);
+	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v, new_idx);
 
 	if (!new_vertex_created)
 	{
@@ -2037,9 +2078,13 @@ template <typename Traits>
 index_t DetectClassifyTTI<Traits>::add_edge_cross_tri(TTIHelper &ha, index_t ea,
                                                       TTIHelper &hb)
 {
+	// fix the vertex sequential of created implicit point
+	index_t e_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+	index_t e_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+
 	IPoint_LPI *new_v = pnt_arena.emplace(
-	  CreateLPI()(ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]),
-	              ts.vert(hb.v_id[0]), ts.vert(hb.v_id[1]), ts.vert(hb.v_id[2])));
+	  CreateLPI()(ts.vert(e_min_vid), ts.vert(e_max_vid), ts.vert(hb.v_id[0]),
+	              ts.vert(hb.v_id[1]), ts.vert(hb.v_id[2])));
 
 	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
 	// index creation is delayed until point is succeesfully inserted.

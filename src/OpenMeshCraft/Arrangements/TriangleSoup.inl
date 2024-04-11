@@ -49,15 +49,37 @@ struct TriangleSoup<Traits>::EdgeComparator
 
 	bool operator()(index_t lhs, index_t rhs) const
 	{
-		return LessThan3D().on(ts.vert(lhs), ts.vert(rhs), axis) == Sign::NEGATIVE;
+		return operator()(ts.vert(lhs), ts.vert(rhs));
 	}
 	bool operator()(index_t lhs, const GPoint &rhs) const
 	{
-		return LessThan3D().on(ts.vert(lhs), rhs, axis) == Sign::NEGATIVE;
+		return operator()(ts.vert(lhs), rhs);
 	}
 	bool operator()(const GPoint &lhs, index_t rhs) const
 	{
-		return LessThan3D().on(lhs, ts.vert(rhs), axis) == Sign::NEGATIVE;
+		return operator()(lhs, ts.vert(rhs));
+	}
+	bool operator()(const GPoint &lhs, const GPoint &rhs) const
+	{
+		if (!lhs.is_Explicit() && lhs.point_type() == rhs.point_type())
+		{ // lhs and rhs are both implicit points, compare topology first.
+			if (lhs.is_SSI())
+			{
+				const IPoint_SSI &_lhs = lhs.SSI(), &_rhs = rhs.SSI();
+				if (&_lhs.A() == &_rhs.A() && &_lhs.B() == &_rhs.B() &&
+				    &_lhs.P() == &_rhs.P() && &_lhs.Q() == &_rhs.Q())
+					return false;
+			}
+			else if (lhs.is_LPI())
+			{
+				const IPoint_LPI &_lhs = lhs.LPI(), &_rhs = rhs.LPI();
+				if (&_lhs.P() == &_rhs.P() && &_lhs.Q() == &_rhs.Q() &&
+				    &_lhs.R() == &_rhs.R() && &_lhs.S() == &_rhs.S() &&
+				    &_lhs.T() == &_rhs.T())
+					return false;
+			}
+		}
+		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
 
