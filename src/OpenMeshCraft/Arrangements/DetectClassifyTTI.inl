@@ -284,7 +284,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 #ifdef ARR_DC_FILTER_ORIENT3D
 	Sign eav0_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav0]);
 	Sign eav1_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav1]);
-	bool t_nmax_init = false;
+
+	bool t_nmax_init    = false;
 	bool v_wrt_seg_init = false;
 
 	if (eav0_wrt_tb == Sign::UNCERTAIN && eav1_wrt_tb == Sign::UNCERTAIN)
@@ -296,44 +297,16 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		t_nmax_init = true;
 		if (ha.t_nmax == hb.t_nmax)
 		{
-			ha.init_v_wrt_seg();
-			hb.init_v_wrt_seg();
 			v_wrt_seg_init = true;
-			Sign ori_ta    = OrientOn2D()(ha.v[0], ha.v[1], ha.v[2], ha.t_nmax);
-			Sign ori_tb    = OrientOn2D()(hb.v[0], hb.v[1], hb.v[2], hb.t_nmax);
-			// use four lines adajcent to shared vertex to separate two triangles
-			Sign eav0_wrt_line, eav1_wrt_line;
-			eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 1) % 3);
-			eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 1) % 3);
-			if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
-			    eav0_wrt_line != ori_tb)
-				return;
-			eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 2) % 3);
-			eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 2) % 3);
-			if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
-			    eav0_wrt_line != ori_tb)
-				return;
-			Sign ebv0_wrt_line, ebv1_wrt_line;
-			ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 1) % 3);
-			ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 1) % 3);
-			if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
-			    ebv0_wrt_line != ori_ta)
-				return;
-			ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 2) % 3);
-			ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 2) % 3);
-			if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
-			    ebv0_wrt_line != ori_ta)
-				return;
+			if (!fast_check_on2d_share_vertex(ha, ea, hb, eb))
+				return; // there is definitely no intersection
 		}
-		// fail to filter out, go back to original pipeline
-		eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
-		eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
 	}
-	else if (eav0_wrt_tb == Sign::UNCERTAIN)
+	// fail to filter out, go back to original pipeline
+	if (eav0_wrt_tb == Sign::UNCERTAIN)
 		eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
-	else if (eav1_wrt_tb == Sign::UNCERTAIN)
+	if (eav1_wrt_tb == Sign::UNCERTAIN)
 		eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
-		// go back to original pipeline
 #else
 	Sign eav0_wrt_tb = get_v_wrt_tri(ha, eav0, hb);
 	Sign eav1_wrt_tb = get_v_wrt_tri(ha, eav1, hb);
@@ -678,9 +651,41 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	index_t edge_id, vtx_id;
 
 	Sign orAB[3]; // orientation of edge of `ta` with respect to `tb`
+#ifdef ARR_DC_FILTER_ORIENT3D
+	orAB[0] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[0]);
+	orAB[1] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[1]);
+	orAB[2] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[2]);
+
+	bool t_nmax_init    = false;
+	bool v_wrt_seg_init = false;
+
+	if (orAB[0] == Sign::UNCERTAIN && orAB[1] == Sign::UNCERTAIN &&
+	    orAB[2] == Sign::UNCERTAIN)
+	{ // it is possible that two triangles are coplanar.
+		// we avoid expensive exact orient3d and filter out the no intersection case
+		// by orient2d.
+		t_nmax_init = true;
+		ha.t_nmax   = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+		hb.t_nmax   = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		if (ha.t_nmax == hb.t_nmax)
+		{
+			v_wrt_seg_init = true;
+			if (!fast_check_on2d_separate(ha, hb))
+				return; // there is definitely no intersection
+		}
+	}
+	// go back to original pipeline
+	if (orAB[0] == Sign::UNCERTAIN)
+		orAB[0] = get_v_wrt_tri(ha, 0, hb);
+	if (orAB[1] == Sign::UNCERTAIN)
+		orAB[1] = get_v_wrt_tri(ha, 1, hb);
+	if (orAB[2] == Sign::UNCERTAIN)
+		orAB[2] = get_v_wrt_tri(ha, 2, hb);
+#else
 	orAB[0] = get_v_wrt_tri(ha, 0, hb);
 	orAB[1] = get_v_wrt_tri(ha, 1, hb);
 	orAB[2] = get_v_wrt_tri(ha, 2, hb);
+#endif
 
 	if (_sameOrientation(orAB[0], orAB[1]) &&
 	    _sameOrientation(orAB[1], orAB[2]) && (orAB[0] != Sign::ZERO))
@@ -696,14 +701,27 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		// CASE: all edge of ta are coplanar to all edges of tb   (orAB: 0 0 0)
 
 		{ // initialize cache
+#ifdef ARR_DC_FILTER_ORIENT3D
+			if (!t_nmax_init)
+			{
+				hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+				ha.t_nmax = hb.t_nmax;
+			}
+			if (!v_wrt_seg_init)
+			{
+				ha.init_v_wrt_seg();
+				hb.init_v_wrt_seg();
+			}
+#else
 			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
 			ha.t_nmax = hb.t_nmax;
+			ha.init_v_wrt_seg();
+			hb.init_v_wrt_seg();
+#endif
 			ha.init_v_in_seg();
 			ha.init_v_in_tri();
-			ha.init_v_wrt_seg();
 			hb.init_v_in_seg();
 			hb.init_v_in_tri();
-			hb.init_v_wrt_seg();
 		}
 		// only coplanar intersection points (edge-edge)
 		CoplanarEEIList cec;    // short name of coplanar_edge_crosses;
@@ -734,15 +752,28 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	}
 
 	{ // initialize cache
-		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+#ifdef ARR_DC_FILTER_ORIENT3D
+		if (!t_nmax_init)
+		{
+			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		}
+		if (!v_wrt_seg_init)
+		{
+			ha.init_v_wrt_seg();
+			hb.init_v_wrt_seg();
+		}
+#else
 		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.init_v_wrt_seg();
+		hb.init_v_wrt_seg();
+#endif
 		ha.init_v_in_seg();
 		ha.init_v_in_tri();
-		ha.init_v_wrt_seg();
 		ha.init_seg_wrt_seg();
 		hb.init_v_in_seg();
 		hb.init_v_in_tri();
-		hb.init_v_wrt_seg();
 		hb.init_seg_wrt_seg();
 	}
 
@@ -1189,6 +1220,112 @@ size_t DetectClassifyTTI<Traits>::find_vtx_correspondence(TTIHelper &ha,
 	if (ha.v_id[2] == hb.v_id[2]) { ha.v_in_vtx[2] = 2; hb.v_in_vtx[2] = 2; count += 1; }
 	// clang-format on
 	return count;
+}
+
+/**
+ * @brief fast check if there is intersection on a 2d plane when two triangles
+ * share a common vertex.
+ * @param ha helper for triangle `ta`
+ * @param ea the opposite edge to the shared vertex in triangle `ta`
+ * @param hb helper for triangle `tb`
+ * @param eb the opposite edge to the shared vertex in triangle `tb`
+ * @return false if there is definitely no intersection.
+ */
+template <typename Traits>
+bool DetectClassifyTTI<Traits>::fast_check_on2d_share_vertex(TTIHelper &ha,
+                                                             index_t    ea,
+                                                             TTIHelper &hb,
+                                                             index_t    eb)
+{
+	index_t eav0 = ea, eav1 = (ea + 1) % 3; // two endpoints of ea
+	index_t ebv0 = eb, ebv1 = (eb + 1) % 3; // two endpoints of eb
+	ha.init_v_wrt_seg();
+	hb.init_v_wrt_seg();
+	Sign ori_ta = OrientOn2D()(ha.v[0], ha.v[1], ha.v[2], ha.t_nmax);
+	Sign ori_tb = OrientOn2D()(hb.v[0], hb.v[1], hb.v[2], hb.t_nmax);
+	// use four lines adajcent to shared vertex to separate two triangles
+	Sign eav0_wrt_line, eav1_wrt_line;
+	eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 1) % 3);
+	eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 1) % 3);
+	if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+	    eav0_wrt_line != ori_tb)
+		return false;
+	eav0_wrt_line = get_v_wrt_seg(ha, eav0, hb, (eb + 2) % 3);
+	eav1_wrt_line = get_v_wrt_seg(ha, eav1, hb, (eb + 2) % 3);
+	if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+	    eav0_wrt_line != ori_tb)
+		return false;
+	Sign ebv0_wrt_line, ebv1_wrt_line;
+	ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 1) % 3);
+	ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 1) % 3);
+	if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+	    ebv0_wrt_line != ori_ta)
+		return false;
+	ebv0_wrt_line = get_v_wrt_seg(hb, ebv0, ha, (ea + 2) % 3);
+	ebv1_wrt_line = get_v_wrt_seg(hb, ebv1, ha, (ea + 2) % 3);
+	if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+	    ebv0_wrt_line != ori_ta)
+		return false;
+
+	return true;
+}
+
+/**
+ * @brief fast check if there is intersection on a 2d plane when two triangles
+ * are separated.
+ * @param ha helper for triangle `ta`
+ * @param hb helper for triangle `tb`
+ * @return false if there is definitely no intersection.
+ */
+template <typename Traits>
+bool DetectClassifyTTI<Traits>::fast_check_on2d_separate(TTIHelper &ha,
+                                                         TTIHelper &hb)
+{
+	ha.init_v_wrt_seg();
+	hb.init_v_wrt_seg();
+	Sign ori_ta = OrientOn2D()(ha.v[0], ha.v[1], ha.v[2], ha.t_nmax);
+	Sign ori_tb = OrientOn2D()(hb.v[0], hb.v[1], hb.v[2], hb.t_nmax);
+	// use four lines adajcent to shared vertex to separate two triangles
+	Sign eav0_wrt_line, eav1_wrt_line, eav2_wrt_line;
+	eav0_wrt_line = get_v_wrt_seg(ha, /*vb*/ 0, hb, /*eb*/ 0);
+	eav1_wrt_line = get_v_wrt_seg(ha, /*vb*/ 1, hb, /*eb*/ 0);
+	eav2_wrt_line = get_v_wrt_seg(ha, /*vb*/ 2, hb, /*eb*/ 0);
+	if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+	    eav1_wrt_line == eav2_wrt_line && eav0_wrt_line != ori_tb)
+		return false;
+	eav0_wrt_line = get_v_wrt_seg(ha, /*vb*/ 0, hb, /*eb*/ 1);
+	eav1_wrt_line = get_v_wrt_seg(ha, /*vb*/ 1, hb, /*eb*/ 1);
+	eav2_wrt_line = get_v_wrt_seg(ha, /*vb*/ 2, hb, /*eb*/ 1);
+	if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+	    eav1_wrt_line == eav2_wrt_line && eav0_wrt_line != ori_tb)
+		return false;
+	eav0_wrt_line = get_v_wrt_seg(ha, /*vb*/ 0, hb, /*eb*/ 2);
+	eav1_wrt_line = get_v_wrt_seg(ha, /*vb*/ 1, hb, /*eb*/ 2);
+	eav2_wrt_line = get_v_wrt_seg(ha, /*vb*/ 2, hb, /*eb*/ 2);
+	if (eav0_wrt_line != Sign::ZERO && eav0_wrt_line == eav1_wrt_line &&
+	    eav1_wrt_line == eav2_wrt_line && eav0_wrt_line != ori_tb)
+		return false;
+	Sign ebv0_wrt_line, ebv1_wrt_line, ebv2_wrt_line;
+	ebv0_wrt_line = get_v_wrt_seg(hb, /*vb*/ 0, ha, /*eb*/ 0);
+	ebv1_wrt_line = get_v_wrt_seg(hb, /*vb*/ 1, ha, /*eb*/ 0);
+	ebv2_wrt_line = get_v_wrt_seg(hb, /*vb*/ 2, ha, /*eb*/ 0);
+	if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+	    ebv1_wrt_line == ebv2_wrt_line && ebv0_wrt_line != ori_ta)
+		return false;
+	ebv0_wrt_line = get_v_wrt_seg(hb, /*vb*/ 0, ha, /*eb*/ 1);
+	ebv1_wrt_line = get_v_wrt_seg(hb, /*vb*/ 1, ha, /*eb*/ 1);
+	ebv2_wrt_line = get_v_wrt_seg(hb, /*vb*/ 2, ha, /*eb*/ 1);
+	if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+	    ebv1_wrt_line == ebv2_wrt_line && ebv0_wrt_line != ori_ta)
+		return false;
+	ebv0_wrt_line = get_v_wrt_seg(hb, /*vb*/ 0, ha, /*eb*/ 2);
+	ebv1_wrt_line = get_v_wrt_seg(hb, /*vb*/ 1, ha, /*eb*/ 2);
+	ebv2_wrt_line = get_v_wrt_seg(hb, /*vb*/ 2, ha, /*eb*/ 2);
+	if (ebv0_wrt_line != Sign::ZERO && ebv0_wrt_line == ebv1_wrt_line &&
+	    ebv1_wrt_line == ebv2_wrt_line && ebv0_wrt_line != ori_ta)
+		return false;
+
+	return true;
 }
 
 /**

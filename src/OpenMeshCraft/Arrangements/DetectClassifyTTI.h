@@ -51,11 +51,11 @@ protected:
 	struct CoplanarEEI;
 	struct CreateIndex;
 
-#if 0	// OpenMeshCraft::InlinedVector, friendly for debug
+#if 0 // OpenMeshCraft::InlinedVector, friendly for debug
 	using IntersectionPoints = InlinedVector<index_t, 4>;
 	using IntersectionTypes  = InlinedVector<PointInSimplexType, 4>;
 	using CoplanarEEIList    = InlinedVector<CoplanarEEI, 4>;
-#else	// absl::InlinedVector, possibly faster?
+#else // absl::InlinedVector, possibly faster?
 	using IntersectionPoints = absl::InlinedVector<index_t, 4>;
 	using IntersectionTypes  = absl::InlinedVector<PointInSimplexType, 4>;
 	using CoplanarEEIList    = absl::InlinedVector<CoplanarEEI, 4>;
@@ -80,6 +80,11 @@ protected:
 	                          index_t eb);
 
 	size_t find_vtx_correspondence(TTIHelper &ha, TTIHelper &hb);
+
+	bool fast_check_on2d_share_vertex(TTIHelper &ha, index_t ea, TTIHelper &hb,
+	                                  index_t eb);
+
+	bool fast_check_on2d_separate(TTIHelper &ha, TTIHelper &hb);
 
 	bool seg_seg_do_intersect(TTIHelper &ha, index_t ea, TTIHelper &hb,
 	                          index_t eb, Sign eb0_wrt_ea, Sign eb1_wrt_ea);
