@@ -78,8 +78,6 @@ protected:
 
 	void propagateCoplanarTrianglesIntersections();
 
-	bool pointInsideTriangle(index_t p_id, index_t t_id);
-
 protected:
 	TriSoup               &ts;
 	std::vector<PntArena> &pnt_arenas;

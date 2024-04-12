@@ -210,7 +210,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 1);
 
 	// now `ta` and `tb` are coplanar
-	ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+	ha.t_nmax = ts.triPlane(ha.t_id);
 	hb.t_nmax = ha.t_nmax;
 
 	// check orientation of vertices oppa and oppb with respect to edge ea.
@@ -292,8 +292,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	{ // it is possible that two triangles are coplanar.
 		// we avoid expensive exact orient3d and filter out the no intersection case
 		// by orient2d.
-		ha.t_nmax   = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-		hb.t_nmax   = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.t_nmax   = ts.triPlane(ha.t_id);
+		hb.t_nmax   = ts.triPlane(hb.t_id);
 		t_nmax_init = true;
 		if (ha.t_nmax == hb.t_nmax)
 		{
@@ -323,7 +323,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 #ifdef ARR_DC_FILTER_ORIENT3D
 			if (!t_nmax_init)
 			{
-				ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+				ha.t_nmax = ts.triPlane(ha.t_id);
 				hb.t_nmax = ha.t_nmax;
 			}
 			if (!v_wrt_seg_init)
@@ -332,7 +332,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 				hb.init_v_wrt_seg();
 			}
 #else
-			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
+			ha.t_nmax = ts.triPlane(ha.t_id);
 			hb.t_nmax = ha.t_nmax;
 			ha.init_v_wrt_seg();
 			hb.init_v_wrt_seg();
@@ -409,8 +409,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 #ifdef ARR_DC_FILTER_ORIENT3D
 		if (!t_nmax_init)
 		{
-			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+			ha.t_nmax = ts.triPlane(ha.t_id);
+			hb.t_nmax = ts.triPlane(hb.t_id);
 		}
 		if (!v_wrt_seg_init)
 		{
@@ -418,8 +418,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			hb.init_v_wrt_seg();
 		}
 #else
-		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.t_nmax = ts.triPlane(ha.t_id);
+		hb.t_nmax = ts.triPlane(hb.t_id);
 		ha.init_v_wrt_seg();
 		hb.init_v_wrt_seg();
 #endif
@@ -665,8 +665,8 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		// we avoid expensive exact orient3d and filter out the no intersection case
 		// by orient2d.
 		t_nmax_init = true;
-		ha.t_nmax   = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-		hb.t_nmax   = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.t_nmax   = ts.triPlane(ha.t_id);
+		hb.t_nmax   = ts.triPlane(hb.t_id);
 		if (ha.t_nmax == hb.t_nmax)
 		{
 			v_wrt_seg_init = true;
@@ -704,8 +704,8 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 #ifdef ARR_DC_FILTER_ORIENT3D
 			if (!t_nmax_init)
 			{
-				hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
-				ha.t_nmax = hb.t_nmax;
+				ha.t_nmax = ts.triPlane(ha.t_id);
+				hb.t_nmax = ha.t_nmax;
 			}
 			if (!v_wrt_seg_init)
 			{
@@ -713,8 +713,8 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 				hb.init_v_wrt_seg();
 			}
 #else
-			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
-			ha.t_nmax = hb.t_nmax;
+			ha.t_nmax = ts.triPlane(ha.t_id);
+			hb.t_nmax = ha.t_nmax;
 			ha.init_v_wrt_seg();
 			hb.init_v_wrt_seg();
 #endif
@@ -755,8 +755,8 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 #ifdef ARR_DC_FILTER_ORIENT3D
 		if (!t_nmax_init)
 		{
-			ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-			hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+			ha.t_nmax = ts.triPlane(ha.t_id);
+			hb.t_nmax = ts.triPlane(hb.t_id);
 		}
 		if (!v_wrt_seg_init)
 		{
@@ -764,8 +764,8 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 			hb.init_v_wrt_seg();
 		}
 #else
-		ha.t_nmax = MaxCompInTriNormal()(ha.v[0], ha.v[1], ha.v[2]);
-		hb.t_nmax = MaxCompInTriNormal()(hb.v[0], hb.v[1], hb.v[2]);
+		ha.t_nmax = ts.triPlane(ha.t_id);
+		hb.t_nmax = ts.triPlane(hb.t_id);
 		ha.init_v_wrt_seg();
 		hb.init_v_wrt_seg();
 #endif

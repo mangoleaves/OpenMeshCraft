@@ -24,6 +24,9 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
   , stats(_stats)
   , verbose(_verbose)
 {
+	// calculate orthogonal planes
+	ts.calcOrthogonalPlane();
+
 	// check Triangle-Triangle-Intersection
 	std::vector<index_t> leaf_nodes = tree.all_leaf_nodes();
 	std::vector<index_t> small_nodes, large_nodes;
@@ -42,7 +45,7 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	ts.fixColinearEdgesIntersections();
 	ts.fixAllIndices();
 	// calculate orthogonal planes and orientations
-	ts.calcPlaneAndOrient();
+	ts.calcTriangleOrient();
 
 	// propagate intersection points from edges to coplanar triangles
 	propagateCoplanarTrianglesIntersections();
@@ -277,8 +280,6 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 					if (p_id == v0_id || p_id == v1_id) // step from inside to outside
 						break;                            // end traversal current edge.
 					// else, current p_id is inside triangle
-					OMC_EXPENSIVE_ASSERT(pointInsideTriangle(p_id, t_id),
-					                     "point is not in triangle");
 					// check if point is already in t2p
 					if (std::find(t2p.begin(), t2p.end(), p_id) == t2p.end())
 						// if not, add it
@@ -294,42 +295,6 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
 	for (size_t t_id = 0; t_id < ts.numTris(); t_id++)
 		propagate_copl_edge(t_id);
 #endif
-}
-
-template <typename Traits>
-bool DetectClassifyTTIs<Traits>::pointInsideTriangle(index_t p_id, index_t t_id)
-{ // TODO if there is no bug, remove this.
-	const GPoint &p   = ts.vert(p_id);
-	const GPoint &tv0 = ts.triVert(t_id, 0);
-	const GPoint &tv1 = ts.triVert(t_id, 1);
-	const GPoint &tv2 = ts.triVert(t_id, 2);
-
-	Sign ori = ts.triOrient(t_id);
-
-	// noexcept
-	switch (ts.triPlane(t_id))
-	{
-	case XY:
-	{
-		return ((OrientOn2D().on_xy(tv0, tv1, p) == ori &&
-		         OrientOn2D().on_xy(tv1, tv2, p) == ori &&
-		         OrientOn2D().on_xy(tv2, tv0, p) == ori));
-	}
-
-	case YZ:
-	{
-		return ((OrientOn2D().on_yz(tv0, tv1, p) == ori &&
-		         OrientOn2D().on_yz(tv1, tv2, p) == ori &&
-		         OrientOn2D().on_yz(tv2, tv0, p) == ori));
-	}
-
-	default:
-	{
-		return ((OrientOn2D().on_zx(tv0, tv1, p) == ori &&
-		         OrientOn2D().on_zx(tv1, tv2, p) == ori &&
-		         OrientOn2D().on_zx(tv2, tv0, p) == ori));
-	}
-	}
 }
 
 } // namespace OMC

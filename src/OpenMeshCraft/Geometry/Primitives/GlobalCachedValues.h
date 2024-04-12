@@ -201,9 +201,9 @@ public:
 		exact_lambda_x    = nullptr;
 		exact_lambda_y    = nullptr;
 		exact_lambda_z    = nullptr;
-		exact_beta_x    = nullptr;
-		exact_beta_y    = nullptr;
-		exact_beta_z    = nullptr;
+		exact_beta_x      = nullptr;
+		exact_beta_y      = nullptr;
+		exact_beta_z      = nullptr;
 		exact_denominator = nullptr;
 
 		expansion_lambda_x     = nullptr;
@@ -270,9 +270,6 @@ public:
 			;
 		m_maps.clear();
 		m_maps.resize(thread_num);
-		m_MRA.clear();
-		m_MRA.resize(thread_num);
-		std::fill(m_MRA.begin(), m_MRA.end(), KVP(nullptr, nullptr));
 		spin_lock.clear(std::memory_order_release);
 	}
 
@@ -282,12 +279,7 @@ public:
 		OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
 		                     "thread id {} excceed maps size {}", thread_id,
 		                     m_maps.size());
-		// first, try finding in most recently accessed cached calue
-		if (point_ptr == m_MRA[thread_id].first)
-			return *m_MRA[thread_id].second;
-		// then finding in map
 		OnePointCachedValues &value = m_maps[thread_id][point_ptr];
-		m_MRA[thread_id]            = KVP(point_ptr, &value);
 		return value;
 	}
 
@@ -300,8 +292,6 @@ public:
 			                     "thread id {} excceed maps size {}", thread_id,
 			                     m_maps.size());
 			m_maps[thread_id].erase(point_ptr);
-			if (point_ptr == m_MRA[thread_id].first)
-				m_MRA[thread_id] = KVP(nullptr, nullptr);
 		}
 	}
 
@@ -314,7 +304,6 @@ public:
 			                     "thread id {} excceed maps size {}", thread_id,
 			                     m_maps.size());
 			m_maps[thread_id].clear();
-			m_MRA[thread_id] = KVP(nullptr, nullptr);
 		}
 	}
 
@@ -334,7 +323,6 @@ public:
 			;
 		m_enabled = false;
 		m_maps.clear();
-		m_MRA.clear();
 		spin_lock.clear(std::memory_order_release);
 	}
 
@@ -343,12 +331,6 @@ public:
 protected:
 	/// one map per thread, map generic point's pointer to cached value
 	std::deque<PointsCachedValuesMap> m_maps;
-
-	/// key value pair in map
-	using KVP = std::pair<void *, OnePointCachedValues *>;
-
-	/// [M]ost [R]ecently [A]ccessed cached value per thread
-	std::deque<KVP> m_MRA;
 
 	bool m_enabled = false;
 

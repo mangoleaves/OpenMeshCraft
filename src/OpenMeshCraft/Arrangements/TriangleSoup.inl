@@ -799,12 +799,29 @@ void TriangleSoup<Traits>::addEndPointsToE2P()
 }
 
 template <typename Traits>
-void TriangleSoup<Traits>::calcPlaneAndOrient()
+void TriangleSoup<Traits>::calcOrthogonalPlane()
 {
 	tri_plane.resize(numOrigTris(), intToPlane(-1));
+
+	auto calc_plane = [this](index_t t_id)
+	{
+		index_t v0_id = triVertID(t_id, 0);
+		index_t v1_id = triVertID(t_id, 1);
+		index_t v2_id = triVertID(t_id, 2);
+
+		tri_plane[t_id] = intToPlane(
+		  MaxCompInTriNormal()(vertPtr(v0_id), vertPtr(v1_id), vertPtr(v2_id)));
+	};
+
+	tbb::parallel_for(size_t(0), numOrigTris(), calc_plane);
+}
+
+template <typename Traits>
+void TriangleSoup<Traits>::calcTriangleOrient()
+{
 	tri_orient.resize(numOrigTris(), Sign::UNCERTAIN);
 
-	auto calc_plane_and_orient = [this](index_t t_id)
+	auto calc_orient = [this](index_t t_id)
 	{
 		if (triangleHasIntersections(t_id))
 		{
@@ -812,14 +829,12 @@ void TriangleSoup<Traits>::calcPlaneAndOrient()
 			index_t v1_id = triVertID(t_id, 1);
 			index_t v2_id = triVertID(t_id, 2);
 
-			tri_plane[t_id] = intToPlane(
-			  MaxCompInTriNormal()(vertPtr(v0_id), vertPtr(v1_id), vertPtr(v2_id)));
 			tri_orient[t_id] = OrientOn2D()(vertPtr(v0_id), vertPtr(v1_id),
 			                                vertPtr(v2_id), tri_plane[t_id]);
 		}
 	};
 
-	tbb::parallel_for(size_t(0), numOrigTris(), calc_plane_and_orient);
+	tbb::parallel_for(size_t(0), numOrigTris(), calc_orient);
 }
 
 } // namespace OMC

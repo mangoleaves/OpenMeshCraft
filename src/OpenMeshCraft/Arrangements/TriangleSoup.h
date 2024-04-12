@@ -293,7 +293,9 @@ public: /* Modify *********************************************************/
 
 	void addEndPointsToE2P();
 
-	void calcPlaneAndOrient();
+	void calcOrthogonalPlane();
+
+	void calcTriangleOrient();
 };
 
 } // namespace OMC
