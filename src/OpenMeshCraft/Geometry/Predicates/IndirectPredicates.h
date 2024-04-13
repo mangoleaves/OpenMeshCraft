@@ -416,6 +416,17 @@ public:
 };
 
 TEMPLATE_DECL
+class LongestAxis_Indirect
+{
+public:
+	using VecT   = Vec3T<FT>;
+	using PointT = GenericPoint3T<IT, ET>;
+
+public:
+	int operator()(const PointT &a, const PointT &b);
+};
+
+TEMPLATE_DECL
 class InSphere_Indirect
 {
 public:

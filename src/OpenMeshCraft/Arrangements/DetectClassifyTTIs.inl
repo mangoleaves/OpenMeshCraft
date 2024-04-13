@@ -24,6 +24,8 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
   , stats(_stats)
   , verbose(_verbose)
 {
+	/* Detect and classify Triangle-Triangle-Intersection */
+
 	// calculate orthogonal planes
 	ts.calcOrthogonalPlane();
 
@@ -37,6 +39,8 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	parallelOnLargeNodes(large_nodes);
 	GPoint::disable_global_cached_values();
 
+	/* Post fix of Triangle-Triangle-Intersection */
+
 	// add end points to all ts.edge2pts
 	ts.addEndPointsToE2P();
 	// remove duplicates during parallel execution
@@ -47,7 +51,8 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	// calculate orthogonal planes and orientations
 	ts.calcTriangleOrient();
 
-	// propagate intersection points from edges to coplanar triangles
+	/* propagate intersection points from edges to coplanar triangles */
+
 	propagateCoplanarTrianglesIntersections();
 }
 

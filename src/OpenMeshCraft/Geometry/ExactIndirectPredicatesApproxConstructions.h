@@ -161,6 +161,7 @@ public:
 	using InCircle          = InCircle_Indirect<FT, IT, ET>;
 	using CollinearPoints2D = CollinearPoints2D_Indirect<FT, IT, ET>;
 
+	using LongestAxis        = LongestAxis_Indirect<FT, IT, ET>;
 	using MaxCompInTriNormal = MaxComponentInTriangleNormal<FT, IT, ET>;
 
 	using Orient3D          = Orient3D_Indirect<FT, IT, ET>;

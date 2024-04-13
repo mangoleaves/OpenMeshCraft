@@ -89,9 +89,15 @@ public:
 		}
 		else
 		{
+#if defined(INDIRECT_PREDICATES)
 			IT lx, ly, lz, d;
 			gp.getIntervalLambda(lx, ly, lz, d);
 			IT x = lx / d, y = ly / d, z = lz / d;
+#else
+			IT lx, ly, lz, d, bx, by, bz;
+			gp.getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+			IT x = lx / d + bx, y = ly / d + by, z = lz / d + bz;
+#endif
 			return EP(x.inf(), y.inf(), z.inf());
 		}
 	}
@@ -104,9 +110,15 @@ public:
 		}
 		else
 		{
+#if defined(INDIRECT_PREDICATES)
 			IT lx, ly, lz, d;
 			gp.getIntervalLambda(lx, ly, lz, d);
 			IT x = lx / d, y = ly / d, z = lz / d;
+#else
+			IT lx, ly, lz, d, bx, by, bz;
+			gp.getIntervalLambda(lx, ly, lz, d, bx, by, bz);
+			IT x = lx / d + bx, y = ly / d + by, z = lz / d + bz;
+#endif
 			return EP(x.sup(), y.sup(), z.sup());
 		}
 	}

@@ -72,6 +72,12 @@ public: /* Types **************************************************************/
 	using Edge2PntsSet =
 	  boost::container::flat_set<index_t, EdgeComparator, std::vector<index_t>>;
 
+	/* ----- seg2pts related structures ----- */
+
+	struct SegComparator;
+	using Seg2PntsSet =
+	  boost::container::flat_set<index_t, SegComparator, std::vector<index_t>>;
+
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
 
@@ -174,7 +180,7 @@ protected:
 
 	// store intersection points on edge
 	concurrent_vector<Edge2PntsSet>         edge2pts;
-	// mutexes for edge2pts (must be tbb::concurrent_vector)
+	// mutexes for edge2pts (NOTE: must be tbb::concurrent_vector)
 	tbb::concurrent_vector<tbb::spin_mutex> edge2pts_mutex;
 
 	// all unique constarined segments
@@ -190,8 +196,10 @@ protected:
 	// reverse map contrained segments to triangles on where they locate
 	std::vector<concurrent_vector<index_t>> seg2tris;
 
-	// axis-aligned bounding boxes for constrained segments
-	std::vector<Bbox> seg_boxes;
+	// points stored and sorted on segments
+	std::vector<Seg2PntsSet>                seg2pts;
+	// mutexes for seg2pts
+	tbb::concurrent_vector<tbb::spin_mutex> seg2pts_mutex;
 
 	/// orthogonal plane of a triangle
 	/// (only the triangles with intersections will be calculated)

@@ -789,6 +789,612 @@ inline int maxComponentInTriangleNormal(double ov1x, double ov1y, double ov1z,
 	                                              ov2z, ov3x, ov3y, ov3z);
 }
 
+template <typename IT, typename ET>
+int longestAxis_IE_filter(const GenericPoint3T<IT, ET> &p1, double bx,
+                          double by, double bz, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var))
+		return -1;
+
+	double tx0 = b1x - bx;
+	double tx1 = tx0 * d1;
+	double kx  = tx1 + l1x;
+
+	double ty0 = b1y - by;
+	double ty1 = ty0 * d1;
+	double ky  = ty1 + l1y;
+
+	double tz0 = b1z - bz;
+	double tz1 = tz0 * d1;
+	double kz  = tz1 + l1z;
+
+	int    dim = 0;
+	double k   = fabs(kx);
+	if (fabs(ky) > k)
+	{
+		dim = 1;
+		k   = fabs(ky);
+	}
+	if (fabs(kz) > k)
+	{
+		dim = 2;
+		k   = fabs(kz);
+	}
+
+	if (dim == 0)
+		max_var = std::max(fabs(tx0), max_var);
+	else if (dim == 1)
+		max_var = std::max(fabs(ty0), max_var);
+	else
+		max_var = std::max(fabs(tz0), max_var);
+
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::S:
+	{
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 3.108624468950439e-15;
+	}
+	break;
+	case PntArr3::L:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 1.2879996548476053e-14;
+	}
+	break;
+	case PntArr3::T:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.680700271819666e-13;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(k, epsilon) != Sign::UNCERTAIN ? dim : -1;
+}
+
+template <typename IT, typename ET>
+int longestAxis_IE_interval(const GenericPoint3T<IT, ET> &p1, IT bx, IT by,
+                            IT bz)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z))
+		return -1;
+
+	typename IT::Protector P;
+
+	IT tx0 = b1x - bx;
+	IT tx1 = tx0 * d1;
+	IT kx  = tx1 + l1x;
+
+	IT ty0 = b1y - by;
+	IT ty1 = ty0 * d1;
+	IT ky  = ty1 + l1y;
+
+	IT tz0 = b1z - bz;
+	IT tz1 = tz0 * d1;
+	IT kz  = tz1 + l1z;
+
+	int    dim = -1;
+	double k   = 0.;
+	if (kx.is_sign_reliable())
+	{
+		k   = fabs(kx.inf() + kx.sup());
+		dim = 0;
+	}
+	if (ky.is_sign_reliable())
+	{
+		k   = std::max(k, fabs(ky.inf() + ky.sup()));
+		dim = 1;
+	}
+	if (kz.is_sign_reliable())
+	{
+		k   = std::max(k, fabs(kz.inf() + kz.sup()));
+		dim = 2;
+	}
+
+	return dim;
+}
+
+template <typename IT, typename ET>
+Sign longestAxis_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx, ET by, ET bz)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+
+	ET tx0 = b1x - bx;
+	ET tx1 = tx0 * d1;
+	ET kx  = tx1 + l1x;
+
+	ET ty0 = b1y - by;
+	ET ty1 = ty0 * d1;
+	ET ky  = ty1 + l1y;
+
+	ET tz0 = b1z - bz;
+	ET tz1 = tz0 * d1;
+	ET kz  = tz1 + l1z;
+
+	if (OMC::abs(ky) > OMC::abs(kx))
+		return OMC::abs(kz) > ky ? 2 : 1;
+	else
+		return OMC::abs(kz) > kx ? 2 : 0;
+}
+
+template <typename IT, typename ET>
+Sign longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
+                              double by, double bz)
+{
+#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	double diff_kx, diff_ky, diff_kz;
+	if ((d1[d1_len - 1] != 0))
+	{
+		expansionObject o;
+		// x
+		double          t0[2];
+		o.two_Diff(b1x, bx, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double k_p[128], *k = k_p;
+		int    k_len = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1x_len, l1x, &k, 128);
+		diff_kx      = fabs(k[k_len - 1]);
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		// y
+		o.two_Diff(b1y, by, t0);
+		t1      = t1_p;
+		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		k       = k_p;
+		k_len   = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1y_len, l1y, &k, 128);
+		diff_ky = fabs(k[k_len - 1]);
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		// z
+		o.two_Diff(b1z, bz, t0);
+		t1      = t1_p;
+		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		k       = k_p;
+		k_len   = o.Gen_Sum_With_PreAlloc(t1_len, t1, l1z_len, l1z, &k, 128);
+		diff_kz = fabs(k[k_len - 1]);
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+	}
+
+#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return longestAxis_IE_exact<IT, ET>(p1, bx, by, bz);
+#endif
+
+	if (diff_ky > diff_kx)
+		return diff_kz > diff_ky ? 2 : 1;
+	else
+		return diff_kz > diff_kx ? 2 : 0;
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+int longestAxis_IE(const GenericPoint3T<IT, ET> &a,
+                   const GenericPoint3T<IT, ET> &b, PntArr3 arr)
+{
+	int ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = longestAxis_IE_filter(a, b.x(), b.y(), b.z(), arr);
+		if (ret >= 0)
+			return ret;
+	}
+	ret = longestAxis_IE_interval(a, b.x(), b.y(), b.z());
+	if (ret >= 0)
+		return ret;
+	return longestAxis_IE_expansion(a, b.x(), b.y(), b.z());
+}
+
+template <typename IT, typename ET>
+int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
+{
+	double l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z,
+	  max_var = 0;
+	if (!p1.getFilteredLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z, max_var) ||
+	    !p2.getFilteredLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z, max_var))
+		return -1;
+
+	double tx0 = b1x - b2x;
+	double tx1 = tx0 * d1;
+	double tx2 = tx1 * d2;
+	double tx3 = l1x * d2;
+	double tx4 = l2x * d1;
+	double tx5 = tx2 + tx3;
+	double kx  = tx5 - tx4;
+
+	double ty0 = b1y - b2y;
+	double ty1 = ty0 * d1;
+	double ty2 = ty1 * d2;
+	double ty3 = l1y * d2;
+	double ty4 = l2y * d1;
+	double ty5 = ty2 + ty3;
+	double ky  = ty5 - ty4;
+
+	double tz0 = b1z - b2z;
+	double tz1 = tz0 * d1;
+	double tz2 = tz1 * d2;
+	double tz3 = l1z * d2;
+	double tz4 = l2z * d1;
+	double tz5 = tz2 + tz3;
+	double kz  = tz5 - tz4;
+
+	int    dim = 0;
+	double k   = fabs(kx);
+	if (fabs(ky) > k)
+	{
+		dim = 1;
+		k   = fabs(ky);
+	}
+	if (fabs(kz) > k)
+	{
+		dim = 2;
+		k   = fabs(kz);
+	}
+
+	if (dim == 0)
+		max_var = std::max(fabs(tx0), max_var);
+	else if (dim == 1)
+		max_var = std::max(fabs(ty0), max_var);
+	else
+		max_var = std::max(fabs(tz0), max_var);
+
+	double epsilon = max_var;
+	switch (arr)
+	{
+	case PntArr3::SS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6431300764452333e-14;
+	}
+	break;
+	case PntArr3::SL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 6.084585960075558e-14;
+	}
+	break;
+	case PntArr3::ST:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.6022738691390292e-12;
+	}
+	break;
+	case PntArr3::LL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.20746164403263e-13;
+	}
+	break;
+	case PntArr3::LT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.27253154330999e-12;
+	}
+	break;
+	case PntArr3::TT:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.0712852827055069e-10;
+	}
+	break;
+	default:
+		OMC_EXIT("Unsopported points arrangement.");
+	}
+
+	return filter_sign(kx, epsilon) != Sign::UNCERTAIN ? dim : -1;
+}
+
+template <typename IT, typename ET>
+Sign longestAxis_II_interval(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2)
+{
+	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
+	    !p2.getIntervalLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z))
+		return -1;
+
+	typename IT::Protector P;
+
+	IT tx0 = b1x - b2x;
+	IT tx1 = tx0 * d1;
+	IT tx2 = tx1 * d2;
+	IT tx3 = l1x * d2;
+	IT tx4 = l2x * d1;
+	IT tx5 = tx2 + tx3;
+	IT kx  = tx5 - tx4;
+
+	IT ty0 = b1y - b2y;
+	IT ty1 = ty0 * d1;
+	IT ty2 = ty1 * d2;
+	IT ty3 = l1y * d2;
+	IT ty4 = l2y * d1;
+	IT ty5 = ty2 + ty3;
+	IT ky  = ty5 - ty4;
+
+	IT tz0 = b1z - b2z;
+	IT tz1 = tz0 * d1;
+	IT tz2 = tz1 * d2;
+	IT tz3 = l1z * d2;
+	IT tz4 = l2z * d1;
+	IT tz5 = tz2 + tz3;
+	IT kz  = tz5 - tz4;
+
+	int    dim = -1;
+	double k   = 0.;
+	if (kx.is_sign_reliable())
+	{
+		k   = fabs(kx.inf() + kx.sup());
+		dim = 0;
+	}
+	if (ky.is_sign_reliable())
+	{
+		k   = std::max(k, fabs(ky.inf() + ky.sup()));
+		dim = 1;
+	}
+	if (kz.is_sign_reliable())
+	{
+		k   = std::max(k, fabs(kz.inf() + kz.sup()));
+		dim = 2;
+	}
+
+	return dim;
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_exact(const GenericPoint3T<IT, ET> &p1,
+                          const GenericPoint3T<IT, ET> &p2)
+{
+	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
+	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
+	p2.getExactLambda(l2x, l2y, l2z, d2, b2x, b2y, b2z);
+
+	ET tx0 = b1x - b2x;
+	ET tx1 = tx0 * d1;
+	ET tx2 = tx1 * d2;
+	ET tx3 = l1x * d2;
+	ET tx4 = l2x * d1;
+	ET tx5 = tx2 + tx3;
+	ET kx  = tx5 - tx4;
+
+	ET ty0 = b1y - b2y;
+	ET ty1 = ty0 * d1;
+	ET ty2 = ty1 * d2;
+	ET ty3 = l1y * d2;
+	ET ty4 = l2y * d1;
+	ET ty5 = ty2 + ty3;
+	ET ky  = ty5 - ty4;
+
+	ET tz0 = b1z - b2z;
+	ET tz1 = tz0 * d1;
+	ET tz2 = tz1 * d2;
+	ET tz3 = l1z * d2;
+	ET tz4 = l2z * d1;
+	ET tz5 = tz2 + tz3;
+	ET kz  = tz5 - tz4;
+
+	if (OMC::abs(ky) > OMC::abs(kx))
+		return OMC::abs(kz) > ky ? 2 : 1;
+	else
+		return OMC::abs(kz) > kx ? 2 : 0;
+}
+
+template <typename IT, typename ET>
+Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
+                              const GenericPoint3T<IT, ET> &p2)
+{
+#ifdef CHECK_FOR_XYZERFLOWS
+	feclearexcept(FE_ALL_EXCEPT);
+#endif
+	double l1x_p[128], *l1x = l1x_p, l1y_p[128], *l1y = l1y_p, l1z_p[128],
+	                   *l1z = l1z_p, d1_p[128], *d1 = d1_p, b1x, b1y, b1z,
+	                   l2x_p[128], *l2x = l2x_p, l2y_p[128], *l2y = l2y_p,
+	                   l2z_p[128], *l2z = l2z_p, d2_p[128], *d2 = d2_p, b2x, b2y,
+	                   b2z;
+	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128, l2x_len = 128,
+	    l2y_len = 128, l2z_len = 128, d2_len = 128;
+	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
+	                      d1_len, b1x, b1y, b1z);
+	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
+	                      d2_len, b2x, b2y, b2z);
+	double diff_kx, diff_ky, diff_kz;
+	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
+	{
+		expansionObject o;
+		// x
+		double          t0[2];
+		o.two_Diff(b1x, b2x, t0);
+		double t1_p[128], *t1 = t1_p;
+		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		double t2_p[128], *t2 = t2_p;
+		int t2_len = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		double t3_p[128], *t3 = t3_p;
+		int    t3_len =
+		  o.Gen_Product_With_PreAlloc(l1x_len, l1x, d2_len, d2, &t3, 128);
+		double t4_p[128], *t4 = t4_p;
+		int    t4_len =
+		  o.Gen_Product_With_PreAlloc(l2x_len, l2x, d1_len, d1, &t4, 128);
+		double t5_p[128], *t5 = t5_p;
+		int    t5_len = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		double k_p[128], *k = k_p;
+		int    k_len = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
+		diff_kx      = k[k_len - 1];
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		// y
+		o.two_Diff(b1y, b2y, t0);
+		t1      = t1_p;
+		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		t2      = t2_p;
+		t2_len  = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		t3      = t3_p;
+		t3_len  = o.Gen_Product_With_PreAlloc(l1y_len, l1y, d2_len, d2, &t3, 128);
+		t4      = t4_p;
+		t4_len  = o.Gen_Product_With_PreAlloc(l2y_len, l2y, d1_len, d1, &t4, 128);
+		t5      = t5_p;
+		t5_len  = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		k       = k_p;
+		k_len   = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
+		diff_ky = k[k_len - 1];
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+		// z
+		o.two_Diff(b1z, b2z, t0);
+		t1      = t1_p;
+		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
+		t2      = t2_p;
+		t2_len  = o.Gen_Product_With_PreAlloc(t1_len, t1, d2_len, d2, &t2, 128);
+		t3      = t3_p;
+		t3_len  = o.Gen_Product_With_PreAlloc(l1z_len, l1z, d2_len, d2, &t3, 128);
+		t4      = t4_p;
+		t4_len  = o.Gen_Product_With_PreAlloc(l2z_len, l2z, d1_len, d1, &t4, 128);
+		t5      = t5_p;
+		t5_len  = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
+		k       = k_p;
+		k_len   = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
+		diff_kz = k[k_len - 1];
+		if (k_p != k)
+			FreeDoubles(k);
+		if (t5_p != t5)
+			FreeDoubles(t5);
+		if (t4_p != t4)
+			FreeDoubles(t4);
+		if (t3_p != t3)
+			FreeDoubles(t3);
+		if (t2_p != t2)
+			FreeDoubles(t2);
+		if (t1_p != t1)
+			FreeDoubles(t1);
+	}
+
+	if (!GenericPoint3T<IT, ET>::global_cached_values_enabled())
+	{
+		if (l1x_p != l1x)
+			FreeDoubles(l1x);
+		if (l1y_p != l1y)
+			FreeDoubles(l1y);
+		if (l1z_p != l1z)
+			FreeDoubles(l1z);
+		if (d1_p != d1)
+			FreeDoubles(d1);
+		if (l2x_p != l2x)
+			FreeDoubles(l2x);
+		if (l2y_p != l2y)
+			FreeDoubles(l2y);
+		if (l2z_p != l2z)
+			FreeDoubles(l2z);
+		if (d2_p != d2)
+			FreeDoubles(d2);
+	}
+
+#ifdef CHECK_FOR_XYZERFLOWS
+	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
+		return longestAxis_II_exact<IT, ET>(p1, p2);
+#endif
+
+	if (diff_ky > diff_kx)
+		return diff_kz > diff_ky ? 2 : 1;
+	else
+		return diff_kz > diff_kx ? 2 : 0;
+}
+
+template <typename IT, typename ET, bool WithSSFilter>
+int longestAxis_II(const GenericPoint3T<IT, ET> &a,
+                   const GenericPoint3T<IT, ET> &b, PntArr3 arr)
+{
+	int ret;
+	if constexpr (WithSSFilter)
+	{
+		ret = longestAxis_II_filter(a, b, arr);
+		if (ret >= 0)
+			return ret;
+	}
+	ret = longestAxis_II_interval(a, b);
+	if (ret >= 0)
+		return ret;
+	return longestAxis_II_expansion(a, b);
+}
+
 inline std::array<Sign, 3> lessThanOnAll_EE(double x1, double y1, double z1,
                                             double x2, double y2, double z2)
 {

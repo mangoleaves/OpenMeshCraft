@@ -45,6 +45,7 @@ public:
 	using OrientOn2D         = typename K::OrientOn2D;
 	using LessThan3D         = typename K::LessThan3D;
 	using CollinearPoints3D  = typename K::CollinearPoints3D;
+	using LongestAxis        = typename K::LongestAxis;
 	using MaxCompInTriNormal = typename K::MaxCompInTriNormal;
 
 	using CalcBbox = typename K::CalcBoundingBox3;
@@ -300,7 +301,8 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(),
+		                   [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),

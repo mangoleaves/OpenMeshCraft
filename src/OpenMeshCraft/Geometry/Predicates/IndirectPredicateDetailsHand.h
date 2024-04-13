@@ -94,6 +94,16 @@ inline int maxComponentInTriangleNormal(double ov1x, double ov1y, double ov1z,
                                         double ov2x, double ov2y, double ov2z,
                                         double ov3x, double ov3y, double ov3z);
 
+/*************** Longest axis of segment *******************/
+
+template <typename IT, typename ET, bool WithSSFilter>
+int longestAxis_IE(const GenericPoint3T<IT, ET> &a,
+                   const GenericPoint3T<IT, ET> &b, PntArr3 arr);
+
+template <typename IT, typename ET, bool WithSSFilter>
+int longestAxis_II(const GenericPoint3T<IT, ET> &a,
+                   const GenericPoint3T<IT, ET> &b, PntArr3 arr);
+
 /*************** LessThanOnAll (wrap to LessThanOnX/Y/Z) *******************/
 
 inline std::array<Sign, 3> lessThanOnAll_EE(double x1, double y1, double z1,
@@ -170,8 +180,6 @@ template <typename IT, typename ET>
 Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3);
-
-
 
 } // namespace OMC
 

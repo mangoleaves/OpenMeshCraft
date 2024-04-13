@@ -84,6 +84,54 @@ struct TriangleSoup<Traits>::EdgeComparator
 };
 
 template <typename Traits>
+struct TriangleSoup<Traits>::SegComparator
+{
+	using is_transparent = std::true_type;
+	// retrieve points in triangle soup.
+	const TriangleSoup<Traits> *ts;
+	// compare points on specific axis.
+	uint32_t                    axis;
+
+	SegComparator()  = default;
+	~SegComparator() = default;
+
+	SegComparator(TriangleSoup<Traits> *_ts, uint32_t _axis)
+	  : ts(_ts)
+	  , axis(_axis)
+	{
+	}
+
+	SegComparator(const SegComparator &other)
+	  : ts(other.ts)
+	  , axis(other.axis)
+	{
+	}
+	SegComparator &operator=(const SegComparator &other)
+	{
+		ts   = other.ts;
+		axis = other.axis;
+		return *this;
+	}
+
+	bool operator()(index_t lhs, index_t rhs) const
+	{
+		return operator()(ts->vert(lhs), ts->vert(rhs));
+	}
+	bool operator()(index_t lhs, const GPoint &rhs) const
+	{
+		return operator()(ts->vert(lhs), rhs);
+	}
+	bool operator()(const GPoint &lhs, index_t rhs) const
+	{
+		return operator()(lhs, ts->vert(rhs));
+	}
+	bool operator()(const GPoint &lhs, const GPoint &rhs) const
+	{
+		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
+	}
+};
+
+template <typename Traits>
 void TriangleSoup<Traits>::initialize()
 {
 	num_orig_vtxs = static_cast<size_t>(vertices.size());
@@ -407,7 +455,7 @@ index_t TriangleSoup<Traits>::segmentID(const Segment &seg) const
 {
 	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
 	index_t outer_map = (seg.first + seg.second) % seg_map.size();
-	phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
+	const phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
 
 	// we do not lock bacause it is not neccessary now.
 	// std::lock_guard<tbb::spin_mutex> lock_map(seg_mutexes[outer_map]);
@@ -753,7 +801,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 				seg_new_id[seg_id] = seg_id;
 			else
 			{
-				seg_new_id[seg_id] = segmentID(new_seg);
+				seg_new_id[seg_id] = getOrAddSegment(new_seg);
 				OMC_EXPENSIVE_ASSERT(is_valid_idx(seg_new_id[seg_id]),
 				                     "Invalid segment");
 				any_seg_fixed = true;

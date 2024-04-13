@@ -1075,9 +1075,10 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
 }
 
 template <typename FT, typename IT, typename ET>
-auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(
-  const PointT &p, const PointT &q,
-  const PointT &r) -> std::tuple<const PointT &, const PointT &, const PointT &>
+auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(const PointT &p,
+                                                      const PointT &q,
+                                                      const PointT &r)
+  -> std::tuple<const PointT &, const PointT &, const PointT &>
 {
 	using CR = const PointT &;
 	using CP = const PointT *;
@@ -1123,6 +1124,64 @@ int MaxComponentInTriangleNormal<FT, IT, ET>::operator()(FT ov1x, FT ov1y,
 {
 	return maxComponentInTriangleNormal(ov1x, ov1y, ov1z, ov2x, ov2y, ov2z, ov3x,
 	                                    ov3y, ov3z);
+}
+
+template <typename FT, typename IT, typename ET>
+int LongestAxis_Indirect<FT, IT, ET>::operator()(const PointT &a,
+                                                 const PointT &b)
+{
+	if (a.is_Explicit() && b.is_Explicit())
+	{
+		double diff_x = fabs(a.x() - b.x());
+		double diff_y = fabs(a.y() - b.y());
+		double diff_z = fabs(a.z() - b.z());
+		return diff_y > diff_x ? (diff_z > diff_y ? 2 : 1)
+		                       : (diff_z > diff_x ? 2 : 0);
+	}
+
+	if (a.has_ssf() && b.has_ssf())
+	{
+		// cases are simple, expand them by hand.
+		if (a.is_SSI() && b.is_Explicit())
+			return longestAxis_IE<SSF>(a, b, PntArr3::S);
+		if (a.is_LPI() && b.is_Explicit())
+			return longestAxis_IE<SSF>(a, b, PntArr3::L);
+		if (a.is_TPI() && b.is_Explicit())
+			return longestAxis_IE<SSF>(a, b, PntArr3::T);
+		if (a.is_Explicit() && b.is_SSI())
+			return longestAxis_IE<SSF>(b, a, PntArr3::S);
+		if (a.is_Explicit() && b.is_LPI())
+			return longestAxis_IE<SSF>(b, a, PntArr3::L);
+		if (a.is_Explicit() && b.is_TPI())
+			return longestAxis_IE<SSF>(b, a, PntArr3::T);
+		if (a.is_SSI() && b.is_SSI())
+			return longestAxis_II<SSF>(a, b, PntArr3::SS);
+		if (a.is_SSI() && b.is_LPI())
+			return longestAxis_II<SSF>(a, b, PntArr3::SL);
+		if (a.is_SSI() && b.is_TPI())
+			return longestAxis_II<SSF>(a, b, PntArr3::ST);
+		if (a.is_LPI() && b.is_SSI())
+			return longestAxis_II<SSF>(b, a, PntArr3::SL);
+		if (a.is_LPI() && b.is_LPI())
+			return longestAxis_II<SSF>(a, b, PntArr3::LL);
+		if (a.is_LPI() && b.is_TPI())
+			return longestAxis_II<SSF>(a, b, PntArr3::LT);
+		if (a.is_TPI() && b.is_SSI())
+			return longestAxis_II<SSF>(b, a, PntArr3::ST);
+		if (a.is_TPI() && b.is_LPI())
+			return longestAxis_II<SSF>(b, a, PntArr3::LT);
+		// if (a.is_TPI() && b.is_TPI())
+		return longestAxis_II<SSF>(a, b, PntArr3::TT);
+	}
+	else
+	{
+		// cases are simple, expand them by hand.
+		if (!a.is_Explicit() && b.is_Explicit())
+			return longestAxis_IE<DF>(a, b, PntArr3::I);
+		if (a.is_Explicit() && !b.is_Explicit())
+			return longestAxis_IE<DF>(b, a, PntArr3::I);
+		return longestAxis_II<DF>(a, b, PntArr3::II);
+	}
 }
 
 template <typename FT, typename IT, typename ET>
