@@ -107,7 +107,7 @@ void TriangleSoup<Traits>::initialize()
 
 	int concurrency    = tbb::this_task_arena::max_concurrency();
 	int num_hash_table = concurrency == 1 ? 1 : concurrency * 4;
-	seg2tris.resize(num_hash_table);
+	seg_map.resize(num_hash_table);
 	seg_mutexes = std::vector<tbb::spin_mutex>(num_hash_table);
 }
 
@@ -135,7 +135,7 @@ index_t TriangleSoup<Traits>::addImplVert(GPoint *pp, std::atomic<index_t> *ip)
 }
 
 template <typename Traits>
-const UIPair &TriangleSoup<Traits>::edge(index_t e_id) const
+auto TriangleSoup<Traits>::edge(index_t e_id) const -> Edge
 {
 	OMC_EXPENSIVE_ASSERT(e_id < numEdges(), "edge index out of range.");
 	return edges[e_id];
@@ -221,16 +221,16 @@ index_t TriangleSoup<Traits>::triVertID(index_t t_id, index_t off) const
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVert(index_t t_id,
-                                   index_t off) const -> const GPoint &
+auto TriangleSoup<Traits>::triVert(index_t t_id, index_t off) const
+  -> const GPoint &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vert(triangles[3 * t_id + off]);
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVertPtr(index_t t_id,
-                                      index_t off) const -> const NT *
+auto TriangleSoup<Traits>::triVertPtr(index_t t_id, index_t off) const
+  -> const NT *
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vertPtr(triangles[3 * t_id + off]);
@@ -359,45 +359,85 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 }
 
 template <typename Traits>
-void TriangleSoup<Traits>::addSegmentInTriangle(index_t t_id, const UIPair &seg)
+index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg)
+{
+	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
+	index_t outer_map = (seg.first + seg.second) % seg_map.size();
+
+	phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
+
+	// lock until finding and/or adding operation end.
+	std::lock_guard<tbb::spin_mutex> lock_map(seg_mutexes[outer_map]);
+
+	auto find_iter = sm.find(seg);
+	if (find_iter != sm.end()) // segment exists, just return it.
+		return find_iter->second;
+	else // segment does not exist, add it
+	{
+		// 1. add a new segment.
+		typename decltype(segments)::iterator segs_iter;
+		{
+			std::lock_guard<tbb::spin_mutex> lock_segs(new_segment_mutex);
+#ifdef OMC_ARR_TS_PARA
+			segs_iter = segments.push_back(seg);
+#else
+			segments.push_back(seg);
+			segs_iter = segments.end() - 1;
+#endif
+		}
+		// 2. get new segment's index
+		index_t seg_id = segs_iter - segments.begin();
+
+		// 3. build map between new segment and its index
+		auto insert_iter = sm.insert({seg, seg_id});
+		OMC_EXPENSIVE_ASSERT(insert_iter.second, "fail to add segment.");
+		return seg_id;
+	}
+}
+
+template <typename Traits>
+auto TriangleSoup<Traits>::segment(index_t seg_id) const -> Segment
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < segments.size(), "out of range");
+	return segments[seg_id];
+}
+
+template <typename Traits>
+index_t TriangleSoup<Traits>::segmentID(const Segment &seg) const
+{
+	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
+	index_t outer_map = (seg.first + seg.second) % seg_map.size();
+	phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
+
+	// we do not lock bacause it is not neccessary now.
+	// std::lock_guard<tbb::spin_mutex> lock_map(seg_mutexes[outer_map]);
+
+	auto find_iter = sm.find(seg);
+	if (find_iter != sm.end()) // segment exists, just return it.
+		return find_iter->second;
+	else
+		return InvalidIndex;
+}
+
+template <typename Traits>
+void TriangleSoup<Traits>::addSegmentInTriangle(index_t t_id, index_t seg_id)
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2segs.size(), "out of range");
-	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
-	concurrent_vector<UIPair> &segments = tri2segs[t_id];
-	if (segments.empty())
-		segments.reserve(8);
-	segments.push_back(seg);
+	OMC_EXPENSIVE_ASSERT(seg_id < segments.size(), "out of range");
+	concurrent_vector<index_t> &t2s = tri2segs[t_id];
+	if (t2s.empty())
+		t2s.reserve(4);
+	t2s.push_back(seg_id);
 }
 
 template <typename Traits>
-void TriangleSoup<Traits>::addTrianglesInSegment(const UIPair &seg,
-                                                 index_t       t_id)
+void TriangleSoup<Traits>::addTrianglesInSegment(index_t seg_id, index_t t_id)
 {
-	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
-	index_t outer_map = (seg.first + seg.second) % seg2tris.size();
-	{
-		std::lock_guard<tbb::spin_mutex> lock(seg_mutexes[outer_map]);
-		std::vector<index_t>            &tris = seg2tris[outer_map][seg];
-		if (tris.empty())
-			tris.reserve(8);
-		tris.push_back(t_id);
-	}
-}
-
-template <typename Traits>
-void TriangleSoup<Traits>::addTrianglesInSegment(const UIPair &seg,
-                                                 index_t tA_id, index_t tB_id)
-{
-	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
-	index_t outer_map = (seg.first + seg.second) % seg2tris.size();
-	{
-		std::lock_guard<tbb::spin_mutex> lock(seg_mutexes[outer_map]);
-		std::vector<index_t>            &tris = seg2tris[outer_map][seg];
-		if (tris.empty())
-			tris.reserve(8);
-		tris.push_back(tA_id);
-		tris.push_back(tB_id);
-	}
+	OMC_EXPENSIVE_ASSERT(seg_id < segments.size(), "out of range");
+	concurrent_vector<index_t> &tris = seg2tris[seg_id];
+	if (tris.empty())
+		tris.reserve(4);
+	tris.push_back(t_id);
 }
 
 template <typename Traits>
@@ -497,7 +537,7 @@ auto TriangleSoup<Traits>::edgePointsList(index_t e_id) const
 }
 
 template <typename Traits>
-const concurrent_vector<UIPair> &
+const concurrent_vector<index_t> &
 TriangleSoup<Traits>::triangleSegmentsList(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < tri2segs.size(), "out of range");
@@ -505,13 +545,11 @@ TriangleSoup<Traits>::triangleSegmentsList(index_t t_id) const
 }
 
 template <typename Traits>
-const std::vector<index_t> &
-TriangleSoup<Traits>::segmentTrianglesList(const UIPair &seg) const
+const concurrent_vector<index_t> &
+TriangleSoup<Traits>::segmentTrianglesList(index_t seg_id) const
 {
-	index_t outer_map = (seg.first + seg.second) % seg2tris.size();
-	auto    res       = seg2tris[outer_map].find(seg);
-	OMC_EXPENSIVE_ASSERT(res != seg2tris[outer_map].end(), "out of range");
-	return res->second;
+	OMC_EXPENSIVE_ASSERT(seg_id < seg2tris.size(), "out of range");
+	return seg2tris[seg_id];
 }
 
 template <typename Traits>
@@ -564,10 +602,14 @@ index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
 template <typename Traits>
 void TriangleSoup<Traits>::removeDuplicatesBeforeFix()
 {
-	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
+	tbb::parallel_for(size_t(0), numOrigTris(),
+	                  [this](size_t t_id)
 	                  { remove_duplicates(coplanar_tris[t_id]); });
 
-	tbb::parallel_for(size_t(0), numEdges(), [this](index_t e_id)
+	// endpoints in CCrEdgeInfo in colinear edges are all explicit points.
+	// we do not need to fix indices of them.
+	tbb::parallel_for(size_t(0), numEdges(),
+	                  [this](index_t e_id)
 	                  { remove_duplicates(colinear_edges[e_id]); });
 }
 
@@ -633,8 +675,8 @@ void TriangleSoup<Traits>::fixColinearEdgesIntersections()
 					fixVertexInEdge(e_id, p_id, found_vid);
 				}
 			} // end for e2p
-		} // end for ccr_edge_infos
-	}; // end fix_colinear_edge
+		}   // end for ccr_edge_infos
+	};    // end fix_colinear_edge
 
 #ifdef OMC_ARR_TS_PARA
 	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edge);
@@ -647,7 +689,7 @@ void TriangleSoup<Traits>::fixColinearEdgesIntersections()
 template <typename Traits>
 void TriangleSoup<Traits>::fixAllIndices()
 {
-	// 1. fix global indices
+	// fix global indices
 	auto fix_vertex_idx = [this](index_t orig_vidx)
 	{
 		index_t fix_vidx = orig_vidx;
@@ -678,38 +720,74 @@ void TriangleSoup<Traits>::fixAllIndices()
 	  });
 #endif
 
-	// 2. fix indices stored in tri2pts
-	auto fix_tri2pts = [this](concurrent_vector<index_t> &t2p)
+	// fix indices stored in tri2pts
+	if (any_index_fixed)
 	{
-		if (any_index_fixed)
+		auto fix_tri2pts = [this](concurrent_vector<index_t> &t2p)
 		{
 			for (index_t &i : t2p)
 				i = indices[i]->load(std::memory_order_relaxed);
-		}
-		remove_duplicates(t2p);
-	};
-	tbb::parallel_for_each(tri2pts.begin(), tri2pts.end(), fix_tri2pts);
-
-	// 3. fix indices stored in tri2segs
-	auto fix_tri2segs = [this](index_t t_id)
+			remove_duplicates(t2p);
+		};
+		tbb::parallel_for_each(tri2pts.begin(), tri2pts.end(), fix_tri2pts);
+	}
+	else
 	{
-		concurrent_vector<UIPair> &t2s = tri2segs[t_id];
+		tbb::parallel_for_each(tri2pts.begin(), tri2pts.end(),
+		                       [](concurrent_vector<index_t> &t2p)
+		                       { remove_duplicates(t2p); });
+	}
 
-		if (any_index_fixed)
+	// fix indices stored in segments
+	std::vector<index_t> seg_new_id(segments.size());
+	bool                 any_seg_fixed = false;
+	if (any_index_fixed)
+	{
+		auto fix_segments = [this, &seg_new_id, &any_seg_fixed](index_t seg_id)
 		{
-			for (UIPair &seg : t2s)
+			const Segment &old_seg = segments[seg_id];
+			Segment        new_seg =
+			  uniquePair(indices[old_seg.first]->load(std::memory_order_relaxed),
+			             indices[old_seg.second]->load(std::memory_order_relaxed));
+			if (new_seg == old_seg)
+				seg_new_id[seg_id] = seg_id;
+			else
 			{
-				seg = uniquePair(indices[seg.first]->load(std::memory_order_relaxed),
-				                 indices[seg.second]->load(std::memory_order_relaxed));
+				seg_new_id[seg_id] = segmentID(new_seg);
+				OMC_EXPENSIVE_ASSERT(is_valid_idx(seg_new_id[seg_id]),
+				                     "Invalid segment");
+				any_seg_fixed = true;
 			}
-		}
+		};
+		tbb::parallel_for(size_t(0), segments.size(), fix_segments);
+	}
 
-		remove_duplicates(t2s);
-
-		for (const UIPair &seg : t2s)
-			addTrianglesInSegment(seg, t_id);
-	};
-	tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
+	// fix indices stored in tri2segs
+	seg2tris.resize(segments.size());
+	if (any_seg_fixed)
+	{
+		auto fix_tri2segs = [this, &seg_new_id](index_t t_id)
+		{
+			concurrent_vector<index_t> &t2s = tri2segs[t_id];
+			for (index_t &seg_id : t2s)
+				seg_id = seg_new_id[seg_id];
+			remove_duplicates(t2s);
+			for (index_t &seg_id : t2s)
+				addTrianglesInSegment(seg_id, t_id);
+		};
+		tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
+	}
+	else
+	{
+		auto fix_tri2segs = [this, &seg_new_id](index_t t_id)
+		{
+			concurrent_vector<index_t> &t2s = tri2segs[t_id];
+			remove_duplicates(t2s);
+			for (index_t &seg_id : t2s)
+				addTrianglesInSegment(seg_id, t_id);
+		};
+		tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
+	}
 
 	// 4. fix indices stored in coplanar_edges
 	auto fix_coplanar_edges = [this](index_t t_id)
@@ -769,8 +847,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 		cnt += trianglePointsList(t_id).size();
 		OMC_ASSERT(point_set.size() == cnt, "duplicate vertex detected");
 	};
-	for (size_t t_id = 0; t_id < numOrigTris(); t_id++)
-		checkDuplOnTris(t_id);
+	tbb::parallel_for(size_t(0), numOrigTris(), checkDuplOnTris);
 #endif
 }
 

@@ -99,8 +99,10 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 		sortedVertexListAlongSegment(ts.edgePointsList(e2_id), subm.vertInfo(2),
 		                             subm.vertInfo(0), e2_points);
 
-	std::vector<UIPair> t_segments(ts.triangleSegmentsList(t_id).begin(),
-	                               ts.triangleSegmentsList(t_id).end());
+	SegmentsList t_segments;
+	t_segments.reserve(ts.triangleSegmentsList(t_id).size());
+	for (index_t seg_id : ts.triangleSegmentsList(t_id))
+		t_segments.push_back(Segment(seg_id, ts.segment(seg_id)));
 
 	size_t estimated_vert_num =
 	  t_points.size() + e0_points.size() + e1_points.size() + e2_points.size();
@@ -306,7 +308,7 @@ void Triangulation<Traits>::splitSingleEdge(FastTriMesh &subm, index_t v0_id,
                                             index_t               v1_id,
                                             std::vector<index_t> &points)
 {
-	if (points.size() <= 2)	// only two end points
+	if (points.size() <= 2) // only two end points
 		return;
 
 	index_t e_id = subm.edgeID(v0_id, v1_id);
@@ -437,17 +439,18 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 
 template <typename Traits>
 void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
-  FastTriMesh &subm, std::vector<UIPair> &segment_list)
+  FastTriMesh &subm, SegmentsList &segment_list)
 {
 	// add segments to map
-	phmap::flat_hash_map<UIPair, UIPair> sub_segs_map;
+	SubSegMap sub_segs_map;
 	sub_segs_map.reserve(segment_list.size());
-	for (const UIPair &seg : segment_list)
-		sub_segs_map[seg] = seg;
+	for (const Segment &seg : segment_list)
+		sub_segs_map[seg.second] = seg.first; // map seg to seg_id
+
 	// add segments to triangle mesh
 	while (segment_list.size() > 0)
 	{
-		UIPair seg = segment_list.back();
+		Segment seg = segment_list.back();
 		segment_list.pop_back();
 
 		addConstraintSegment(subm, seg, segment_list, sub_segs_map);
@@ -455,12 +458,13 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 }
 
 template <typename Traits>
-void Triangulation<Traits>::addConstraintSegment(
-  FastTriMesh &subm, const UIPair &seg, std::vector<UIPair> &segment_list,
-  phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map)
+void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
+                                                 const Segment &seg,
+                                                 SegmentsList  &segment_list,
+                                                 SubSegMap     &sub_segs_map)
 {
-	index_t v0_id = subm.vertNewID(seg.first);
-	index_t v1_id = subm.vertNewID(seg.second);
+	index_t v0_id = subm.vertNewID(seg.second.first);
+	index_t v1_id = subm.vertNewID(seg.second.second);
 
 	{ // check if edge already present in the mesh, just flag it as constraint
 		index_t e_id = subm.edgeID(v0_id, v1_id);
@@ -517,8 +521,8 @@ template <typename Traits>
 void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
   std::vector<index_t> &intersected_edges,
-  std::vector<index_t> &intersected_tris, std::vector<UIPair> &segment_list,
-  phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map)
+  std::vector<index_t> &intersected_tris, SegmentsList &segment_list,
+  SubSegMap &sub_segs_map)
 {
 	index_t orig_vstart = subm.vertInfo(v_start);
 	index_t orig_vstop  = subm.vertInfo(v_stop);
@@ -542,7 +546,8 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_v_inter,
 		                          sub_segs_map);
 		// push (v_inter, v_stop) to check list.
-		segment_list.emplace_back(uniquePair(orig_v_inter, orig_vstop));
+		segment_list.emplace_back(
+		  Segment(InvalidIndex, uniquePair(orig_v_inter, orig_vstop)));
 		// clear and stop this traversal.
 		intersected_edges.clear();
 		intersected_tris.clear();
@@ -745,7 +750,8 @@ void Triangulation<Traits>::findIntersectingElements(
 
 		// put (v_inter, v_stop) in the segment_list to check later
 		index_t orig_v_inter = subm.vertInfo(v_inter);
-		segment_list.emplace_back(uniquePair(orig_v_inter, orig_vstop));
+		segment_list.emplace_back(
+		  Segment(InvalidIndex, uniquePair(orig_v_inter, orig_vstop)));
 		// split the original edge.
 		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_v_inter,
 		                          sub_segs_map);
@@ -835,7 +841,8 @@ void Triangulation<Traits>::findIntersectingElements(
 	// (new_tpi, v_stop).
 
 	// put (new_tpi, v_stop) in the segment_list to check later
-	segment_list.emplace_back(uniquePair(orig_tpi_id, orig_vstop));
+	segment_list.emplace_back(
+	  Segment(InvalidIndex, uniquePair(orig_tpi_id, orig_vstop)));
 
 	// output found edges/tris intersected with (v_start, new_ip).
 	if (intersected_tris.size() == 1)
@@ -867,31 +874,32 @@ void Triangulation<Traits>::findIntersectingElements(
 }
 
 template <typename Traits>
-void Triangulation<Traits>::splitSegmentInSubSegments(
-  index_t v_start, index_t v_stop, index_t mid_point,
-  phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map)
+void Triangulation<Traits>::splitSegmentInSubSegments(index_t    v_start,
+                                                      index_t    v_stop,
+                                                      index_t    mid_point,
+                                                      SubSegMap &sub_segs_map)
 {
 	UIPair orig_seg = uniquePair(v_start, v_stop);
 	UIPair sub_seg0 = uniquePair(v_start, mid_point);
 	UIPair sub_seg1 = uniquePair(v_stop, mid_point);
 
-	auto it = sub_segs_map.find(orig_seg);
-	OMC_EXPENSIVE_ASSERT(it != sub_segs_map.end(),
+	auto iter = sub_segs_map.find(orig_seg);
+	OMC_EXPENSIVE_ASSERT(iter != sub_segs_map.end(),
 	                     "original segment is not added into map.");
 	// orig_seg is an already split segment (it must be already present in
 	// the sub_split_map)
-	UIPair ref_seg         = it->second;
-	sub_segs_map[sub_seg0] = ref_seg;
-	sub_segs_map[sub_seg1] = ref_seg;
+	index_t ref_seg_id     = iter->second;
+	sub_segs_map[sub_seg0] = ref_seg_id;
+	sub_segs_map[sub_seg1] = ref_seg_id;
 }
 
 template <typename Traits>
-index_t Triangulation<Traits>::createTPI(
-  FastTriMesh &subm, const UIPair &e0, const UIPair &e1,
-  const phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map)
+index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, const UIPair &e0,
+                                         const UIPair    &e1,
+                                         const SubSegMap &sub_segs_map)
 {
-	const UIPair &orig_e0 = sub_segs_map.at(e0);
-	const UIPair &orig_e1 = sub_segs_map.at(e1);
+	const index_t &e0_seg_id = sub_segs_map.at(e0);
+	const index_t &e1_seg_id = sub_segs_map.at(e1);
 
 	int cur_thread_idx = tbb::this_task_arena::current_thread_index();
 
@@ -903,10 +911,10 @@ index_t Triangulation<Traits>::createTPI(
 	  &ts.vert(t0_ids[0]), &ts.vert(t0_ids[1]), &ts.vert(t0_ids[2])};
 
 	std::array<const GPoint *, 3> t1_pnts =
-	  computeTriangleOfSegment(subm, orig_e0);
+	  computeTriangleOfSegment(subm, e0_seg_id);
 
 	std::array<const GPoint *, 3> t2_pnts =
-	  computeTriangleOfSegment(subm, orig_e1);
+	  computeTriangleOfSegment(subm, e1_seg_id);
 
 	IPoint_TPI *new_v = pnt_arenas[cur_thread_idx].emplace(
 	  CreateTPI()(*t0_pnts[0], *t0_pnts[1], *t0_pnts[2], *t1_pnts[0], *t1_pnts[1],
@@ -939,20 +947,21 @@ index_t Triangulation<Traits>::createTPI(
 }
 
 template <typename Traits>
-auto Triangulation<Traits>::computeTriangleOfSegment(
-  FastTriMesh &subm, const UIPair &seg) -> std::array<const GPoint *, 3>
+auto Triangulation<Traits>::computeTriangleOfSegment(FastTriMesh &subm,
+                                                     index_t      seg_id)
+  -> std::array<const GPoint *, 3>
 {
-	const std::vector<index_t> &seg_tris = ts.segmentTrianglesList(seg);
-	const concurrent_vector<index_t> &copl_tris =
-	  ts.coplanarTriangles(subm.meshInfo());
+	index_t                           t_id      = subm.meshInfo();
+	const concurrent_vector<index_t> &seg_tris  = ts.segmentTrianglesList(seg_id);
+	const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
 
-	for (index_t t_id : seg_tris)
+	for (index_t st_id : seg_tris)
 	{
-		if (t_id != subm.meshInfo() &&
-		    !std::binary_search(copl_tris.begin(), copl_tris.end(), t_id))
+		if (st_id != subm.meshInfo() &&
+		    !std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
 		{
 			return std::array<const GPoint *, 3>{
-			  &ts.triVert(t_id, 0), &ts.triVert(t_id, 1), &ts.triVert(t_id, 2)};
+			  &ts.triVert(st_id, 0), &ts.triVert(st_id, 1), &ts.triVert(st_id, 2)};
 		}
 	}
 

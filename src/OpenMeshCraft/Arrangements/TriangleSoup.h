@@ -22,12 +22,14 @@ class TriangleSoup
 {
 public: /* Types **************************************************************/
 	using NT         = typename Traits::NT;
+	using Bbox       = typename Traits::BoundingBox;
 	using EPoint     = typename Traits::EPoint;
 	using GPoint     = typename Traits::GPoint;
 	using IPoint_SSI = typename Traits::IPoint_SSI;
 	using IPoint_LPI = typename Traits::IPoint_LPI;
 	using IPoint_TPI = typename Traits::IPoint_TPI;
 
+	using CalcBbox           = typename Traits::CalcBbox;
 	using OrientOn2D         = typename Traits::OrientOn2D;
 	using LessThan3D         = typename Traits::LessThan3D;
 	using CollinearPoints3D  = typename Traits::CollinearPoints3D;
@@ -55,14 +57,14 @@ public: /* Types **************************************************************/
 	/* ----- seg2tris related structures ----- */
 
 	/// <smaller vertex index, larger vertex index>
-	using Seg      = UIPair;
+	using Segment       = UIPair;
 	/// map a segment to its related triangles.
 	/// 1. map Seg to (Seg.first+Seg.second) % Seg2Tris.size() to locate the
 	/// flat_hash_map in the outer std::vector.
 	/// 2. map Seg to Tris in the inner flat_hash_map.
-	using Seg2Tris = std::vector<phmap::flat_hash_map<Seg, std::vector<index_t>>>;
+	using SegMap        = std::vector<phmap::flat_hash_map<Segment, index_t>>;
 	/// mutex for reading and writing Seg2Tris.
-	using SegMutexes = std::vector<tbb::spin_mutex>;
+	using SegMapMutexes = std::vector<tbb::spin_mutex>;
 
 	/* ----- edge2pts related structures ----- */
 
@@ -102,15 +104,15 @@ protected:
 	size_t num_orig_vtxs;
 	size_t num_orig_tris;
 
-	concurrent_vector<UIPair> edges;
+	concurrent_vector<Edge> edges;
 	/// map an edge(index pair) to a unique edge index.
 	/// 1. map smaller vertex index by std::vector.
 	/// 2. map larger vertex index by flat hash map.
-	EdgeMap                   edge_map;
+	EdgeMap                 edge_map;
 	/// mutex for reading and writing EdgeMap.
-	EdgeMapMutexes            edge_mutexes;
+	EdgeMapMutexes          edge_mutexes;
 	/// triangle edges
-	std::vector<index_t>      tri_edges;
+	std::vector<index_t>    tri_edges;
 
 public: /* Size queries *******************************************************/
 	size_t numVerts() const { return vertices.size(); }
@@ -128,7 +130,7 @@ public: /* Vertices ***********************************************************/
 	index_t addImplVert(GPoint *pp, std::atomic<index_t> *ip);
 
 public: /* Edges **************************************************************/
-	const UIPair &edge(index_t e_id) const;
+	Edge edge(index_t e_id) const;
 
 	index_t getOrAddEdge(index_t v0_id, index_t v1_id);
 
@@ -175,12 +177,21 @@ protected:
 	// mutexes for edge2pts (must be tbb::concurrent_vector)
 	tbb::concurrent_vector<tbb::spin_mutex> edge2pts_mutex;
 
+	// all unique constarined segments
+	concurrent_vector<Segment> segments;
+	// map segments to their ID
+	SegMap                     seg_map;
+	// mutexes for seg_map
+	SegMapMutexes              seg_mutexes;
+
 	// store contrained segments on triangles
-	std::vector<concurrent_vector<UIPair>> tri2segs;
+	std::vector<concurrent_vector<index_t>> tri2segs;
 
 	// reverse map contrained segments to triangles on where they locate
-	Seg2Tris   seg2tris;
-	SegMutexes seg_mutexes;
+	std::vector<concurrent_vector<index_t>> seg2tris;
+
+	// axis-aligned bounding boxes for constrained segments
+	std::vector<Bbox> seg_boxes;
 
 	/// orthogonal plane of a triangle
 	/// (only the triangles with intersections will be calculated)
@@ -190,13 +201,14 @@ protected:
 	/// (only the triangles with intersections will be calculated)
 	std::vector<Sign> tri_orient;
 
-	// coplanar pockets
+	// coplanar pockets (TODO pocket size? inlined_vector?)
 	phmap::flat_hash_map<std::vector<index_t>, index_t> pockets_map;
 
 public:
 	// mutexes
 	tbb::spin_mutex new_vertex_mutex;
 	tbb::spin_mutex new_edge_mutex;
+	tbb::spin_mutex new_segment_mutex;
 	tbb::spin_mutex new_tris_mutex;
 
 public: /* Add **************************************************************/
@@ -232,11 +244,15 @@ public: /* Add **************************************************************/
 
 	/* -- segment in triangle -- */
 
-	void addSegmentInTriangle(index_t t_id, const UIPair &seg);
+	index_t getOrAddSegment(const Segment &seg);
 
-	void addTrianglesInSegment(const UIPair &seg, index_t t_id);
+	index_t segmentID(const Segment &seg) const;
 
-	void addTrianglesInSegment(const UIPair &seg, index_t tA_id, index_t tB_id);
+	Segment segment(index_t seg_id) const;
+
+	void addSegmentInTriangle(index_t t_id, index_t seg_id);
+
+	void addTrianglesInSegment(index_t seg_id, index_t t_id);
 
 	/* Map point to unique index */
 
@@ -272,9 +288,9 @@ public: /* Query ***********************************************************/
 
 	const Edge2PntsSet &edgePointsList(index_t e_id) const;
 
-	const concurrent_vector<UIPair> &triangleSegmentsList(index_t t_id) const;
+	const concurrent_vector<index_t> &triangleSegmentsList(index_t t_id) const;
 
-	const std::vector<index_t> &segmentTrianglesList(const UIPair &seg) const;
+	const concurrent_vector<index_t> &segmentTrianglesList(index_t seg_id) const;
 
 	/* Orthogonal plane and orientation on the orthogonal plane */
 

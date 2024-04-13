@@ -35,6 +35,10 @@ private:
 	using PntArena    = PointArena<Traits>;
 	using TriSoup     = TriangleSoup<Traits>;
 
+	using Segment      = std::pair<index_t, UIPair>; // seg_id, seg
+	using SegmentsList = std::vector<Segment>;
+	using SubSegMap    = phmap::flat_hash_map<UIPair, index_t>; // seg->seg_id
+
 public:
 	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
 	              std::vector<Label> &new_labels);
@@ -71,29 +75,28 @@ private:
 
 	/* Split triangle by contraint segments *************************************/
 
-	void addConstraintSegmentsInSingleTriangle(FastTriMesh         &subm,
-	                                           std::vector<UIPair> &segment_list);
+	void addConstraintSegmentsInSingleTriangle(FastTriMesh  &subm,
+	                                           SegmentsList &segment_list);
 
-	void addConstraintSegment(FastTriMesh &subm, const UIPair &seg,
-	                          std::vector<UIPair>                  &segment_list,
-	                          phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map);
+	void addConstraintSegment(FastTriMesh &subm, const Segment &seg,
+	                          SegmentsList &segment_list,
+	                          SubSegMap    &sub_segs_map);
 
-	void
-	findIntersectingElements(FastTriMesh &subm, index_t &v_start, index_t &v_stop,
-	                         std::vector<index_t> &intersected_edges,
-	                         std::vector<index_t> &intersected_tris,
-	                         std::vector<UIPair>  &segment_list,
-	                         phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map);
+	void findIntersectingElements(FastTriMesh &subm, index_t &v_start,
+	                              index_t              &v_stop,
+	                              std::vector<index_t> &intersected_edges,
+	                              std::vector<index_t> &intersected_tris,
+	                              SegmentsList         &segment_list,
+	                              SubSegMap            &sub_segs_map);
 
-	void
-	splitSegmentInSubSegments(index_t v_start, index_t v_stop, index_t mid_point,
-	                          phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map);
+	void splitSegmentInSubSegments(index_t v_start, index_t v_stop,
+	                               index_t mid_point, SubSegMap &sub_segs_map);
 
 	index_t createTPI(FastTriMesh &subm, const UIPair &e0, const UIPair &e1,
-	                  const phmap::flat_hash_map<UIPair, UIPair> &sub_segs_map);
+	                  const SubSegMap &sub_segs_map);
 
-	std::array<const GPoint *, 3> computeTriangleOfSegment(FastTriMesh  &subm,
-	                                                       const UIPair &seg);
+	std::array<const GPoint *, 3> computeTriangleOfSegment(FastTriMesh &subm,
+	                                                       index_t      seg_id);
 
 	template <typename tri_iterator, typename edge_iterator>
 	void boundaryWalker(const FastTriMesh &subm, index_t v_start, index_t v_stop,

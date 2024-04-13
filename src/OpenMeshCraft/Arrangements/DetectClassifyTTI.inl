@@ -2069,19 +2069,20 @@ void DetectClassifyTTI<Traits>::add_symbolic_segment(index_t v0, index_t v1,
                                                      TTIHelper &hb)
 {
 	OMC_EXPENSIVE_ASSERT(v0 != v1, "trying to add a 0-length symbolic edge");
-	UIPair seg = uniquePair(v0, v1);
+	UIPair  seg    = uniquePair(v0, v1);
+	index_t seg_id = ts.getOrAddSegment(seg);
 
 	// check if (v0,v1) is an edge of ta
 	if (!(ha.contains_vtx(v0) && ha.contains_vtx(v1)))
 		// if not, add segment to ta
-		ts.addSegmentInTriangle(ha.t_id, seg);
+		ts.addSegmentInTriangle(ha.t_id, seg_id);
 
 	// check if (v0,v1) is an edge of tb
 	if (!(hb.contains_vtx(v0) && hb.contains_vtx(v1)))
 		// if not, add segment to tb
-		ts.addSegmentInTriangle(hb.t_id, seg);
+		ts.addSegmentInTriangle(hb.t_id, seg_id);
 
-	ts.addTrianglesInSegment(seg, ha.t_id, hb.t_id);
+	// seg2tris will be constructed after classification.
 }
 
 /**
