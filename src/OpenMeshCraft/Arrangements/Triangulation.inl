@@ -1211,39 +1211,6 @@ void Triangulation<Traits>::findPocketsInTriangle(
 }
 
 template <typename Traits>
-bool Triangulation<Traits>::pointOnLine(const FastTriMesh &subm, index_t e_id,
-                                        index_t p_id)
-{
-	index_t ev0_id = subm.edgeVertID(e_id, 0);
-	index_t ev1_id = subm.edgeVertID(e_id, 1);
-
-	return OrientOn2D()(subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id),
-	                    planeToInt(subm.refPlane())) == Sign::ZERO;
-}
-
-template <typename Traits>
-bool Triangulation<Traits>::segmentsIntersectInside(const FastTriMesh &subm,
-                                                    index_t            e00_id,
-                                                    index_t            e01_id,
-                                                    index_t            e10_id,
-                                                    index_t            e11_id)
-{
-	return Segment3_Segment3_DoIntersect().cross_inner(
-	  subm.vert(e00_id), subm.vert(e01_id), subm.vert(e10_id), subm.vert(e11_id),
-	  planeToInt(subm.refPlane()));
-}
-
-template <typename Traits>
-bool Triangulation<Traits>::pointInsideSegment(const FastTriMesh &subm,
-                                               index_t ev0_id, index_t ev1_id,
-                                               index_t p_id)
-{
-	return Segment3_Point3_DoIntersect().in_segment(
-	         subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id),
-	         planeToInt(subm.refPlane())) == PointInType::STRICTLY_INSIDE;
-}
-
-template <typename Traits>
 bool Triangulation<Traits>::pointInsideSegmentCollinear(const FastTriMesh &subm,
                                                         index_t ev0_id,
                                                         index_t ev1_id,

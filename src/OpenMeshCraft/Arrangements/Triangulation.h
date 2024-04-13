@@ -28,16 +28,8 @@ private:
 	using OrientOn2D = typename Traits::OrientOn2D;
 	using LessThan3D = typename Traits::LessThan3D;
 
-	// clang-format onff
 	using Segment3_Point3_DoIntersect =
 	  typename Traits::Segment3_Point3_DoIntersect;
-	using Segment3_Segment3_DoIntersect =
-	  typename Traits::Segment3_Segment3_DoIntersect;
-	using Triangle3_Point3_DoIntersect =
-	  typename Traits::Triangle3_Point3_DoIntersect;
-	using Triangle3_Segment3_DoIntersect =
-	  typename Traits::Triangle3_Segment3_DoIntersect;
-	// clang-format on
 
 	using FastTriMesh = FastTriMesh<Traits>;
 	using PntArena    = PointArena<Traits>;
@@ -123,15 +115,6 @@ private:
 	                           std::vector<std::set<index_t>>    &tri_polygons);
 
 private:
-	static bool pointOnLine(const FastTriMesh &subm, index_t e_id, index_t p_id);
-
-	static bool segmentsIntersectInside(const FastTriMesh &subm, index_t e00_id,
-	                                    index_t e01_id, index_t e10_id,
-	                                    index_t e11_id);
-
-	static bool pointInsideSegment(const FastTriMesh &subm, index_t ev0_id,
-	                               index_t ev1_id, index_t p_id);
-
 	static bool pointInsideSegmentCollinear(const FastTriMesh &subm,
 	                                        index_t ev0_id, index_t ev1_id,
 	                                        index_t p_id);
