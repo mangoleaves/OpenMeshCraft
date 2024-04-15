@@ -32,6 +32,7 @@ public: /* Types **************************************************************/
 	using CalcBbox           = typename Traits::CalcBbox;
 	using OrientOn2D         = typename Traits::OrientOn2D;
 	using LessThan3D         = typename Traits::LessThan3D;
+	using LongestAxis        = typename Traits::LongestAxis;
 	using CollinearPoints3D  = typename Traits::CollinearPoints3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
@@ -261,6 +262,16 @@ public: /* Add **************************************************************/
 	void addSegmentInTriangle(index_t t_id, index_t seg_id);
 
 	void addTrianglesInSegment(index_t seg_id, index_t t_id);
+
+	/* -- vertex in segment -- */
+
+	tbb::spin_mutex &getS2PMutex(index_t seg_id);
+
+	index_t findVertexInSeg(index_t seg_id, const GPoint &pnt) const;
+
+	void addVertexInSeg(index_t seg_id, index_t v_id);
+
+	void fixVertexInSeg(index_t seg_id, index_t old_vid, index_t new_vid);
 
 	/* Map point to unique index */
 

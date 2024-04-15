@@ -2267,6 +2267,7 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 	}
 
+	// TODO put into pnt_arena only if it is new.
 	IPoint_SSI *new_v = pnt_arena.emplace(
 	  CreateSSI()(ts.vert(min_min_vid), ts.vert(min_max_vid),
 	              ts.vert(max_min_vid), ts.vert(max_max_vid), plane));

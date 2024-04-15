@@ -35,9 +35,17 @@ private:
 	using PntArena    = PointArena<Traits>;
 	using TriSoup     = TriangleSoup<Traits>;
 
-	using Segment      = std::pair<index_t, UIPair>; // seg_id, seg
+	// Segment, containing seg_id and seg's endpoints
+	using Segment      = std::pair<index_t, UIPair>;
+	// Collect segments on a triangle
 	using SegmentsList = std::vector<Segment>;
-	using SubSegMap    = phmap::flat_hash_map<UIPair, index_t>; // seg->seg_id
+	// Segment will be split to sub-segments by TPI points,
+	// map sub-segments to its original segment id.
+	using SubSegMap    = phmap::flat_hash_map<UIPair, index_t>;
+	// Store segments adajcent to TPI points in a triangle.
+	using TPI2Segs     = phmap::flat_hash_map<index_t, std::vector<index_t>>;
+
+	struct CreateIndex;
 
 public:
 	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
@@ -79,15 +87,15 @@ private:
 	                                           SegmentsList &segment_list);
 
 	void addConstraintSegment(FastTriMesh &subm, const Segment &seg,
-	                          SegmentsList &segment_list,
-	                          SubSegMap    &sub_segs_map);
+	                          SegmentsList &segment_list, SubSegMap &sub_segs_map,
+	                          TPI2Segs &tpi2segs);
 
 	void findIntersectingElements(FastTriMesh &subm, index_t &v_start,
 	                              index_t              &v_stop,
 	                              std::vector<index_t> &intersected_edges,
 	                              std::vector<index_t> &intersected_tris,
 	                              SegmentsList         &segment_list,
-	                              SubSegMap            &sub_segs_map);
+	                              SubSegMap &sub_segs_map, TPI2Segs &tpi2segs);
 
 	void splitSegmentInSubSegments(index_t v_start, index_t v_stop,
 	                               index_t mid_point, SubSegMap &sub_segs_map);
@@ -97,6 +105,13 @@ private:
 
 	std::array<const GPoint *, 3> computeTriangleOfSegment(FastTriMesh &subm,
 	                                                       index_t      seg_id);
+
+	template <typename _CreateIndex>
+	std::pair<bool, index_t> addAndFixTPI(index_t seg0_id, index_t seg1_id,
+	                                      IPoint_TPI  *vtx,
+	                                      _CreateIndex create_index);
+
+	void fixTPI(index_t seg0_id, index_t seg1_id, IPoint_TPI *vtx);
 
 	template <typename tri_iterator, typename edge_iterator>
 	void boundaryWalker(const FastTriMesh &subm, index_t v_start, index_t v_stop,
@@ -116,6 +131,10 @@ private:
 	void findPocketsInTriangle(const FastTriMesh                 &subm,
 	                           std::vector<std::vector<index_t>> &tri_pockets,
 	                           std::vector<std::set<index_t>>    &tri_polygons);
+
+	/* Postfix indices **********************************************************/
+
+	void postFixIndices(std::vector<index_t> &new_tris);
 
 private:
 	static bool pointInsideSegmentCollinear(const FastTriMesh &subm,

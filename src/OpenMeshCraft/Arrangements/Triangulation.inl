@@ -8,6 +8,33 @@
 namespace OMC {
 
 template <typename Traits>
+struct Triangulation<Traits>::CreateIndex
+{
+	TriSoup              &ts;
+	const GPoint         *pp;
+	std::atomic<index_t> *ip;
+
+	CreateIndex() = default;
+	CreateIndex(TriSoup &_ts, const GPoint *_pp, std::atomic<index_t> *_ip)
+	  : ts(_ts)
+	  , pp(_pp)
+	  , ip(_ip)
+	{
+	}
+
+	index_t operator()()
+	{
+		index_t idx = InvalidIndex;
+		{ // lock for new index
+			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
+			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
+		}
+		ip->store(idx, std::memory_order_relaxed); // assign a valid index
+		return idx;
+	};
+};
+
+template <typename Traits>
 Triangulation<Traits>::Triangulation(TriSoup              &_ts,
                                      std::vector<index_t> &new_tris,
                                      std::vector<Label>   &new_labels)
@@ -41,7 +68,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 
 	// processing the triangles to split
 	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
-#if 1
+#if 0
 	std::shuffle(tris_to_split.begin(), tris_to_split.end(),
 	             std::mt19937(std::random_device()()));
 	std::vector<FastTriMesh> subms(tbb::this_task_arena::max_concurrency());
@@ -67,6 +94,8 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 	              });
 #endif
 	GPoint::disable_global_cached_values();
+
+	postFixIndices();
 }
 
 template <typename Traits>
@@ -83,19 +112,15 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	std::vector<index_t> t_points(ts.trianglePointsList(t_id).begin(),
 	                              ts.trianglePointsList(t_id).end());
 
-	index_t e0_id = ts.triEdgeID(t_id, 0);
-	index_t e1_id = ts.triEdgeID(t_id, 1);
-	index_t e2_id = ts.triEdgeID(t_id, 2);
-
 	std::vector<index_t> e0_points, e1_points, e2_points;
 
-	if (is_valid_idx(e0_id))
+	if (index_t e0_id = ts.triEdgeID(t_id, 0); is_valid_idx(e0_id))
 		sortedVertexListAlongSegment(ts.edgePointsList(e0_id), subm.vertInfo(0),
 		                             subm.vertInfo(1), e0_points);
-	if (is_valid_idx(e1_id))
+	if (index_t e1_id = ts.triEdgeID(t_id, 1); is_valid_idx(e1_id))
 		sortedVertexListAlongSegment(ts.edgePointsList(e1_id), subm.vertInfo(1),
 		                             subm.vertInfo(2), e1_points);
-	if (is_valid_idx(e2_id))
+	if (index_t e2_id = ts.triEdgeID(t_id, 2); is_valid_idx(e2_id))
 		sortedVertexListAlongSegment(ts.edgePointsList(e2_id), subm.vertInfo(2),
 		                             subm.vertInfo(0), e2_points);
 
@@ -447,13 +472,15 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 	for (const Segment &seg : segment_list)
 		sub_segs_map[seg.second] = seg.first; // map seg to seg_id
 
+	TPI2Segs tpi2segs;
+
 	// add segments to triangle mesh
 	while (segment_list.size() > 0)
 	{
 		Segment seg = segment_list.back();
 		segment_list.pop_back();
 
-		addConstraintSegment(subm, seg, segment_list, sub_segs_map);
+		addConstraintSegment(subm, seg, segment_list, sub_segs_map, tpi2segs);
 	}
 }
 
@@ -461,14 +488,14 @@ template <typename Traits>
 void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
                                                  const Segment &seg,
                                                  SegmentsList  &segment_list,
-                                                 SubSegMap     &sub_segs_map)
+                                                 SubSegMap     &sub_segs_map,
+                                                 TPI2Segs      &tpi2segs)
 {
 	index_t v0_id = subm.vertNewID(seg.second.first);
 	index_t v1_id = subm.vertNewID(seg.second.second);
 
 	{ // check if edge already present in the mesh, just flag it as constraint
-		index_t e_id = subm.edgeID(v0_id, v1_id);
-		if (is_valid_idx(e_id))
+		if (index_t e_id = subm.edgeID(v0_id, v1_id); is_valid_idx(e_id))
 		{
 			subm.setEdgeConstr(e_id);
 			return;
@@ -484,7 +511,8 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 	intersected_edges.reserve(64), intersected_tris.reserve(64);
 
 	findIntersectingElements(subm, v_start, v_stop, intersected_edges,
-	                         intersected_tris, segment_list, sub_segs_map);
+	                         intersected_tris, segment_list, sub_segs_map,
+	                         tpi2segs);
 
 	if (intersected_edges.size() == 0)
 		return;
@@ -522,7 +550,7 @@ void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
   std::vector<index_t> &intersected_edges,
   std::vector<index_t> &intersected_tris, SegmentsList &segment_list,
-  SubSegMap &sub_segs_map)
+  SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
 {
 	index_t orig_vstart = subm.vertInfo(v_start);
 	index_t orig_vstop  = subm.vertInfo(v_stop);
@@ -542,12 +570,24 @@ void Triangulation<Traits>::findIntersectingElements(
 		OMC_EXPENSIVE_ASSERT(is_valid_idx(edge_id), "invalid edge");
 		subm.setEdgeConstr(edge_id);
 		// split the original edge.
-		index_t orig_v_inter = subm.vertInfo(v_inter);
-		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_v_inter,
+		index_t orig_vinter = subm.vertInfo(v_inter);
+		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_vinter,
 		                          sub_segs_map);
 		// push (v_inter, v_stop) to check list.
 		segment_list.emplace_back(
-		  Segment(InvalidIndex, uniquePair(orig_v_inter, orig_vstop)));
+		  Segment(InvalidIndex, uniquePair(orig_vinter, orig_vstop)));
+		// fix indices if encountering a TPI point
+		if (auto find_iter = tpi2segs.find(v_inter); find_iter != tpi2segs.end())
+		{ // if v_inter is a TPI point, fix indices stored in related segments.
+			index_t seg_id = sub_segs_map.at(uniquePair(orig_vstart, orig_vstop));
+			std::vector<index_t> &t2s = tpi2segs.at(v_inter);
+			OMC_EXPENSIVE_ASSERT(std::find(t2s.begin(), t2s.end(), seg_id) ==
+			                       t2s.end(),
+			                     "existed segment in tpi2segs");
+			for (index_t other_seg_id : t2s)
+				fixTPI(seg_id, other_seg_id, (IPoint_TPI *)&subm.vert(v_inter));
+			t2s.push_back(seg_id);
+		}
 		// clear and stop this traversal.
 		intersected_edges.clear();
 		intersected_tris.clear();
@@ -749,12 +789,24 @@ void Triangulation<Traits>::findIntersectingElements(
 		// and (v_inter, v_stop).
 
 		// put (v_inter, v_stop) in the segment_list to check later
-		index_t orig_v_inter = subm.vertInfo(v_inter);
+		index_t orig_vinter = subm.vertInfo(v_inter);
 		segment_list.emplace_back(
-		  Segment(InvalidIndex, uniquePair(orig_v_inter, orig_vstop)));
+		  Segment(InvalidIndex, uniquePair(orig_vinter, orig_vstop)));
 		// split the original edge.
-		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_v_inter,
+		splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_vinter,
 		                          sub_segs_map);
+		// fix indices if encountering a TPI point
+		if (auto find_iter = tpi2segs.find(v_inter); find_iter != tpi2segs.end())
+		{ // if v_inter is a TPI point, fix indices stored in related segments.
+			index_t seg_id = sub_segs_map.at(uniquePair(orig_vstart, orig_vstop));
+			std::vector<index_t> &t2s = tpi2segs.at(v_inter);
+			OMC_EXPENSIVE_ASSERT(std::find(t2s.begin(), t2s.end(), seg_id) ==
+			                       t2s.end(),
+			                     "existed segment in tpi2segs");
+			for (index_t other_seg_id : t2s)
+				fixTPI(seg_id, other_seg_id, (IPoint_TPI *)&subm.vert(v_inter));
+			t2s.push_back(seg_id);
+		}
 		// output found edges/tris intersected with (v_start, v_inter).
 		// adjust v_start and v_stop
 		v_stop = v_inter;
@@ -837,6 +889,13 @@ void Triangulation<Traits>::findIntersectingElements(
 	splitSegmentInSubSegments(orig_vstart, orig_vstop, orig_tpi_id, sub_segs_map);
 	splitSegmentInSubSegments(orig_v0, orig_v1, orig_tpi_id, sub_segs_map);
 
+	// add two segments to tpi2segs
+	OMC_EXPENSIVE_ASSERT(tpi2segs.find(new_tpi_id) == tpi2segs.end(),
+	                     "the new tpi point has existed.");
+	tpi2segs[new_tpi_id].push_back(
+	  sub_segs_map.at(uniquePair(orig_vstart, orig_vstop)));
+	tpi2segs[new_tpi_id].push_back(sub_segs_map.at(uniquePair(orig_v0, orig_v1)));
+
 	// the original edge (v_start, v_stop) is split in (v_start, new_tpi) and
 	// (new_tpi, v_stop).
 
@@ -901,49 +960,74 @@ index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, const UIPair &e0,
 	const index_t &e0_seg_id = sub_segs_map.at(e0);
 	const index_t &e1_seg_id = sub_segs_map.at(e1);
 
-	int cur_thread_idx = tbb::this_task_arena::current_thread_index();
+	// find non-coplanar three planes (triangles) to create a TPI point.
+	auto find_three_planes = [this, &subm](index_t e0_seg_id, index_t e1_seg_id)
+	{
+		std::array<index_t, 3> planes;
 
-	std::array<index_t, 3> t0_ids = {subm.vertInfo(0), subm.vertInfo(1),
-	                                 subm.vertInfo(2)};
+		index_t t_id = subm.meshInfo();
+		planes[0]    = t_id;
 
-	// three triangles intersect, create a TPI point.
+		const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
+		const concurrent_vector<index_t> &e0_seg_tris =
+		  ts.segmentTrianglesList(e0_seg_id);
+		const concurrent_vector<index_t> &e1_seg_tris =
+		  ts.segmentTrianglesList(e1_seg_id);
+
+		for (index_t st_id : e0_seg_tris)
+		{
+			if (st_id == t_id)
+				continue;
+			if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
+			{
+				planes[1] = st_id;
+				break;
+			}
+		}
+		for (index_t st_id : e1_seg_tris)
+		{
+			if (st_id == t_id)
+				continue;
+			if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
+			{
+				planes[2] = st_id;
+				break;
+			}
+		}
+
+		std::sort(planes.begin(), planes.end());
+		return planes;
+	};
+
+	auto [t0, t1, t2] = find_three_planes(e0_seg_id, e1_seg_id);
+
 	std::array<const GPoint *, 3> t0_pnts = {
-	  &ts.vert(t0_ids[0]), &ts.vert(t0_ids[1]), &ts.vert(t0_ids[2])};
+	  &ts.triVert(t0, 0), &ts.triVert(t0, 1), &ts.triVert(t0, 2)};
+	std::array<const GPoint *, 3> t1_pnts = {
+	  &ts.triVert(t1, 0), &ts.triVert(t1, 1), &ts.triVert(t1, 2)};
+	std::array<const GPoint *, 3> t2_pnts = {
+	  &ts.triVert(t2, 0), &ts.triVert(t2, 1), &ts.triVert(t2, 2)};
 
-	std::array<const GPoint *, 3> t1_pnts =
-	  computeTriangleOfSegment(subm, e0_seg_id);
-
-	std::array<const GPoint *, 3> t2_pnts =
-	  computeTriangleOfSegment(subm, e1_seg_id);
+	int cur_thread_idx = tbb::this_task_arena::current_thread_index();
 
 	IPoint_TPI *new_v = pnt_arenas[cur_thread_idx].emplace(
 	  CreateTPI()(*t0_pnts[0], *t0_pnts[1], *t0_pnts[2], *t1_pnts[0], *t1_pnts[1],
 	              *t1_pnts[2], *t2_pnts[0], *t2_pnts[1], *t2_pnts[2]));
 
-	auto create_index = [this](const GPoint *pp, std::atomic<index_t> *ip)
-	{
-		index_t idx = InvalidIndex;
-		{ // lock for new index
-			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
-			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
-		}
-		ip->store(idx, std::memory_order_relaxed); // assign a valid index
-	};
-
-	std::atomic<index_t> *idx_ptr =
+	std::atomic<index_t> *new_idx =
 	  idx_arenas[cur_thread_idx].emplace(InvalidIndex);
 
-	std::pair<size_t, bool> ins =
-	  ts.addVertexInSortedList(new_v, idx_ptr, create_index);
+	auto [new_vertex_created, new_vid] =
+	  addAndFixTPI(e0_seg_id, e1_seg_id, new_v, CreateIndex(ts, new_v, new_idx));
 
-	if (!ins.second)
+	if (!new_vertex_created)
 	{
 		IPoint_TPI::gcv().remove(new_v);
 		pnt_arenas[cur_thread_idx].recycle(new_v);
-		idx_arenas[cur_thread_idx].recycle(idx_ptr);
+		idx_arenas[cur_thread_idx].recycle(new_idx);
 	}
 
-	return ins.first;
+	return new_vid;
 }
 
 template <typename Traits>
@@ -967,6 +1051,108 @@ auto Triangulation<Traits>::computeTriangleOfSegment(FastTriMesh &subm,
 
 	OMC_ASSERT(false, "can't find a no-coplanar triangle");
 	return std::array<const GPoint *, 3>{nullptr, nullptr, nullptr};
+}
+
+template <typename Traits>
+template <typename _CreateIndex>
+std::pair<bool, index_t>
+Triangulation<Traits>::addAndFixTPI(index_t seg0_id, index_t seg1_id,
+                                    IPoint_TPI *vtx, _CreateIndex create_index)
+{
+	bool    new_vertex_created = false;
+	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
+
+	index_t          min_segid = std::min(seg0_id, seg1_id);
+	index_t          max_segid = std::max(seg0_id, seg1_id);
+	tbb::spin_mutex &min_mutex = ts.getS2PMutex(min_segid);
+	tbb::spin_mutex &max_mutex = ts.getS2PMutex(max_segid);
+
+	// lock until add of fix end.
+	std::lock_guard<tbb::spin_mutex> min_lock(min_mutex);
+	std::lock_guard<tbb::spin_mutex> max_lock(max_mutex);
+
+	index_t found_vid_in_e0 = ts.findVertexInSeg(seg0_id, AsGP()(*vtx));
+	index_t found_vid_in_e1 = ts.findVertexInSeg(seg1_id, AsGP()(*vtx));
+
+	if (is_valid_idx(found_vid_in_e0) && is_valid_idx(found_vid_in_e1))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (found_vid_in_e0 == found_vid_in_e1)
+		{
+			suitable_vid = found_vid_in_e0;
+		}
+		else
+		{
+			suitable_vid    = std::min(found_vid_in_e0, found_vid_in_e1);
+			fix_vid         = std::max(found_vid_in_e0, found_vid_in_e1);
+			index_t fix_seg = fix_vid == found_vid_in_e0 ? seg0_id : seg1_id;
+			ts.fixVertexInSeg(fix_seg, fix_vid, suitable_vid);
+		}
+	}
+	else if (is_valid_idx(found_vid_in_e0))
+	{
+		suitable_vid = found_vid_in_e0;
+		ts.addVertexInSeg(seg1_id, found_vid_in_e0);
+	}
+	else if (is_valid_idx(found_vid_in_e1))
+	{
+		suitable_vid = found_vid_in_e1;
+		ts.addVertexInSeg(seg0_id, found_vid_in_e1);
+	}
+	else
+	{
+		suitable_vid = create_index();
+		ts.addVertexInSeg(seg0_id, suitable_vid);
+		ts.addVertexInSeg(seg1_id, suitable_vid);
+		new_vertex_created = true;
+	}
+
+	return std::pair<bool, index_t>(new_vertex_created, suitable_vid);
+}
+
+template <typename Traits>
+void Triangulation<Traits>::fixTPI(index_t seg0_id, index_t seg1_id,
+                                   IPoint_TPI *vtx)
+{
+	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
+
+	index_t          min_segid = std::min(seg0_id, seg1_id);
+	index_t          max_segid = std::max(seg0_id, seg1_id);
+	tbb::spin_mutex &min_mutex = ts.getS2PMutex(min_segid);
+	tbb::spin_mutex &max_mutex = ts.getS2PMutex(max_segid);
+
+	// lock until add of fix end.
+	std::lock_guard<tbb::spin_mutex> min_lock(min_mutex);
+	std::lock_guard<tbb::spin_mutex> max_lock(max_mutex);
+
+	index_t found_vid_in_e0 = ts.findVertexInSeg(seg0_id, AsGP()(*vtx));
+	index_t found_vid_in_e1 = ts.findVertexInSeg(seg1_id, AsGP()(*vtx));
+
+	if (is_valid_idx(found_vid_in_e0) && is_valid_idx(found_vid_in_e1))
+	{
+		// get the suitable point with simpler type and smaller index
+		if (found_vid_in_e0 != found_vid_in_e1)
+		{
+			suitable_vid    = std::min(found_vid_in_e0, found_vid_in_e1);
+			fix_vid         = std::max(found_vid_in_e0, found_vid_in_e1);
+			index_t fix_seg = fix_vid == found_vid_in_e0 ? seg0_id : seg1_id;
+			ts.fixVertexInSeg(fix_seg, fix_vid, suitable_vid);
+		}
+	}
+	else if (is_valid_idx(found_vid_in_e0))
+	{
+		suitable_vid = found_vid_in_e0;
+		ts.addVertexInSeg(seg1_id, found_vid_in_e0);
+	}
+	else if (is_valid_idx(found_vid_in_e1))
+	{
+		suitable_vid = found_vid_in_e1;
+		ts.addVertexInSeg(seg0_id, found_vid_in_e1);
+	}
+	else
+	{
+		OMC_ASSERT(false, "should not happen");
+	}
 }
 
 template <typename Traits>
@@ -1217,6 +1403,12 @@ void Triangulation<Traits>::findPocketsInTriangle(
 		tri_pockets.push_back(curr_tri_pocket);
 		tri_polygons.push_back(curr_tri_poly);
 	}
+}
+
+template <typename Traits>
+void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris)
+{
+	// TODO
 }
 
 template <typename Traits>

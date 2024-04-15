@@ -39,6 +39,7 @@ public:
 	using Orient3D           = typename K::Orient3D;
 	using OrientOn2D         = typename K::OrientOn2D;
 	using LessThan3D         = typename K::LessThan3D;
+	using LongestAxis        = typename K::LongestAxis;
 	using CollinearPoints3D  = typename K::CollinearPoints3D;
 	using MaxCompInTriNormal = typename K::MaxCompInTriNormal;
 
@@ -81,6 +82,7 @@ public: /* Traits ***********************************************************/
 	using Orient3D           = typename Traits::Orient3D;
 	using OrientOn2D         = typename Traits::OrientOn2D;
 	using LessThan3D         = typename Traits::LessThan3D;
+	using LongestAxis        = typename Traits::LongestAxis;
 	using CollinearPoints3D  = typename Traits::CollinearPoints3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 

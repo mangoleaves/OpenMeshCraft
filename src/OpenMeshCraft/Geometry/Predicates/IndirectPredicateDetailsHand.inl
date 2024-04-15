@@ -907,7 +907,7 @@ int longestAxis_IE_interval(const GenericPoint3T<IT, ET> &p1, IT bx, IT by,
 }
 
 template <typename IT, typename ET>
-Sign longestAxis_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx, ET by, ET bz)
+int longestAxis_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx, ET by, ET bz)
 {
 	ET l1x, l1y, l1z, d1, b1x, b1y, b1z;
 	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
@@ -931,8 +931,8 @@ Sign longestAxis_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx, ET by, ET bz)
 }
 
 template <typename IT, typename ET>
-Sign longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
-                              double by, double bz)
+int longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
+                             double by, double bz)
 {
 #ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
@@ -942,7 +942,7 @@ Sign longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
 	int l1x_len = 128, l1y_len = 128, l1z_len = 128, d1_len = 128;
 	p1.getExpansionLambda(&l1x, l1x_len, &l1y, l1y_len, &l1z, l1z_len, &d1,
 	                      d1_len, b1x, b1y, b1z);
-	double diff_kx, diff_ky, diff_kz;
+	double diff_kx = NAN, diff_ky = NAN, diff_kz = NAN;
 	if ((d1[d1_len - 1] != 0))
 	{
 		expansionObject o;
@@ -1012,14 +1012,14 @@ int longestAxis_IE(const GenericPoint3T<IT, ET> &a,
 	int ret;
 	if constexpr (WithSSFilter)
 	{
-		ret = longestAxis_IE_filter(a, b.x(), b.y(), b.z(), arr);
+		ret = longestAxis_IE_filter<IT, ET>(a, b.x(), b.y(), b.z(), arr);
 		if (ret >= 0)
 			return ret;
 	}
-	ret = longestAxis_IE_interval(a, b.x(), b.y(), b.z());
+	ret = longestAxis_IE_interval<IT, ET>(a, b.x(), b.y(), b.z());
 	if (ret >= 0)
 		return ret;
-	return longestAxis_IE_expansion(a, b.x(), b.y(), b.z());
+	return longestAxis_IE_expansion<IT, ET>(a, b.x(), b.y(), b.z());
 }
 
 template <typename IT, typename ET>
@@ -1146,8 +1146,8 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 }
 
 template <typename IT, typename ET>
-Sign longestAxis_II_interval(const GenericPoint3T<IT, ET> &p1,
-                             const GenericPoint3T<IT, ET> &p2)
+int longestAxis_II_interval(const GenericPoint3T<IT, ET> &p1,
+                            const GenericPoint3T<IT, ET> &p2)
 {
 	IT l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
 	if (!p1.getIntervalLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z) ||
@@ -1202,8 +1202,8 @@ Sign longestAxis_II_interval(const GenericPoint3T<IT, ET> &p1,
 }
 
 template <typename IT, typename ET>
-Sign lessThanOnX_II_exact(const GenericPoint3T<IT, ET> &p1,
-                          const GenericPoint3T<IT, ET> &p2)
+int longestAxis_II_exact(const GenericPoint3T<IT, ET> &p1,
+                         const GenericPoint3T<IT, ET> &p2)
 {
 	ET l1x, l1y, l1z, d1, b1x, b1y, b1z, l2x, l2y, l2z, d2, b2x, b2y, b2z;
 	p1.getExactLambda(l1x, l1y, l1z, d1, b1x, b1y, b1z);
@@ -1240,8 +1240,8 @@ Sign lessThanOnX_II_exact(const GenericPoint3T<IT, ET> &p1,
 }
 
 template <typename IT, typename ET>
-Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
-                              const GenericPoint3T<IT, ET> &p2)
+int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
+                             const GenericPoint3T<IT, ET> &p2)
 {
 #ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
@@ -1257,7 +1257,7 @@ Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d1_len, b1x, b1y, b1z);
 	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
 	                      d2_len, b2x, b2y, b2z);
-	double diff_kx, diff_ky, diff_kz;
+	double diff_kx = NAN, diff_ky = NAN, diff_kz = NAN;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
 	{
 		expansionObject o;
@@ -1385,14 +1385,14 @@ int longestAxis_II(const GenericPoint3T<IT, ET> &a,
 	int ret;
 	if constexpr (WithSSFilter)
 	{
-		ret = longestAxis_II_filter(a, b, arr);
+		ret = longestAxis_II_filtered<IT, ET>(a, b, arr);
 		if (ret >= 0)
 			return ret;
 	}
-	ret = longestAxis_II_interval(a, b);
+	ret = longestAxis_II_interval<IT, ET>(a, b);
 	if (ret >= 0)
 		return ret;
-	return longestAxis_II_expansion(a, b);
+	return longestAxis_II_expansion<IT, ET>(a, b);
 }
 
 inline std::array<Sign, 3> lessThanOnAll_EE(double x1, double y1, double z1,

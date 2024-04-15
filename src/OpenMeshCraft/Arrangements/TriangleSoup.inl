@@ -126,7 +126,7 @@ struct TriangleSoup<Traits>::SegComparator
 		return operator()(lhs, ts->vert(rhs));
 	}
 	bool operator()(const GPoint &lhs, const GPoint &rhs) const
-	{
+	{	// TODO Compare topology first?
 		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
@@ -527,6 +527,68 @@ void TriangleSoup<Traits>::addColinearEdge(index_t e0_id, index_t e1_id,
 	colinear_edges[min_eid].emplace_back(max_eid, v0_id, v1_id);
 }
 
+/// @brief similar to getE2PMutex
+template <typename Traits>
+tbb::spin_mutex &TriangleSoup<Traits>::getS2PMutex(index_t seg_id)
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts_mutex.size(), "out of range");
+	return seg2pts_mutex[seg_id];
+}
+
+/// @brief similar to findVertexInEdge
+template <typename Traits>
+index_t TriangleSoup<Traits>::findVertexInSeg(index_t       seg_id,
+                                              const GPoint &pnt) const
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts.size(), "out of range");
+
+	const Seg2PntsSet &points = seg2pts[seg_id];
+	if (points.empty())
+		return InvalidIndex;
+
+	auto iter = points.find(pnt);
+	return iter != points.cend() ? *iter : InvalidIndex;
+}
+
+/// @brief similar to addVertexInEdge
+template <typename Traits>
+void TriangleSoup<Traits>::addVertexInSeg(index_t seg_id, index_t v_id)
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts.size(), "out of range");
+	Seg2PntsSet &points = seg2pts[seg_id];
+	if (points.empty())
+	{ // initialize a comparator for current seg2pts
+		const Segment &seg = segments[seg_id];
+		points             = Seg2PntsSet(
+      SegComparator(this, LongestAxis()(vert(seg.first), vert(seg.second))));
+	}
+
+	auto [iter, succeed] = points.insert(v_id);
+	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
+}
+
+/// @brief similar to fixVertexInEdge
+template <typename Traits>
+void TriangleSoup<Traits>::fixVertexInSeg(index_t seg_id, index_t old_vid,
+                                          index_t new_vid)
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts.size(), "out of range");
+	// fix index in seg2pts
+	Seg2PntsSet &points = seg2pts[seg_id];
+	auto          iter   = points.find(old_vid);
+#if 0 // std::set
+	auto          hint   = iter;
+	++hint;
+	points.erase(iter);
+	points.insert(hint, new_vid);
+#else // boost::container::flat_set
+	*iter = new_vid;
+#endif
+	// fix global index
+	indices[old_vid]->store(new_vid, std::memory_order_relaxed);
+	any_index_fixed = true;
+}
+
 template <typename Traits>
 const concurrent_vector<index_t> &
 TriangleSoup<Traits>::coplanarTriangles(index_t t_id) const
@@ -836,8 +898,11 @@ void TriangleSoup<Traits>::fixAllIndices()
 		};
 		tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
 	}
+	// resize seg2pts and seg2pts_mutexes to proper size
+	seg2pts.resize(segments.size());
+	seg2pts_mutex = tbb::concurrent_vector<tbb::spin_mutex>(segments.size());
 
-	// 4. fix indices stored in coplanar_edges
+	// fix indices stored in coplanar_edges
 	auto fix_coplanar_edges = [this](index_t t_id)
 	{
 		tbb::concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
@@ -855,6 +920,9 @@ void TriangleSoup<Traits>::fixAllIndices()
 		}
 	};
 	tbb::parallel_for(size_t(0), numOrigTris(), fix_coplanar_edges);
+
+	// finally, reset any_index_fixed
+	any_index_fixed = false;
 
 #if defined(OMC_ENABLE_EXPENSIVE_ASSERT)
 	struct Comparator
