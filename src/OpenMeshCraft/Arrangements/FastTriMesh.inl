@@ -214,6 +214,20 @@ void FastTriMesh<Traits>::setVertInfo(const index_t v_id, const index_t info)
 }
 
 template <typename Traits>
+bool FastTriMesh<Traits>::vertFlag(const index_t v_id) const
+{
+	OMC_EXPENSIVE_ASSERT(v_id < numVerts(), "vtx id out of range");
+	return vertices[v_id].flag;
+}
+
+template <typename Traits>
+void FastTriMesh<Traits>::setVertFlag(const index_t v_id, const bool flag)
+{
+	OMC_EXPENSIVE_ASSERT(v_id < numVerts(), "vtx id out of range");
+	vertices[v_id].flag = flag;
+}
+
+template <typename Traits>
 index_t FastTriMesh<Traits>::triInfo(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTriangles(), "tri id out of range");
@@ -256,9 +270,9 @@ void FastTriMesh<Traits>::setTriLabel(index_t t_id, const Label &label)
 }
 
 template <typename Traits>
-index_t FastTriMesh<Traits>::vertNewID(index_t orig_v_id) const
+index_t FastTriMesh<Traits>::vertLocalID(index_t glob_v_id) const
 {
-	auto it = rev_vtx_map.find(orig_v_id);
+	auto it = rev_vtx_map.find(glob_v_id);
 	OMC_EXPENSIVE_ASSERT(it != rev_vtx_map.end(),
 	                     "vtx id not found in reverse map");
 	return it->second;

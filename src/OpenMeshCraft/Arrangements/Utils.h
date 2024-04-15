@@ -26,6 +26,7 @@
 #include <memory>
 #include <queue>
 #include <ranges>
+#include <set>
 #include <vector>
 
 namespace OMC {
@@ -257,6 +258,26 @@ struct DuplTriInfo
 	index_t l_id; // label id
 	bool    w;    // winding (CW or CCW)
 };
+
+#if 0 // OpenMeshCraft::InlinedVector, friendly for debug
+template <typename T>
+using AuxVector64 = InlinedVector<T, 64>;
+template <typename T>
+using AuxVector16 = InlinedVector<T, 16>;
+template <typename T>
+using AuxVector8 = InlinedVector<T, 8>;
+template <typename T>
+using AuxVector4 = InlinedVector<T, 4>;
+#else // absl::InlinedVector, possibly faster?
+template <typename T>
+using AuxVector64 = absl::InlinedVector<T, 64>;
+template <typename T>
+using AuxVector16 = absl::InlinedVector<T, 16>;
+template <typename T>
+using AuxVector8 = absl::InlinedVector<T, 8>;
+template <typename T>
+using AuxVector4 = absl::InlinedVector<T, 4>;
+#endif
 
 template <typename Points, typename Triangles, typename NT>
 void load(const Points &points, const Triangles &triangles, const size_t label,

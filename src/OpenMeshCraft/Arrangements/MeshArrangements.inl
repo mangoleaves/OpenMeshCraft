@@ -3,7 +3,6 @@
 #include "MeshArrangements.h"
 
 // Data structures of arrangements
-#include "AuxStructure.h"
 #include "FastTriMesh.h"
 #include "TriangleSoup.h"
 
@@ -254,13 +253,9 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	DetectClassifyTTIs<Traits> DCI(
 	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
 
+	tree.clear_boxes();
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
-
-	// build vertices map to store TPI (Triplet-Planes-Intersection points)
-	tree.clear_boxes();
-	tree.shape_refine();
-	tri_soup.buildVMap(&tree);
 
 	// Triangulation.
 	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);

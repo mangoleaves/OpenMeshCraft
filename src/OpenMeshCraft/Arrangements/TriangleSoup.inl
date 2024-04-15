@@ -126,7 +126,7 @@ struct TriangleSoup<Traits>::SegComparator
 		return operator()(lhs, ts->vert(rhs));
 	}
 	bool operator()(const GPoint &lhs, const GPoint &rhs) const
-	{	// TODO Compare topology first?
+	{ // TODO Compare topology first?
 		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
@@ -324,13 +324,6 @@ Label TriangleSoup<Traits>::triLabel(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return tri_labels[t_id];
-}
-
-template <typename Traits>
-void TriangleSoup<Traits>::buildVMap(Tree *tree)
-{
-	tree->clear_points();
-	v_map = std::make_unique<AuxPointMap_Tree<Traits>>(tree);
 }
 
 template <typename Traits>
@@ -575,7 +568,7 @@ void TriangleSoup<Traits>::fixVertexInSeg(index_t seg_id, index_t old_vid,
 	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts.size(), "out of range");
 	// fix index in seg2pts
 	Seg2PntsSet &points = seg2pts[seg_id];
-	auto          iter   = points.find(old_vid);
+	auto         iter   = points.find(old_vid);
 #if 0 // std::set
 	auto          hint   = iter;
 	++hint;
@@ -679,34 +672,23 @@ Sign TriangleSoup<Traits>::triOrient(index_t t_id) const
 }
 
 template <typename Traits>
-std::pair<index_t, bool>
-TriangleSoup<Traits>::addVertexInSortedList(const GPoint         *pp,
-                                            std::atomic<index_t> *ip)
-{
-	auto [insert_ip, insert_res] =
-	  static_cast<AuxPointMap_Tree<Traits> *>(v_map.get())->insert(pp, ip);
-	return std::pair<index_t, bool>(insert_ip->load(), insert_res);
-}
-
-template <typename Traits>
-template <typename GetIndex>
-std::pair<index_t, bool> TriangleSoup<Traits>::addVertexInSortedList(
-  const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx)
-{
-	return static_cast<AuxPointMap_Tree<Traits> *>(v_map.get())
-	  ->insert_F(pp, ip, get_idx);
-}
-
-template <typename Traits>
 index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
-  const std::vector<index_t> &polygon, index_t pos)
+  const std::vector<index_t> &polygon, index_t pos, bool with_tpi)
 {
-	auto poly_it = pockets_map.insert(std::make_pair(polygon, pos));
-
-	if (poly_it.second)
-		return InvalidIndex; // polygon not present yet
-
-	return poly_it.first->second;
+	if (with_tpi)
+	{
+		auto poly_it = pockets_map_with_tpi.insert(std::make_pair(polygon, pos));
+		if (poly_it.second)
+			return InvalidIndex; // polygon not present yet
+		return poly_it.first->second;
+	}
+	else
+	{
+		auto poly_it = pockets_map.insert(std::make_pair(polygon, pos));
+		if (poly_it.second)
+			return InvalidIndex; // polygon not present yet
+		return poly_it.first->second;
+	}
 }
 
 template <typename Traits>

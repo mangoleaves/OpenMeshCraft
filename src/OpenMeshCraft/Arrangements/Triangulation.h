@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AuxStructure.h"
 #include "FastTriMesh.h"
 #include "Tree.h"
 #include "TriangleSoup.h"
@@ -100,18 +99,13 @@ private:
 	void splitSegmentInSubSegments(index_t v_start, index_t v_stop,
 	                               index_t mid_point, SubSegMap &sub_segs_map);
 
-	index_t createTPI(FastTriMesh &subm, const UIPair &e0, const UIPair &e1,
-	                  const SubSegMap &sub_segs_map);
+	index_t createTPI(FastTriMesh &subm, index_t seg0_id, index_t seg1_id);
 
-	std::array<const GPoint *, 3> computeTriangleOfSegment(FastTriMesh &subm,
-	                                                       index_t      seg_id);
-
-	template <typename _CreateIndex>
 	std::pair<bool, index_t> addAndFixTPI(index_t seg0_id, index_t seg1_id,
-	                                      IPoint_TPI  *vtx,
-	                                      _CreateIndex create_index);
+	                                      IPoint_TPI *vtx,
+	                                      CreateIndex create_index);
 
-	void fixTPI(index_t seg0_id, index_t seg1_id, IPoint_TPI *vtx);
+	index_t fixTPI(index_t seg0_id, index_t seg1_id, IPoint_TPI *vtx);
 
 	template <typename tri_iterator, typename edge_iterator>
 	void boundaryWalker(const FastTriMesh &subm, index_t v_start, index_t v_stop,
@@ -134,7 +128,8 @@ private:
 
 	/* Postfix indices **********************************************************/
 
-	void postFixIndices(std::vector<index_t> &new_tris);
+	void postFixIndices(std::vector<index_t> &new_tris,
+	                    std::vector<Label>   &new_labels);
 
 private:
 	static bool pointInsideSegmentCollinear(const FastTriMesh &subm,

@@ -6,21 +6,7 @@
 
 namespace OMC {
 
-enum class Sign;
-
 class SplitTree;
-
-#if 0	// OpenMeshCraft::InlinedVector, friendly for debug
-template <typename T>
-using AuxVector16 = InlinedVector<T, 16>;
-template <typename T>
-using AuxVector4 = InlinedVector<T, 4>;
-#else	// absl::InlinedVector, possibly faster?
-template <typename T>
-using AuxVector16 = absl::InlinedVector<T, 16>;
-template <typename T>
-using AuxVector4 = absl::InlinedVector<T, 4>;
-#endif
 
 template <typename Traits>
 class FastTriMesh
@@ -37,14 +23,16 @@ public:
 	struct iVertex
 	{
 		iVertex() = delete;
-		explicit iVertex(const GPoint *p, index_t id = 0) noexcept
+		explicit iVertex(const GPoint *p, index_t id = 0, bool f = false) noexcept
 		  : point(p)
 		  , info(id)
+		  , flag(f)
 		{
 		}
 
 		const GPoint *point;
 		index_t       info;
+		bool          flag;
 	};
 
 	struct iEdge
@@ -117,6 +105,9 @@ public: /* Info **************************************************************/
 	index_t vertInfo(const index_t v_id) const;
 	void    setVertInfo(const index_t v_id, const index_t info);
 
+	bool vertFlag(const index_t v_id) const;
+	void setVertFlag(const index_t v_id, const bool info);
+
 	index_t triInfo(index_t t_id) const;
 	void    setTriInfo(index_t t_id, index_t val);
 
@@ -126,7 +117,7 @@ public: /* Info **************************************************************/
 	const Label &triLabel(index_t t_id) const;
 	void         setTriLabel(index_t t_id, const Label &label);
 
-	index_t vertNewID(index_t orig_v_id) const;
+	index_t vertLocalID(index_t glob_v_id) const;
 
 public: /* Ajdacencies *******************************************************/
 	bool edgeContainsVert(index_t e_id, index_t v_id) const;

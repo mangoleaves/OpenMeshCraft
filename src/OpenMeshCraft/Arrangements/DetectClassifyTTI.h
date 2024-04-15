@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include "AuxStructure.h"
 #include "TriangleSoup.h"
 #include "Utils.h"
 

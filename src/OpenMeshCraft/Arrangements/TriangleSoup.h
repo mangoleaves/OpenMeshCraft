@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AuxStructure.h"
+#include "Utils.h"
 
 #include <bitset>
 #include <map>
@@ -78,6 +78,10 @@ public: /* Types **************************************************************/
 	struct SegComparator;
 	using Seg2PntsSet =
 	  boost::container::flat_set<index_t, SegComparator, std::vector<index_t>>;
+
+	/* ----- coplnar pockes related structures ----- */
+
+	using PocketsMap = phmap::flat_hash_map<std::vector<index_t>, index_t>;
 
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
@@ -159,8 +163,6 @@ public: /* Triangles **********************************************************/
 protected:
 	/***** Below data are calculated by arrangements  ******/
 
-	bool any_index_fixed;
-
 	// does triangle have intersections
 	std::vector<uint8_t> tri_has_intersections;
 
@@ -172,9 +174,6 @@ protected:
 
 	// colinear edge
 	concurrent_vector<concurrent_vector<CCrEdgeInfo>> colinear_edges;
-
-	// map point coordinates to vertex id
-	std::unique_ptr<AuxPointMap<Traits>> v_map;
 
 	// store intersection points on triangles
 	std::vector<concurrent_vector<index_t>> tri2pts;
@@ -211,9 +210,14 @@ protected:
 	std::vector<Sign> tri_orient;
 
 	// coplanar pockets (TODO pocket size? inlined_vector?)
-	phmap::flat_hash_map<std::vector<index_t>, index_t> pockets_map;
+	PocketsMap pockets_map;
+
+	PocketsMap pockets_map_with_tpi;
 
 public:
+	// flags
+	bool any_index_fixed;
+
 	// mutexes
 	tbb::spin_mutex new_vertex_mutex;
 	tbb::spin_mutex new_edge_mutex;
@@ -273,20 +277,10 @@ public: /* Add **************************************************************/
 
 	void fixVertexInSeg(index_t seg_id, index_t old_vid, index_t new_vid);
 
-	/* Map point to unique index */
-
-	std::pair<index_t, bool> addVertexInSortedList(const GPoint         *pp,
-	                                               std::atomic<index_t> *ip);
-
-	template <typename GetIndex>
-	std::pair<index_t, bool> addVertexInSortedList(const GPoint         *pp,
-	                                               std::atomic<index_t> *ip,
-	                                               GetIndex              get_idx);
-
 	/* Unique pocket */
 
 	index_t addVisitedPolygonPocket(const std::vector<index_t> &polygon,
-	                                index_t                     pos);
+	                                index_t pos, bool with_tpi);
 
 public: /* Query ***********************************************************/
 	/* Coplanar and colinear */
@@ -311,6 +305,9 @@ public: /* Query ***********************************************************/
 
 	const concurrent_vector<index_t> &segmentTrianglesList(index_t seg_id) const;
 
+	/* Coplanar pockets */
+	PocketsMap &pocketsMapWithTPI() { return pockets_map_with_tpi; }
+
 	/* Orthogonal plane and orientation on the orthogonal plane */
 
 	Plane triPlane(index_t t_id) const;
@@ -318,8 +315,6 @@ public: /* Query ***********************************************************/
 	Sign triOrient(index_t t_id) const;
 
 public: /* Modify *********************************************************/
-	void buildVMap(Tree *tree);
-
 	void removeDuplicatesBeforeFix();
 
 	void fixColinearEdgesIntersections();

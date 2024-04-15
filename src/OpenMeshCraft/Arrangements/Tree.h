@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AuxStructure.h"
 #include "Utils.h"
 
 #include "OpenMeshCraft/Geometry/AdaptiveOrthTree/AdapOcTree.h"
@@ -167,26 +166,6 @@ public:
 	using ShapeRefinePred = Arr_TreeShapeRefinePred;
 	using DoIntersect     = typename AppTraits::DoIntersect;
 	using CalcBbox        = typename AppTraits::CalcBbox;
-
-	struct NodeAttrT
-	{
-		tbb::spin_mutex                      mutex;
-		AuxPointMap_ConcurrentMap<AppTraits> point_map;
-
-		NodeAttrT() = default;
-		NodeAttrT(const NodeAttrT &rhs) { operator=(rhs); }
-		NodeAttrT(NodeAttrT &&rhs) { operator=(std::move(rhs)); }
-		NodeAttrT &operator=(const NodeAttrT &rhs)
-		{
-			point_map = rhs.point_map;
-			return *this;
-		}
-		NodeAttrT &operator=(NodeAttrT &&rhs)
-		{
-			point_map = std::move(rhs.point_map);
-			return *this;
-		}
-	};
 };
 
 template <typename AppTraits>
@@ -252,29 +231,6 @@ public: /* Query and update Interfaces ************************************/
 
 	/// @brief insert new box in the tree. only insert it to existed nodes.
 	void insert_box(const BboxT &ins_box, index_t ins_id);
-
-	typename BaseT::NodeRef locate_point(const GPoint *pp);
-
-	std::pair<std::atomic<index_t> *, bool>
-	insert_point(const GPoint *pp, std::atomic<index_t> *ip);
-
-	/**
-	 * @brief insert a point into tree.
-	 * @param pp point's pointer
-	 * @param ip index's pointer
-	 * @param get_idx A function object that inserts point and get index.
-	 * @return std::pair<index_t, bool> index of (existed) point and boolean
-	 * indicating that whether the point is inserted.
-	 */
-	template <typename GetIndex>
-	std::pair<index_t, bool>
-	insert_point_F(const GPoint *pp, std::atomic<index_t> *ip, GetIndex get_idx);
-
-	std::pair<index_t, bool> find(const GPoint *pp);
-
-	std::atomic<index_t> &at(const GPoint *pp);
-
-	void clear_points();
 
 protected: /* Internal types, functions and data. **************************/
 	         /* used in traversal */

@@ -4,7 +4,6 @@
 // Kernel
 #include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
 // Arrangements
-#include "OpenMeshCraft/Arrangements/AuxStructure.h"
 #include "OpenMeshCraft/Arrangements/FastTriMesh.h"
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"
 #include "OpenMeshCraft/Arrangements/TriangleSoup.h"
