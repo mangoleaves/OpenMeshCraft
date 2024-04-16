@@ -984,12 +984,21 @@ index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, index_t seg0_id,
 	planes[0] = t_id;
 
 	const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
-	const concurrent_vector<index_t> &e0_seg_tris =
-	  ts.segmentTrianglesList(seg0_id);
-	const concurrent_vector<index_t> &e1_seg_tris =
-	  ts.segmentTrianglesList(seg1_id);
+	const concurrent_vector<index_t> &e0_s2t = ts.segmentTrianglesList(seg0_id);
+	const concurrent_vector<index_t> &e1_s2t = ts.segmentTrianglesList(seg1_id);
 
-	for (index_t st_id : e0_seg_tris)
+	for (index_t ct_id : copl_tris)
+	{
+		if (std::binary_search(e0_s2t.begin(), e0_s2t.end(), ct_id) &&
+		    std::binary_search(e1_s2t.begin(), e1_s2t.end(), ct_id))
+		{
+			planes[0] = ct_id;
+			break;
+		}
+	}
+	if (planes[0] > t_id)
+		planes[0] = t_id;
+	for (index_t st_id : e0_s2t)
 	{
 		if (st_id == t_id)
 			continue;
@@ -999,7 +1008,7 @@ index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, index_t seg0_id,
 			break;
 		}
 	}
-	for (index_t st_id : e1_seg_tris)
+	for (index_t st_id : e1_s2t)
 	{
 		if (st_id == t_id)
 			continue;

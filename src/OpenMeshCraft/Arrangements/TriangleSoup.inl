@@ -126,7 +126,14 @@ struct TriangleSoup<Traits>::SegComparator
 		return operator()(lhs, ts->vert(rhs));
 	}
 	bool operator()(const GPoint &lhs, const GPoint &rhs) const
-	{ // TODO Compare topology first?
+	{
+		const IPoint_TPI &_lhs = lhs.TPI(), &_rhs = rhs.TPI();
+		if (&_lhs.V1() == &_rhs.V1() && &_lhs.V2() == &_rhs.V2() &&
+		    &_lhs.V3() == &_rhs.V3() && &_lhs.U1() == &_rhs.U1() &&
+		    &_lhs.U2() == &_rhs.U2() && &_lhs.U3() == &_rhs.U3() &&
+		    &_lhs.W1() == &_rhs.W1() && &_lhs.W2() == &_rhs.W2() &&
+		    &_lhs.W3() == &_rhs.W3())
+			return false;
 		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
@@ -269,16 +276,16 @@ index_t TriangleSoup<Traits>::triVertID(index_t t_id, index_t off) const
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVert(index_t t_id, index_t off) const
-  -> const GPoint &
+auto TriangleSoup<Traits>::triVert(index_t t_id,
+                                   index_t off) const -> const GPoint &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vert(triangles[3 * t_id + off]);
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVertPtr(index_t t_id, index_t off) const
-  -> const NT *
+auto TriangleSoup<Traits>::triVertPtr(index_t t_id,
+                                      index_t off) const -> const NT *
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vertPtr(triangles[3 * t_id + off]);
@@ -694,14 +701,12 @@ index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
 template <typename Traits>
 void TriangleSoup<Traits>::removeDuplicatesBeforeFix()
 {
-	tbb::parallel_for(size_t(0), numOrigTris(),
-	                  [this](size_t t_id)
+	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
 	                  { remove_duplicates(coplanar_tris[t_id]); });
 
 	// endpoints in CCrEdgeInfo in colinear edges are all explicit points.
 	// we do not need to fix indices of them.
-	tbb::parallel_for(size_t(0), numEdges(),
-	                  [this](index_t e_id)
+	tbb::parallel_for(size_t(0), numEdges(), [this](index_t e_id)
 	                  { remove_duplicates(colinear_edges[e_id]); });
 }
 
@@ -767,8 +772,8 @@ void TriangleSoup<Traits>::fixColinearEdgesIntersections()
 					fixVertexInEdge(e_id, p_id, found_vid);
 				}
 			} // end for e2p
-		}   // end for ccr_edge_infos
-	};    // end fix_colinear_edge
+		} // end for ccr_edge_infos
+	}; // end fix_colinear_edge
 
 #ifdef OMC_ARR_TS_PARA
 	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edge);
@@ -880,6 +885,9 @@ void TriangleSoup<Traits>::fixAllIndices()
 		};
 		tbb::parallel_for(size_t(0), numOrigTris(), fix_tri2segs);
 	}
+	tbb::parallel_for_each(seg2tris.begin(), seg2tris.end(),
+	                       [](concurrent_vector<index_t> &s2t)
+	                       { remove_duplicates(s2t); });
 	// resize seg2pts and seg2pts_mutexes to proper size
 	seg2pts.resize(segments.size());
 	seg2pts_mutex = tbb::concurrent_vector<tbb::spin_mutex>(segments.size());
