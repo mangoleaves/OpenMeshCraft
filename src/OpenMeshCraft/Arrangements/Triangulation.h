@@ -35,15 +35,15 @@ private:
 	using TriSoup     = TriangleSoup<Traits>;
 
 	// Segment, containing seg_id and seg's endpoints
-	using Segment      = std::pair<index_t, UIPair>;
+	using Segment      = UIPair;
 	// Collect segments on a triangle
-	using SegmentsList = std::vector<Segment>;
+	using SegmentsList = phmap::flat_hash_set<Segment>;
 	// Segment will be split to sub-segments by TPI points,
 	// map sub-segments to its original segment id.
 	using RefSegs =
 	  boost::container::flat_set<index_t, std::less<index_t>,
 	                             boost::container::small_vector<index_t, 4>>;
-	using SubSegMap = phmap::flat_hash_map<UIPair, RefSegs>;
+	using SubSegMap = phmap::flat_hash_map<Segment, RefSegs>;
 	// Store segments adajcent to TPI points in a triangle.
 	using TPI2Segs  = phmap::flat_hash_map<index_t, std::vector<index_t>>;
 
@@ -85,8 +85,10 @@ private:
 
 	/* Split triangle by contraint segments *************************************/
 
-	void addConstraintSegmentsInSingleTriangle(FastTriMesh  &subm,
-	                                           SegmentsList &segment_list);
+	void
+	addConstraintSegmentsInSingleTriangle(FastTriMesh          &subm,
+	                                      std::vector<index_t> &seg_ids,
+	                                      std::vector<Segment> &segments);
 
 	void addConstraintSegment(FastTriMesh &subm, const Segment &seg,
 	                          SegmentsList &segment_list, SubSegMap &sub_segs_map,
@@ -144,6 +146,8 @@ private:
 
 	std::vector<PntArena> &pnt_arenas;
 	std::vector<IdxArena> &idx_arenas;
+
+	index_t tpi_begin;
 };
 
 } // namespace OMC

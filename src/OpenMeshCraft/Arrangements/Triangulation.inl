@@ -49,6 +49,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 	ts.vertices.reserve(ts.numVerts() * 3);
 	ts.indices.reserve(ts.numVerts() * 3);
 
+	// get triangles to split
 	std::vector<index_t> tris_to_split;
 	tris_to_split.reserve(ts.numTris());
 
@@ -65,6 +66,8 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 			new_labels.push_back(ts.triLabel(t_id));
 		}
 	}
+
+	tpi_begin = ts.vertices.size();
 
 	// processing the triangles to split
 	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
@@ -124,10 +127,11 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 		sortedVertexListAlongSegment(ts.edgePointsList(e2_id), subm.vertInfo(2),
 		                             subm.vertInfo(0), e2_points);
 
-	SegmentsList t_segments;
-	t_segments.reserve(ts.triangleSegmentsList(t_id).size());
-	for (index_t seg_id : ts.triangleSegmentsList(t_id))
-		t_segments.push_back(Segment(seg_id, ts.segment(seg_id)));
+	std::vector<index_t> t_seg_ids(ts.triangleSegmentsList(t_id).begin(),
+	                               ts.triangleSegmentsList(t_id).end());
+	std::vector<Segment> t_segments(t_seg_ids.size());
+	std::transform(t_seg_ids.begin(), t_seg_ids.end(), t_segments.begin(),
+	               [this](index_t seg_id) { return ts.segment(seg_id); });
 
 	size_t estimated_vert_num =
 	  t_points.size() + e0_points.size() + e1_points.size() + e2_points.size();
@@ -154,7 +158,7 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	 *                           CONSTRAINT SEGMENT INSERTION
 	 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-	addConstraintSegmentsInSingleTriangle(subm, t_segments);
+	addConstraintSegmentsInSingleTriangle(subm, t_seg_ids, t_segments);
 
 	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	 *                      POCKETS IN COPLANAR TRIANGLES SOLVING
@@ -465,25 +469,27 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 
 template <typename Traits>
 void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
-  FastTriMesh &subm, SegmentsList &segment_list)
+  FastTriMesh &subm, std::vector<index_t> &seg_ids,
+  std::vector<Segment> &segments)
 {
 	// change segment's global index to local index
-	for (Segment &seg : segment_list)
-		seg.second = uniquePair(subm.vertLocalID(seg.second.first),
-		                        subm.vertLocalID(seg.second.second));
+	for (Segment &seg : segments)
+		seg = uniquePair(subm.vertLocalID(seg.first), subm.vertLocalID(seg.second));
 	// add segments to map, map local segment to global segment id
 	SubSegMap sub_segs_map;
-	sub_segs_map.reserve(segment_list.size());
-	for (const Segment &seg : segment_list)
-		sub_segs_map[seg.second].insert(seg.first);
+	sub_segs_map.reserve(segments.size());
+	for (index_t i = 0; i < segments.size(); i++)
+		sub_segs_map[segments[i]].insert(seg_ids[i]);
+	// Store unique segments
+	SegmentsList segment_list(segments.begin(), segments.end());
 	// store segments adjacent to a TPI point in tpi2segs
-	TPI2Segs tpi2segs;
+	TPI2Segs     tpi2segs;
 
 	// add segments to triangle mesh
 	while (segment_list.size() > 0)
 	{
-		Segment seg = segment_list.back();
-		segment_list.pop_back();
+		Segment seg = *segment_list.begin();
+		segment_list.erase(segment_list.begin());
 
 		addConstraintSegment(subm, seg, segment_list, sub_segs_map, tpi2segs);
 	}
@@ -497,8 +503,8 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
                                                  TPI2Segs      &tpi2segs)
 {
 	// get two local endpoints
-	index_t v0_id = seg.second.first;
-	index_t v1_id = seg.second.second;
+	index_t v0_id = seg.first;
+	index_t v1_id = seg.second;
 
 	// check if edge already present in the mesh, just flag it as constraint
 	if (index_t e_id = subm.edgeID(v0_id, v1_id); is_valid_idx(e_id))
@@ -590,7 +596,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// push (v_inter, v_stop) to check list.
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.emplace_back(InvalidIndex, uniquePair(v_inter, v_stop));
+		segment_list.insert(uniquePair(v_inter, v_stop));
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
@@ -818,7 +824,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// put (v_inter, v_stop) in the segment_list to check later
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.emplace_back(InvalidIndex, uniquePair(v_inter, v_stop));
+		segment_list.insert(uniquePair(v_inter, v_stop));
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
@@ -928,6 +934,8 @@ void Triangulation<Traits>::findIntersectingElements(
 	t2s.insert(t2s.end(), seg0_ids.begin(), seg0_ids.end());
 	t2s.insert(t2s.end(), seg1_ids.begin(), seg1_ids.end());
 
+	// if there are more than two segments when creating TPI,
+	// fix indices between them.
 	if (t2s.size() > 2)
 	{
 		IPoint_TPI *new_tpi = (IPoint_TPI *)&subm.vert(local_tpi_id);
@@ -953,7 +961,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	// (new_tpi, v_stop).
 
 	// put (new_tpi, v_stop) in the segment_list to check later
-	segment_list.emplace_back(InvalidIndex, uniquePair(local_tpi_id, v_stop));
+	segment_list.insert(uniquePair(local_tpi_id, v_stop));
 
 	// output found edges/tris intersected with (v_start, new_ip).
 	if (intersected_tris.size() == 1)
@@ -1449,7 +1457,19 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 	if (!ts.any_index_fixed)
 		return;
 
-	Logger::info("TPI indices fixed.");
+	auto fix_vertex_idx = [this](index_t orig_vidx)
+	{
+		index_t fix_vidx = orig_vidx;
+		index_t new_vidx = ts.indices[fix_vidx]->load(std::memory_order_relaxed);
+		while (fix_vidx != new_vidx)
+		{
+			fix_vidx = new_vidx;
+			new_vidx = ts.indices[fix_vidx]->load(std::memory_order_relaxed);
+		}
+		ts.indices[orig_vidx]->store(fix_vidx, std::memory_order_relaxed);
+	};
+
+	tbb::parallel_for(tpi_begin, ts.numVerts(), fix_vertex_idx);
 
 	// Fix indices stored in new_tris.
 	// In this stage, no duplicate triangle will be generated.
@@ -1469,7 +1489,6 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	if (old_pockets_map.empty())
 		return;
-	Logger::info("TPI pockets fixed.");
 
 	for (std::pair<std::vector<index_t>, index_t> pocket : old_pockets_map)
 	{

@@ -276,16 +276,16 @@ index_t TriangleSoup<Traits>::triVertID(index_t t_id, index_t off) const
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVert(index_t t_id,
-                                   index_t off) const -> const GPoint &
+auto TriangleSoup<Traits>::triVert(index_t t_id, index_t off) const
+  -> const GPoint &
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vert(triangles[3 * t_id + off]);
 }
 
 template <typename Traits>
-auto TriangleSoup<Traits>::triVertPtr(index_t t_id,
-                                      index_t off) const -> const NT *
+auto TriangleSoup<Traits>::triVertPtr(index_t t_id, index_t off) const
+  -> const NT *
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numTris(), "t_id out of range");
 	return vertPtr(triangles[3 * t_id + off]);
@@ -701,12 +701,14 @@ index_t TriangleSoup<Traits>::addVisitedPolygonPocket(
 template <typename Traits>
 void TriangleSoup<Traits>::removeDuplicatesBeforeFix()
 {
-	tbb::parallel_for(size_t(0), numOrigTris(), [this](size_t t_id)
+	tbb::parallel_for(size_t(0), numOrigTris(),
+	                  [this](size_t t_id)
 	                  { remove_duplicates(coplanar_tris[t_id]); });
 
 	// endpoints in CCrEdgeInfo in colinear edges are all explicit points.
 	// we do not need to fix indices of them.
-	tbb::parallel_for(size_t(0), numEdges(), [this](index_t e_id)
+	tbb::parallel_for(size_t(0), numEdges(),
+	                  [this](index_t e_id)
 	                  { remove_duplicates(colinear_edges[e_id]); });
 }
 
@@ -772,8 +774,8 @@ void TriangleSoup<Traits>::fixColinearEdgesIntersections()
 					fixVertexInEdge(e_id, p_id, found_vid);
 				}
 			} // end for e2p
-		} // end for ccr_edge_infos
-	}; // end fix_colinear_edge
+		}   // end for ccr_edge_infos
+	};    // end fix_colinear_edge
 
 #ifdef OMC_ARR_TS_PARA
 	tbb::parallel_for(size_t(0), numEdges(), fix_colinear_edge);
@@ -1018,69 +1020,6 @@ void TriangleSoup<Traits>::calcTriangleOrient()
 	};
 
 	tbb::parallel_for(size_t(0), numOrigTris(), calc_orient);
-}
-
-template <typename Traits>
-void TriangleSoup<Traits>::outputAllSegments(std::string filename)
-{
-	std::fstream fout;
-	fout.open(filename, std::ios::out);
-	if (!fout.is_open())
-	{
-		Logger::warn("fail to open file.");
-		return;
-	}
-
-	size_t vidx = 1;
-	for (const Segment& seg : segments)
-	{
-		EPoint s0 = ToEP()(vert(seg.first));
-		EPoint s1 = ToEP()(vert(seg.second));
-		fout << std::format("v {} {} {}\n", s0.x(), s0.y(), s0.z());
-		fout << std::format("v {} {} {}\n", s1.x(), s1.y(), s1.z());
-		fout << std::format("v {} {} {}\n", s1.x(), s1.y(), s1.z());
-		fout << std::format("f {} {} {}\n", vidx, vidx + 1, vidx + 2);
-		vidx += 3;
-	}
-
-	fout.close();
-}
-
-template <typename Traits>
-void TriangleSoup<Traits>::outputTriangleSegments(std::string filename,
-                                                  index_t     t_id)
-{
-	std::fstream fout;
-	fout.open(filename, std::ios::out);
-	if (!fout.is_open())
-	{
-		Logger::warn("fail to open file.");
-		return;
-	}
-
-	// output the triangle
-	EPoint t0 = ToEP()(triVert(t_id, 0));
-	EPoint t1 = ToEP()(triVert(t_id, 1));
-	EPoint t2 = ToEP()(triVert(t_id, 2));
-	fout << std::format("v {} {} {}\n", t0.x(), t0.y(), t0.z());
-	fout << std::format("v {} {} {}\n", t1.x(), t1.y(), t1.z());
-	fout << std::format("v {} {} {}\n", t2.x(), t2.y(), t2.z());
-	fout << std::format("f {} {} {}\n", 1, 2, 3);
-
-	size_t vidx = 4;
-	for (index_t seg_id : tri2segs[t_id])
-	{
-		const Segment &seg = segments[seg_id];
-		EPoint s0 = ToEP()(vert(seg.first));
-		EPoint s1 = ToEP()(vert(seg.second));
-		fout << std::format("v {} {} {}\n", s0.x(), s0.y(), s0.z());
-		fout << std::format("v {} {} {}\n", s1.x(), s1.y(), s1.z());
-		fout << std::format("v {} {} {}\n", s1.x(), s1.y(), s1.z());
-		fout << std::format("f {} {} {}\n", vidx, vidx + 1, vidx + 2);
-		vidx += 3;
-	}
-
-	fout.close();
 }
 
 } // namespace OMC

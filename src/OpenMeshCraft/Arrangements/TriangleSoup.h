@@ -329,11 +329,6 @@ public: /* Modify *********************************************************/
 	void calcOrthogonalPlane();
 
 	void calcTriangleOrient();
-
-public: /* Test ***********************************************************/
-	void outputAllSegments(std::string filename);
-
-	void outputTriangleSegments(std::string filename, index_t t_id);
 };
 
 } // namespace OMC
