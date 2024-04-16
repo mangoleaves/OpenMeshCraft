@@ -28,6 +28,9 @@ public: /* Types **************************************************************/
 	using IPoint_SSI = typename Traits::IPoint_SSI;
 	using IPoint_LPI = typename Traits::IPoint_LPI;
 	using IPoint_TPI = typename Traits::IPoint_TPI;
+	using AsGP       = typename Traits::AsGP;
+	using AsEP       = typename Traits::AsEP;
+	using ToEP       = typename Traits::ToEP;
 
 	using CalcBbox           = typename Traits::CalcBbox;
 	using OrientOn2D         = typename Traits::OrientOn2D;
@@ -326,6 +329,11 @@ public: /* Modify *********************************************************/
 	void calcOrthogonalPlane();
 
 	void calcTriangleOrient();
+
+public: /* Test ***********************************************************/
+	void outputAllSegments(std::string filename);
+
+	void outputTriangleSegments(std::string filename, index_t t_id);
 };
 
 } // namespace OMC

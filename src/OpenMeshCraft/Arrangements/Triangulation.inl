@@ -68,7 +68,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 
 	// processing the triangles to split
 	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
-#if 1
+#if 0
 	std::shuffle(tris_to_split.begin(), tris_to_split.end(),
 	             std::mt19937(std::random_device()()));
 	std::vector<FastTriMesh> subms(tbb::this_task_arena::max_concurrency());
@@ -82,7 +82,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 		                              ts.triPlane(t_id), ts.triOrient(t_id));
 		  triangulateSingleTriangle(t_id, subms[thread_id], new_tris, new_labels);
 	  });
-#else
+#elif 0
 	FastTriMesh subm;
 	std::for_each(tris_to_split.begin(), tris_to_split.end(),
 	              [&](size_t t_id)
@@ -92,6 +92,27 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 		                              ts.triPlane(t_id), ts.triOrient(t_id));
 		              triangulateSingleTriangle(t_id, subm, new_tris, new_labels);
 	              });
+#else
+	FastTriMesh subm;
+	size_t      expensive_t_id = 0;
+	double      time           = 0;
+	for (size_t t_id = 0; t_id < tris_to_split.size(); t_id += 10)
+	{
+		auto start = Logger::elapse_reset();
+		subm.initialize(&ts.triVert(t_id, 0), &ts.triVert(t_id, 1),
+		                &ts.triVert(t_id, 2), ts.tri(t_id), ts.triPlane(t_id),
+		                ts.triOrient(t_id));
+		triangulateSingleTriangle(t_id, subm, new_tris, new_labels);
+		auto t_ = Logger::elapsed(start).count();
+		if (t_ > time)
+		{
+			expensive_t_id = t_id;
+			time           = t_;
+		}
+	}
+	Logger::info(std::format("expensive t id: {}, time: {}", expensive_t_id, time));
+	ts.outputTriangleSegments("./data/test_output/Arrangements/segments.obj",
+	                          expensive_t_id);
 #endif
 	GPoint::disable_global_cached_values();
 
@@ -1423,8 +1444,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	// Fix indices stored in new_tris.
 	// In this stage, no duplicate triangle will be generated.
-	tbb::parallel_for_each(new_tris.begin(), new_tris.end(),
-	                       [this](index_t &vid)
+	tbb::parallel_for_each(new_tris.begin(), new_tris.end(), [this](index_t &vid)
 	                       { vid = ts.indices[vid]->load(); });
 
 	// Fix indices stored in pockets with TPI points.
