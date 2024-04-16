@@ -4,14 +4,15 @@
       "dir": "./data/arrangements_data/",
       "filename": "CamelBox.stl",
       "verbose": true,
+      "num_vf": true,
       "write": false
     },
     "TestDataSet": {
       "models_dir": "who-knows",
       "verbose": false,
-      "num_vf": true,
+      "num_vf": false,
       "skip_step": 0,
-      "set_parameter": true,
+      "set_parameter": false,
       "parameters": {
         "tree_enlarge_ratio": 1.01,
         "tree_adaptive_thres": 0.1,
@@ -35,12 +36,12 @@
       "model_path": "./data/boolean_data/bunny25k.obj"
     }
   },
-  "BinaryTree": {
+  "AdapOrthTree": {
     "SetUp": {
       "filename": "./data/arrangements_data/318844.stl"
     }
   },
-  "AdapOrthTree": {
+  "BinaryTree": {
     "SetUp": {
       "filename": "./data/arrangements_data/318844.stl"
     }

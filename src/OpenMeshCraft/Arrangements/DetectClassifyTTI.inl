@@ -954,7 +954,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 
 	OMC_EXPENSIVE_ASSERT(
 	  intersection_points.size() <= 2,
-	  "more than 2 intersection points between non-coplanar traingles");
+	  "more than 2 intersection points between non-coplanar triangles");
 
 	if (intersection_points.size() == 2)
 	{

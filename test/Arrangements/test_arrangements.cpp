@@ -59,12 +59,15 @@ TEST_F(test_Arrangements, TestIfCrash)
 
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
-	arrangements.meshArrangements(false, config.get<bool>("write"));
+	arrangements.meshArrangements(false, config.get<bool>("num_vf"));
 
-	std::cout << "complex mesh arrangement uses "
-	          << OMC::Logger::elapsed(start).count() << " s\n";
+	std::cout << std::format("mesh arrangement uses {} s\n",
+	                         OMC::Logger::elapsed(start).count());
+	std::cout << std::format("result vertices {} result faces {}\n",
+	                         result_points.size(), result_triangles.size());
 
-	write_mesh(outdir + filename, result_points, result_triangles, io_options);
+	if (config.get<bool>("write"))
+		write_mesh(outdir + filename, result_points, result_triangles, io_options);
 }
 
 /**

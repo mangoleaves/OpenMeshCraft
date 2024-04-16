@@ -50,15 +50,9 @@ protected:
 	struct CoplanarEEI;
 	struct CreateIndex;
 
-#if 0 // OpenMeshCraft::InlinedVector, friendly for debug
 	using IntersectionPoints = InlinedVector<index_t, 4>;
 	using IntersectionTypes  = InlinedVector<PointInSimplexType, 4>;
 	using CoplanarEEIList    = InlinedVector<CoplanarEEI, 4>;
-#else // absl::InlinedVector, possibly faster?
-	using IntersectionPoints = absl::InlinedVector<index_t, 4>;
-	using IntersectionTypes  = absl::InlinedVector<PointInSimplexType, 4>;
-	using CoplanarEEIList    = absl::InlinedVector<CoplanarEEI, 4>;
-#endif
 
 protected:
 	index_t get_e_id(TTIHelper &ha, index_t ea);

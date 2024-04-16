@@ -40,9 +40,12 @@ private:
 	using SegmentsList = std::vector<Segment>;
 	// Segment will be split to sub-segments by TPI points,
 	// map sub-segments to its original segment id.
-	using SubSegMap    = phmap::flat_hash_map<UIPair, index_t>;
+	using RefSegs =
+	  boost::container::flat_set<index_t, std::less<index_t>,
+	                             boost::container::small_vector<index_t, 4>>;
+	using SubSegMap = phmap::flat_hash_map<UIPair, RefSegs>;
 	// Store segments adajcent to TPI points in a triangle.
-	using TPI2Segs     = phmap::flat_hash_map<index_t, std::vector<index_t>>;
+	using TPI2Segs  = phmap::flat_hash_map<index_t, std::vector<index_t>>;
 
 	struct CreateIndex;
 
