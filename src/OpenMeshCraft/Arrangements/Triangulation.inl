@@ -193,7 +193,8 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
 	if (point_list.empty())
 		return;
 	out_point_list = std::vector<index_t>(point_list.begin(), point_list.end());
-	if (out_point_list.front() == v1_id) // first element must be v0
+	// first element must be v0
+	if (out_point_list.front() != v0_id || out_point_list.front() == v1_id)
 		std::reverse(out_point_list.begin(), out_point_list.end());
 	OMC_EXPENSIVE_ASSERT(out_point_list.front() == v0_id, "missing endpoint.");
 }

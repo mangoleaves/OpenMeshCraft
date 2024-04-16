@@ -74,24 +74,6 @@ include(OpenMeshCraft_ConfigureDeps)
 
 if(CMAKE_HOST_WIN32)
 
-  # ## abseil-cpp
-  get_target_property(_IS_ABSL_IMPORTED abseil_dll IMPORTED)
-  if(_IS_ABSL_IMPORTED)
-    # cmake-format: off
-    install(
-      IMPORTED_RUNTIME_ARTIFACTS abseil_dll
-      EXCLUDE_FROM_ALL
-      COMPONENT ${PROJECT_NAME}
-      RUNTIME DESTINATION $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-    # cmake-format: on
-  else()
-    install(
-      TARGETS abseil_dll
-      EXCLUDE_FROM_ALL
-      COMPONENT ${PROJECT_NAME}
-      RUNTIME DESTINATION $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-  endif()
-
   # ## GMP and MPFR
   # cmake-format: off
   install(

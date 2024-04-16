@@ -54,14 +54,6 @@ target_link_libraries(
          # oneTBB
          tbb)
 
-# abseil_cpp
-if(CMAKE_HOST_WIN32)
-  target_link_libraries(${PROJECT_NAME} PUBLIC abseil_dll)
-else()
-  target_link_libraries(${PROJECT_NAME} PUBLIC absl::inlined_vector
-                                               absl::flat_hash_map)
-endif()
-
 set(OMC_CONFIG_TARGET ${PROJECT_NAME})
 set(OMC_CONFIGDEP_BOOST ON)
 include(OpenMeshCraft_ConfigureDeps)

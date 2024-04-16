@@ -1,19 +1,3 @@
-# abseil_cpp ###################################################################
-# ##############################################################################
-# * On Win32 host, link target abseil_dll.
-# * On Unix host, link absl::specific_component.
-
-# Build abseil-cpp as shared libs
-
-set(ABSL_PROPAGATE_CXX_STD ON)
-if(NOT BUILD_SHARED_LIBS)
-  set(BUILD_SHARED_LIBS ON)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/abseil-cpp)
-  set(BUILD_SHARED_LIBS OFF)
-else()
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/abseil-cpp)
-endif()
-
 # GMP ##########################################################################
 # ##############################################################################
 # The target GMP can be linked to other targets.
