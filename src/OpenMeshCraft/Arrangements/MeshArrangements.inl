@@ -134,9 +134,9 @@ public: /* Preprocessing steps ***********************************************/
 	void removeDegenerateAndDuplicatedTriangles();
 
 public: /* Routines before and after solving intersecions ********************/
-	void initBeforeDetectClassify(TriSoup &ts);
+	void initBeforeDetectClassify();
 
-	void exitAfterTriangulation(TriSoup &ts);
+	void exitAfterTriangulation();
 
 public:
 	/* Input data */
@@ -181,6 +181,8 @@ private: /* Private middle data *******************************************/
 	PntArena              exp_pnt_arena;
 	/// All generated points in algorithm are stored in pnt_arena
 	std::vector<PntArena> pnt_arenas;
+	/// Triangle soup
+	TriSoup               tri_soup;
 };
 
 template <typename Traits>
@@ -239,21 +241,21 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 
 	OMC_ARR_START_ELAPSE(start_ci);
 
-	TriSoup ts;
 	// build triangle soup
-	initBeforeDetectClassify(ts);
+	initBeforeDetectClassify();
 
 	// Classify intersections.
-	DetectClassifyTTIs<Traits> DCI(ts, tree, ignore_same_mesh, stats, verbose);
+	DetectClassifyTTIs<Traits> DCI(tri_soup, tree, ignore_same_mesh, stats,
+	                               verbose);
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
 
 	// Triangulation.
-	Triangulation<Traits> TR(ts, arr_out_tris, arr_out_labels.surface);
+	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
 
 	// collect vertices, triangles and labels.
-	exitAfterTriangulation(ts);
+	exitAfterTriangulation();
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
 }
@@ -538,25 +540,25 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::initBeforeDetectClassify(TriSoup &ts)
+void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 {
 	pnt_arenas = std::vector<PntArena>(tbb::this_task_arena::max_concurrency());
 
 	for (GPoint *v : arr_out_verts)
-		ts.addImplVert(v);
-	ts.triangles  = std::move(arr_in_tris);
-	ts.tri_labels = std::move(arr_in_labels);
-	ts.pnt_arenas = &pnt_arenas;
-	ts.initialize();
+		tri_soup.addImplVert(v);
+	tri_soup.triangles  = std::move(arr_in_tris);
+	tri_soup.tri_labels = std::move(arr_in_labels);
+	tri_soup.pnt_arenas = &pnt_arenas;
+	tri_soup.initialize();
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::exitAfterTriangulation(TriSoup &ts)
+void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 {
 	// initialize merged triangle soup and auxiliary structure
-	arr_out_verts.resize(ts.numVerts());
-	std::copy(std::execution::par_unseq, ts.vertices.begin(), ts.vertices.end(),
-	          arr_out_verts.begin());
+	arr_out_verts.resize(tri_soup.numVerts());
+	std::copy(std::execution::par_unseq, tri_soup.vertices.begin(),
+	          tri_soup.vertices.end(), arr_out_verts.begin());
 
 	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 }

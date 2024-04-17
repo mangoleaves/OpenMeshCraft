@@ -501,8 +501,8 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 	}
 
 	// find intersected edges and triangles of current segment
-	std::vector<index_t> intersected_edges, intersected_tris;
-	intersected_edges.reserve(64), intersected_tris.reserve(64);
+	boost::container::small_vector<index_t, 64> intersected_edges;
+	boost::container::small_vector<index_t, 64> intersected_tris;
 
 	findIntersectingElements(subm, v_start, v_stop, intersected_edges,
 	                         intersected_tris, segment_list, sub_segs_map,
@@ -512,8 +512,7 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 		return;
 
 	// walk along the border
-	std::vector<index_t> h0, h1;
-	h0.reserve(64), h1.reserve(64);
+	boost::container::small_vector<index_t, 64> h0, h1;
 	boundaryWalker(subm, v_start, v_stop, intersected_tris.begin(),
 	               intersected_edges.begin(), h0);
 	boundaryWalker(subm, v_stop, v_start, intersected_tris.rbegin(),
@@ -523,8 +522,7 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 	OMC_EXPENSIVE_ASSERT(h1.size() >= 3, "insufficient edges of border");
 
 	// cut ears
-	std::vector<index_t> new_tris;
-	new_tris.reserve(64);
+	boost::container::small_vector<index_t, 64> new_tris;
 	earcutLinear(subm, h0, new_tris);
 	earcutLinear(subm, h1, new_tris);
 
@@ -542,9 +540,9 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 template <typename Traits>
 void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
-  std::vector<index_t> &intersected_edges,
-  std::vector<index_t> &intersected_tris, SegmentsList &segment_list,
-  SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
+  boost::container::small_vector<index_t, 64> &intersected_edges,
+  boost::container::small_vector<index_t, 64> &intersected_tris,
+  SegmentsList &segment_list, SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
 {
 	using IdxPair  = std::pair<index_t, index_t>;
 	using SignPair = std::pair<Sign, Sign>;
@@ -572,8 +570,8 @@ void Triangulation<Traits>::findIntersectingElements(
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids    = sub_segs_map.at(uniquePair(v_start, v_stop));
-			std::vector<index_t> &t2s = tpi2segs.at(v_inter);
+			const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
+			boost::container::small_vector<index_t, 4> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
 				if (std::find(t2s.begin(), t2s.end(), seg_id) != t2s.end())
@@ -800,8 +798,8 @@ void Triangulation<Traits>::findIntersectingElements(
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids    = sub_segs_map.at(uniquePair(v_start, v_stop));
-			std::vector<index_t> &t2s = tpi2segs.at(v_inter);
+			const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
+			boost::container::small_vector<index_t, 4> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
 				if (std::find(t2s.begin(), t2s.end(), seg_id) != t2s.end())
@@ -902,7 +900,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	// add two segments to tpi2segs
 	OMC_EXPENSIVE_ASSERT(tpi2segs.find(local_tpi_id) == tpi2segs.end(),
 	                     "the new tpi point has existed.");
-	std::vector<index_t> &t2s = tpi2segs[local_tpi_id];
+	boost::container::small_vector<index_t, 4> &t2s = tpi2segs[local_tpi_id];
 	t2s.insert(t2s.end(), seg0_ids.begin(), seg0_ids.end());
 	t2s.insert(t2s.end(), seg1_ids.begin(), seg1_ids.end());
 
@@ -1163,11 +1161,9 @@ index_t Triangulation<Traits>::fixTPI(index_t seg0_id, index_t seg1_id,
 
 template <typename Traits>
 template <typename tri_iterator, typename edge_iterator>
-void Triangulation<Traits>::boundaryWalker(const FastTriMesh &subm,
-                                           index_t v_start, index_t v_stop,
-                                           tri_iterator          curr_p,
-                                           edge_iterator         curr_e,
-                                           std::vector<index_t> &h)
+void Triangulation<Traits>::boundaryWalker(
+  const FastTriMesh &subm, index_t v_start, index_t v_stop, tri_iterator curr_p,
+  edge_iterator curr_e, boost::container::small_vector<index_t, 64> &h)
 {
 	h.clear();
 	h.push_back(v_start);
@@ -1210,30 +1206,32 @@ void Triangulation<Traits>::boundaryWalker(const FastTriMesh &subm,
 }
 
 template <typename Traits>
-void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
-                                         const std::vector<index_t> &poly,
-                                         std::vector<index_t>       &tris)
+void Triangulation<Traits>::earcutLinear(
+  const FastTriMesh                                 &subm,
+  const boost::container::small_vector<index_t, 64> &poly,
+  boost::container::small_vector<index_t, 64>       &tris)
 {
 	OMC_EXPENSIVE_ASSERT(poly.size() >= 3, "no valid poly dimension");
 
 	Sign orientation = subm.Orientation();
 
 	// doubly linked list for fat polygon inspection
-	size_t               size = poly.size();
-	std::vector<index_t> prev(size);
-	std::vector<index_t> next(size);
+	size_t size = poly.size();
+
+	boost::container::small_vector<index_t, 64> prev(size);
+	boost::container::small_vector<index_t, 64> next(size);
 	std::iota(prev.begin(), prev.end(), -1);
 	std::iota(next.begin(), next.end(), 1);
 	prev.front() = size - 1;
 	next.back()  = 0;
 
 	// keep a list of the ears to be cut
-	std::vector<index_t> ears;
+	boost::container::small_vector<index_t, 64> ears;
 	ears.reserve(size);
 
 	// this always has size |poly|, and keeps track of ears
 	// (corners that were not ears at the beginning may become so later on)
-	std::vector<bool> is_ear(size, false);
+	boost::container::small_vector<bool, 64> is_ear(size, false);
 
 	// detect all safe ears in O(n).
 	// This amounts to finding all convex vertices but the endpoints of the

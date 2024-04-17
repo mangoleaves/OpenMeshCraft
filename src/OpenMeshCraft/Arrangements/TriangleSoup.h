@@ -306,6 +306,9 @@ public: /* Query ***********************************************************/
 	const concurrent_vector<index_t> &segmentTrianglesList(index_t seg_id) const;
 
 	/* Coplanar pockets */
+
+	PocketsMap &pocketsMap() { return pockets_map; }
+
 	PocketsMap &pocketsMapWithTPI() { return pockets_map_with_tpi; }
 
 	/* Orthogonal plane and orientation on the orthogonal plane */
