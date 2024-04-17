@@ -86,14 +86,13 @@ public: /* Interfaces ********************************************************/
 
 	/// @brief Apply arrangement operation on input meshes and save explicit
 	/// result to output mesh.
-	/// @param ignore_intersection_in_same_mesh If set to true, algorithm will
-	/// ignore intersection between triangles in the same mesh. This is a feature
-	/// used by mesh boolean.
+	/// @param ignore_same_mesh If set to true, algorithm will ignore intersection
+	/// between triangles in the same mesh. This is a feature used by mesh
+	/// boolean.
 	/// @param output_explicit_result If set to true, the explicit result (points
 	/// and triangles) will be saved in output mesh set by setTriMeshAsOutput.
 	/// All middle data will be cleared.
-	void meshArrangements(bool ignore_intersection_in_same_mesh,
-	                      bool output_explicit_result);
+	void meshArrangements(bool ignore_same_mesh, bool output_explicit_result);
 
 	/// @brief An experimental interface to set parameters.
 	/// @note Don't modify it except you know it.

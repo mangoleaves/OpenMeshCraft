@@ -1,7 +1,3 @@
-/**
- * @file DetectClassifyTTI.h
- * @brief Detect and Classify Triangle-Triangle-Intersection in one pass.
- */
 #pragma once
 
 #include "TriangleSoup.h"
@@ -9,6 +5,7 @@
 
 namespace OMC {
 
+/// @brief Detect and Classify Triangle-Triangle-Intersection in one pass.
 template <typename Traits>
 class DetectClassifyTTI
 {

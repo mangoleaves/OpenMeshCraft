@@ -376,8 +376,8 @@ namespace OMC {
 enum class ArrFuncNames : size_t
 {
 	D_BBI = 0,
-	D_BBI_UNIQ,
-	D_BBI_DUPL,
+	D_BBI_SMALL,
+	D_BBI_LARGE,
 	DC_TTI,
 	CNT
 };

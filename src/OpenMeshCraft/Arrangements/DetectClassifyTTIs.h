@@ -76,7 +76,7 @@ protected:
 	                      CStyleVector<typename Tree::TreeBbox> &cached_boxes,
 	                      bool cache_labels, CStyleVector<Label> &cached_labels);
 
-	void propagateCoplanarTrianglesIntersections();
+	void propagateCoplanarIntersections();
 
 protected:
 	TriSoup               &ts;

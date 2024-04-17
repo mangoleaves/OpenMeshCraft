@@ -103,8 +103,7 @@ public: /* Auxiliary data structures *****************************************/
 public: /* Constructors ******************************************************/
 	MeshArrangements_Impl(MeshArrangements_Stats *_stats   = nullptr,
 	                      bool                    _verbose = false)
-	  : tree(_stats)
-	  , stats(_stats)
+	  : stats(_stats)
 	  , verbose(_verbose)
 	{
 	}
@@ -115,12 +114,12 @@ public: /* Constructors ******************************************************/
 public: /* Pipeline **********************************************************/
 	/// @brief Detect intersections, classify intersections, and triangulate
 	/// all triangles with intersect points and constrained segments.
-	/// @param ignore_intersection_in_same_mesh If set to true, will ignore
+	/// @param ignore_same_mesh If set to true, will ignore
 	/// intersections between triangles in the same mesh, this feature is used by
 	/// boolean.
 	/// @note Will store all useful middle data until being destroyed.
 	/// @note Won't output explicit result.
-	void meshArrangementsPipeline(bool ignore_intersection_in_same_mesh);
+	void meshArrangementsPipeline(bool ignore_same_mesh);
 
 	/// @brief Output explicit result (points and triangles).
 	template <typename iPoint, typename iPoints, typename iTri, typename iTris>
@@ -134,10 +133,10 @@ public: /* Preprocessing steps ***********************************************/
 
 	void removeDegenerateAndDuplicatedTriangles();
 
-public: /* Routines for solving intersecions *********************************/
-	void initBeforeDetectClassify();
+public: /* Routines before and after solving intersecions ********************/
+	void initBeforeDetectClassify(TriSoup &ts);
 
-	void exitAfterTriangulation();
+	void exitAfterTriangulation(TriSoup &ts);
 
 public:
 	/* Input data */
@@ -182,13 +181,11 @@ private: /* Private middle data *******************************************/
 	PntArena              exp_pnt_arena;
 	/// All generated points in algorithm are stored in pnt_arena
 	std::vector<PntArena> pnt_arenas;
-	/// triangle soup
-	TriSoup               tri_soup;
 };
 
 template <typename Traits>
 void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
-  bool ignore_intersection_in_same_mesh)
+  bool ignore_same_mesh)
 {
 	OMC_ASSERT(!in_coords.empty() && !in_tris.empty(), "empty input.");
 	OMC_ASSERT(in_tris.size() % 3 == 0, "triangle size error.");
@@ -242,22 +239,21 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 
 	OMC_ARR_START_ELAPSE(start_ci);
 
+	TriSoup ts;
 	// build triangle soup
-	initBeforeDetectClassify();
+	initBeforeDetectClassify(ts);
 
 	// Classify intersections.
-	DetectClassifyTTIs<Traits> DCI(
-	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
+	DetectClassifyTTIs<Traits> DCI(ts, tree, ignore_same_mesh, stats, verbose);
 
-	tree.clear();
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
 
 	// Triangulation.
-	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
+	Triangulation<Traits> TR(ts, arr_out_tris, arr_out_labels.surface);
 
-	// clear unused data, collect vertices, triangles and labels.
-	exitAfterTriangulation();
+	// collect vertices, triangles and labels.
+	exitAfterTriangulation(ts);
 
 	OMC_ARR_SAVE_ELAPSED(start_tr, tr_elapsed, "Triangulation");
 }
@@ -542,11 +538,9 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
+void MeshArrangements_Impl<Traits>::initBeforeDetectClassify(TriSoup &ts)
 {
 	pnt_arenas = std::vector<PntArena>(tbb::this_task_arena::max_concurrency());
-
-	TriSoup &ts = tri_soup;
 
 	for (GPoint *v : arr_out_verts)
 		ts.addImplVert(v);
@@ -557,15 +551,12 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
+void MeshArrangements_Impl<Traits>::exitAfterTriangulation(TriSoup &ts)
 {
-	// clear unused data
-	tree.clear();
-
 	// initialize merged triangle soup and auxiliary structure
-	arr_out_verts.resize(tri_soup.numVerts());
-	std::copy(std::execution::par_unseq, tri_soup.vertices.begin(),
-	          tri_soup.vertices.end(), arr_out_verts.begin());
+	arr_out_verts.resize(ts.numVerts());
+	std::copy(std::execution::par_unseq, ts.vertices.begin(), ts.vertices.end(),
+	          arr_out_verts.begin());
 
 	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 }
@@ -677,7 +668,7 @@ void MeshArrangements<Kernel, Traits>::clear()
 
 template <typename Kernel, typename Traits>
 void MeshArrangements<Kernel, Traits>::meshArrangements(
-  bool ignore_intersection_in_same_mesh, bool output_explicit_result)
+  bool ignore_same_mesh, bool output_explicit_result)
 {
 	m_impl = std::make_unique<MeshArrangements_Impl<ArrangementsTraits>>(
 	  &arr_stats, verbose);
@@ -690,7 +681,7 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 	}
 
 	m_impl->setConfig(config);
-	m_impl->meshArrangementsPipeline(ignore_intersection_in_same_mesh);
+	m_impl->meshArrangementsPipeline(ignore_same_mesh);
 
 	if (output_explicit_result)
 	{

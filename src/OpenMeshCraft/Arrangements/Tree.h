@@ -194,16 +194,14 @@ public:
 	using Indices = std::vector<index_t>;
 
 public: /* Constructors ***************************************************/
-	Arr_Tree_Intersection(MeshArrangements_Stats *_stats)
+	Arr_Tree_Intersection()
 	  : BaseT()
-	  , stats(_stats)
 	{
 	}
 
 	/// @brief it is shallow copy (see details in AdapOrthTree)
 	Arr_Tree_Intersection(const Arr_Tree_Intersection &rhs)
 	  : BaseT(rhs)
-	  , stats(rhs.stats)
 	{
 	}
 
@@ -236,10 +234,6 @@ protected: /* Internal types, functions and data. **************************/
 	         /* used in traversal */
 
 	using BoxTrav = AdapOrth_BoxInterTraversal<TreeTraits>;
-
-	/* used in statistics */
-
-	MeshArrangements_Stats *stats = nullptr;
 };
 
 } // namespace OMC

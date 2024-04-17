@@ -209,7 +209,7 @@ protected:
 	/// (only the triangles with intersections will be calculated)
 	std::vector<Sign> tri_orient;
 
-	// coplanar pockets (TODO pocket size? inlined_vector?)
+	// coplanar pockets (// TODO pocket size? inlined_vector?)
 	PocketsMap pockets_map;
 
 	PocketsMap pockets_map_with_tpi;

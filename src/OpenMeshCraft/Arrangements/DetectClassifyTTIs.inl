@@ -52,7 +52,7 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 
 	/* propagate intersection points from edges to coplanar triangles */
 
-	propagateCoplanarTrianglesIntersections();
+	propagateCoplanarIntersections();
 }
 
 template <typename Traits>
@@ -94,12 +94,12 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
 		                              num_boxes * (num_boxes - 1) / 2);
-		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_UNIQ,
+		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_SMALL,
 		                              num_boxes * (num_boxes - 1) / 2);
 
+		GPoint::clear_global_cached_values();
 		if (ignore_same_label)
 		{
-			GPoint::clear_global_cached_values();
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
 				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -123,7 +123,6 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 		}
 		else
 		{
-			GPoint::clear_global_cached_values();
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
 				const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -165,7 +164,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 
 		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI,
 		                              num_boxes * (num_boxes - 1) / 2);
-		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_DUPL,
+		OMC_ARR_PROFILE_INC_TOTAL_CNT(ArrFuncNames::D_BBI_LARGE,
 		                              num_boxes * (num_boxes - 1) / 2);
 
 		CStyleVector<typename Tree::TreeBbox> cache_boxes;
@@ -175,9 +174,9 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 		// check Box-Box-Intersection in current node.
 		auto on_large_node = [&](index_t thread_id)
 		{
+			GPoint::clear_global_cached_values();
 			if (ignore_same_label)
 			{
-				GPoint::clear_global_cached_values();
 				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
 				{
 					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -198,7 +197,6 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 			}
 			else
 			{
-				GPoint::clear_global_cached_values();
 				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
 				{
 					const typename Tree::TreeBbox &b0 = cache_boxes[bi0];
@@ -246,7 +244,7 @@ void DetectClassifyTTIs<Traits>::cacheBoxesInNode(
 }
 
 template <typename Traits>
-void DetectClassifyTTIs<Traits>::propagateCoplanarTrianglesIntersections()
+void DetectClassifyTTIs<Traits>::propagateCoplanarIntersections()
 {
 	// mutexes on tri
 	std::vector<tbb::spin_mutex> tri_mutexes(ts.numTris());
