@@ -214,44 +214,6 @@ private:
 	std::queue<IPoint_TPI *> recycled_tpi;
 };
 
-class IdxArena
-{
-public:
-	std::deque<std::atomic<index_t>> indices; // points' indices
-
-public:
-	void recycle(std::atomic<index_t> *idx_ptr) { recycled_idx.push(idx_ptr); }
-
-	std::atomic<index_t> *emplace(index_t idx)
-	{
-		std::atomic<index_t> *idx_ptr = nullptr;
-		if (recycled_idx.empty())
-		{
-			indices.emplace_back(idx);
-			idx_ptr = &indices.back();
-		}
-		else
-		{
-			idx_ptr = recycled_idx.front();
-			recycled_idx.pop();
-			idx_ptr->store(idx);
-		}
-		return idx_ptr;
-	}
-
-	/// @brief reserve new number of indices
-	void reserve(size_t new_n)
-	{
-		for (size_t i = 0; i < new_n; i++)
-			recycle(&indices.emplace_back());
-	}
-
-private:
-	using RecycleQueue = std::queue<std::atomic<index_t> *>;
-
-	RecycleQueue recycled_idx;
-};
-
 struct DuplTriInfo
 {
 	index_t t_id; // triangle id

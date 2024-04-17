@@ -180,12 +180,8 @@ public:
 private: /* Private middle data *******************************************/
 	/// point arena for explicit points
 	PntArena              exp_pnt_arena;
-	/// index arena for explicit points
-	IdxArena              exp_idx_arena;
 	/// All generated points in algorithm are stored in pnt_arena
 	std::vector<PntArena> pnt_arenas;
-	/// indice arena
-	std::vector<IdxArena> idx_arenas;
 	/// triangle soup
 	TriSoup               tri_soup;
 };
@@ -253,7 +249,7 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	DetectClassifyTTIs<Traits> DCI(
 	  tri_soup, tree, ignore_intersection_in_same_mesh, stats, verbose);
 
-	tree.clear_boxes();
+	tree.clear();
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
 
@@ -273,7 +269,7 @@ void MeshArrangements_Impl<Traits>::convertLabels()
 	Label mask;
 
 	for (size_t i = 0; i < in_labels.size(); i++)
-	{ // serial is better than parallel
+	{
 		arr_in_labels[i][in_labels[i]] = true;
 		mask[in_labels[i]]             = true;
 	}
@@ -326,14 +322,12 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 		               arr_in_tris.begin(),
 		               [&lookup](index_t idx) { return lookup[idx]; });
 
-	/* #region Only log */
 	if (verbose)
 	{
 		Logger::info(
 		  std::format("[OpenMeshCraft Arrangements] removed {} duplicate vertices.",
 		              std::to_string(in_coords.size() / 3 - arr_out_verts.size())));
 	}
-	/* #endregion */
 }
 
 template <typename Traits>
@@ -551,18 +545,14 @@ template <typename Traits>
 void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 {
 	pnt_arenas = std::vector<PntArena>(tbb::this_task_arena::max_concurrency());
-	idx_arenas = std::vector<IdxArena>(tbb::this_task_arena::max_concurrency());
 
 	TriSoup &ts = tri_soup;
 
-	ts.vertices =
-	  concurrent_vector<GPoint *>(arr_out_verts.begin(), arr_out_verts.end());
-	for (index_t i = 0; i < ts.vertices.size(); i++)
-		ts.indices.push_back(exp_idx_arena.emplace(i));
+	for (GPoint *v : arr_out_verts)
+		ts.addImplVert(v);
 	ts.triangles  = std::move(arr_in_tris);
 	ts.tri_labels = std::move(arr_in_labels);
 	ts.pnt_arenas = &pnt_arenas;
-	ts.idx_arenas = &idx_arenas;
 	ts.initialize();
 }
 

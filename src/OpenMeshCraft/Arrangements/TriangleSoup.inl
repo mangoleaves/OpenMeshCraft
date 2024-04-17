@@ -182,11 +182,13 @@ auto TriangleSoup<Traits>::vertPtr(index_t v_id) const -> const NT *
 }
 
 template <typename Traits>
-index_t TriangleSoup<Traits>::addImplVert(GPoint *pp, std::atomic<index_t> *ip)
+index_t TriangleSoup<Traits>::addImplVert(GPoint *pp)
 {
+	std::lock_guard<tbb::spin_mutex> lock(new_vertex_mutex);
 	vertices.push_back(pp);
-	indices.push_back(ip);
-	return vertices.size() - 1;
+	index_t pp_idx = vertices.size() - 1;
+	indices.emplace_back(pp_idx);
+	return pp_idx;
 }
 
 template <typename Traits>
@@ -401,7 +403,7 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 	*iter = new_vid;
 #endif
 	// fix global index
-	indices[old_vid]->store(new_vid, std::memory_order_relaxed);
+	indices[old_vid].store(new_vid, std::memory_order_relaxed);
 	// fixing indices in tri2pts, tri2segs, seg2tris is delayed.
 	any_index_fixed = true;
 }
@@ -585,7 +587,7 @@ void TriangleSoup<Traits>::fixVertexInSeg(index_t seg_id, index_t old_vid,
 	*iter = new_vid;
 #endif
 	// fix global index
-	indices[old_vid]->store(new_vid, std::memory_order_relaxed);
+	indices[old_vid].store(new_vid, std::memory_order_relaxed);
 	any_index_fixed = true;
 }
 
@@ -792,13 +794,13 @@ void TriangleSoup<Traits>::fixAllIndices()
 	auto fix_vertex_idx = [this](index_t orig_vidx)
 	{
 		index_t fix_vidx = orig_vidx;
-		index_t new_vidx = indices[fix_vidx]->load(std::memory_order_relaxed);
+		index_t new_vidx = indices[fix_vidx].load(std::memory_order_relaxed);
 		while (fix_vidx != new_vidx)
 		{
 			fix_vidx = new_vidx;
-			new_vidx = indices[fix_vidx]->load(std::memory_order_relaxed);
+			new_vidx = indices[fix_vidx].load(std::memory_order_relaxed);
 		}
-		indices[orig_vidx]->store(fix_vidx, std::memory_order_relaxed);
+		indices[orig_vidx].store(fix_vidx, std::memory_order_relaxed);
 	};
 
 	if (any_index_fixed)
@@ -809,10 +811,10 @@ void TriangleSoup<Traits>::fixAllIndices()
 	  numOrigVerts(), numVerts(),
 	  [this](index_t idx)
 	  {
-		  index_t fixed_idx = indices[idx]->load(std::memory_order_relaxed);
+		  index_t fixed_idx = indices[idx].load(std::memory_order_relaxed);
 
 		  OMC_ASSERT(fixed_idx ==
-		               indices[fixed_idx]->load(std::memory_order_relaxed),
+		               indices[fixed_idx].load(std::memory_order_relaxed),
 		             "unfinished fix.");
 		  OMC_ASSERT(LessThan3D()(vert(idx), vert(fixed_idx)) == Sign::ZERO,
 		             "vertex and fixed vertex do not coincident.");
@@ -825,7 +827,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 		auto fix_tri2pts = [this](concurrent_vector<index_t> &t2p)
 		{
 			for (index_t &i : t2p)
-				i = indices[i]->load(std::memory_order_relaxed);
+				i = indices[i].load(std::memory_order_relaxed);
 			remove_duplicates(t2p);
 		};
 		tbb::parallel_for_each(tri2pts.begin(), tri2pts.end(), fix_tri2pts);
@@ -846,8 +848,8 @@ void TriangleSoup<Traits>::fixAllIndices()
 		{
 			const Segment &old_seg = segments[seg_id];
 			Segment        new_seg =
-			  uniquePair(indices[old_seg.first]->load(std::memory_order_relaxed),
-			             indices[old_seg.second]->load(std::memory_order_relaxed));
+			  uniquePair(indices[old_seg.first].load(std::memory_order_relaxed),
+			             indices[old_seg.second].load(std::memory_order_relaxed));
 			if (new_seg == old_seg)
 				seg_new_id[seg_id] = seg_id;
 			else
@@ -905,9 +907,9 @@ void TriangleSoup<Traits>::fixAllIndices()
 			for (CCrEdgeInfo &edge_info : ce)
 			{
 				edge_info.v0_id =
-				  indices[edge_info.v0_id]->load(std::memory_order_relaxed);
+				  indices[edge_info.v0_id].load(std::memory_order_relaxed);
 				edge_info.v1_id =
-				  indices[edge_info.v1_id]->load(std::memory_order_relaxed);
+				  indices[edge_info.v1_id].load(std::memory_order_relaxed);
 			}
 		}
 	};

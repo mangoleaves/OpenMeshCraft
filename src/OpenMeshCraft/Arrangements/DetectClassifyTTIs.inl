@@ -17,7 +17,6 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
                                                bool                    _verbose)
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
-  , idx_arenas(*ts.idx_arenas)
   , labels(ts.tri_labels)
   , tree(_tree)
   , ignore_same_label(_ignore_same_label)
@@ -117,8 +116,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 
-					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
-					                             idx_arenas[thread_id]);
+					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
 				}
 			}
@@ -139,8 +137,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 
-					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
-					                             idx_arenas[thread_id]);
+					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
 				}
 			}
@@ -194,8 +191,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 							continue; // early reject.
 
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
-						                             idx_arenas[thread_id]);
+						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());
 					}
 				}
@@ -213,8 +209,7 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 							continue; // early reject.
 
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
-						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id],
-						                             idx_arenas[thread_id]);
+						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());
 					}
 				}

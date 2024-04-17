@@ -8,39 +8,11 @@
 namespace OMC {
 
 template <typename Traits>
-struct Triangulation<Traits>::CreateIndex
-{
-	TriSoup              &ts;
-	const GPoint         *pp;
-	std::atomic<index_t> *ip;
-
-	CreateIndex() = default;
-	CreateIndex(TriSoup &_ts, const GPoint *_pp, std::atomic<index_t> *_ip)
-	  : ts(_ts)
-	  , pp(_pp)
-	  , ip(_ip)
-	{
-	}
-
-	index_t operator()()
-	{
-		index_t idx = InvalidIndex;
-		{ // lock for new index
-			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
-			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
-		}
-		ip->store(idx, std::memory_order_relaxed); // assign a valid index
-		return idx;
-	};
-};
-
-template <typename Traits>
 Triangulation<Traits>::Triangulation(TriSoup              &_ts,
                                      std::vector<index_t> &new_tris,
                                      std::vector<Label>   &new_labels)
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
-  , idx_arenas(*ts.idx_arenas)
 {
 	new_labels.clear();
 	new_tris.clear();
@@ -67,7 +39,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 		}
 	}
 
-	tpi_begin = ts.vertices.size();
+	index_t tpi_begin = ts.vertices.size();
 
 	// processing the triangles to split
 	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
@@ -98,7 +70,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 #endif
 	GPoint::disable_global_cached_values();
 
-	postFixIndices(new_tris, new_labels);
+	postFixIndices(new_tris, new_labels, tpi_begin);
 }
 
 template <typename Traits>
@@ -1074,26 +1046,21 @@ index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, index_t seg0_id,
 	  CreateTPI()(*t0_pnts[0], *t0_pnts[1], *t0_pnts[2], *t1_pnts[0], *t1_pnts[1],
 	              *t1_pnts[2], *t2_pnts[0], *t2_pnts[1], *t2_pnts[2]));
 
-	std::atomic<index_t> *new_idx =
-	  idx_arenas[cur_thread_idx].emplace(InvalidIndex);
-
-	auto [new_vertex_created, new_vid] =
-	  addAndFixTPI(seg0_id, seg1_id, new_v, CreateIndex(ts, new_v, new_idx));
+	auto [new_vertex_created, new_vid] = addAndFixTPI(seg0_id, seg1_id, new_v);
 
 	if (!new_vertex_created)
 	{
 		IPoint_TPI::gcv().remove(new_v);
 		pnt_arenas[cur_thread_idx].recycle(new_v);
-		idx_arenas[cur_thread_idx].recycle(new_idx);
 	}
 
 	return new_vid;
 }
 
 template <typename Traits>
-std::pair<bool, index_t>
-Triangulation<Traits>::addAndFixTPI(index_t seg0_id, index_t seg1_id,
-                                    IPoint_TPI *vtx, CreateIndex create_index)
+std::pair<bool, index_t> Triangulation<Traits>::addAndFixTPI(index_t seg0_id,
+                                                             index_t seg1_id,
+                                                             IPoint_TPI *vtx)
 {
 	bool    new_vertex_created = false;
 	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
@@ -1137,7 +1104,7 @@ Triangulation<Traits>::addAndFixTPI(index_t seg0_id, index_t seg1_id,
 	}
 	else
 	{
-		suitable_vid = create_index();
+		suitable_vid = ts.addImplVert(vtx);
 		ts.addVertexInSeg(seg0_id, suitable_vid);
 		ts.addVertexInSeg(seg1_id, suitable_vid);
 		new_vertex_created = true;
@@ -1452,7 +1419,8 @@ void Triangulation<Traits>::findPocketsInTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
-                                           std::vector<Label>   &new_labels)
+                                           std::vector<Label>   &new_labels,
+                                           index_t               tpi_begin)
 {
 	if (!ts.any_index_fixed)
 		return;
@@ -1460,13 +1428,13 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 	auto fix_vertex_idx = [this](index_t orig_vidx)
 	{
 		index_t fix_vidx = orig_vidx;
-		index_t new_vidx = ts.indices[fix_vidx]->load(std::memory_order_relaxed);
+		index_t new_vidx = ts.indices[fix_vidx].load(std::memory_order_relaxed);
 		while (fix_vidx != new_vidx)
 		{
 			fix_vidx = new_vidx;
-			new_vidx = ts.indices[fix_vidx]->load(std::memory_order_relaxed);
+			new_vidx = ts.indices[fix_vidx].load(std::memory_order_relaxed);
 		}
-		ts.indices[orig_vidx]->store(fix_vidx, std::memory_order_relaxed);
+		ts.indices[orig_vidx].store(fix_vidx, std::memory_order_relaxed);
 	};
 
 	tbb::parallel_for(tpi_begin, ts.numVerts(), fix_vertex_idx);
@@ -1475,7 +1443,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 	// In this stage, no duplicate triangle will be generated.
 	tbb::parallel_for_each(new_tris.begin(), new_tris.end(),
 	                       [this](index_t &vid)
-	                       { vid = ts.indices[vid]->load(); });
+	                       { vid = ts.indices[vid].load(); });
 
 	// Fix indices stored in pockets with TPI points.
 	// In this stage, duplicate triangles may be found, mark them as deleted
@@ -1499,7 +1467,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 		bool any_index_fixed = false;
 		for (index_t &vid : polygon)
 		{
-			index_t new_vid = ts.indices[vid]->load();
+			index_t new_vid = ts.indices[vid].load();
 			if (vid != new_vid)
 			{
 				vid             = new_vid;

@@ -35,7 +35,7 @@ public:
 	using PntArena = PointArena<Traits>;
 	using TriSoup  = TriangleSoup<Traits>;
 
-	DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena, IdxArena &_idx_arena);
+	DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena);
 
 public:
 	void check_TTI(index_t ta, index_t tb);
@@ -44,11 +44,9 @@ protected:
 	/* Input data */
 	TriSoup  &ts;
 	PntArena &pnt_arena;
-	IdxArena &idx_arena;
 
 	struct TTIHelper;
 	struct CoplanarEEI;
-	struct CreateIndex;
 
 	using IntersectionPoints = InlinedVector<index_t, 4>;
 	using IntersectionTypes  = InlinedVector<PointInSimplexType, 4>;
@@ -129,12 +127,10 @@ protected:
 	index_t add_edge_cross_tri(TTIHelper &ha, index_t ea, TTIHelper &hb);
 
 	OMC_NODISCARD std::pair<index_t, bool> add_SSI(index_t ea_id, index_t eb_id,
-	                                               IPoint_SSI           *new_v,
-	                                               std::atomic<index_t> *new_idx);
+	                                               IPoint_SSI *new_v);
 
 	OMC_NODISCARD std::pair<index_t, bool> add_LPI(index_t e_id, index_t t_id,
-	                                               IPoint_LPI           *new_v,
-	                                               std::atomic<index_t> *new_idx);
+	                                               IPoint_LPI *new_v);
 };
 
 } // namespace OMC

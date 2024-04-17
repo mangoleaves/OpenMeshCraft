@@ -47,8 +47,6 @@ private:
 	// Store segments adajcent to TPI points in a triangle.
 	using TPI2Segs  = phmap::flat_hash_map<index_t, std::vector<index_t>>;
 
-	struct CreateIndex;
-
 public:
 	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
 	              std::vector<Label> &new_labels);
@@ -85,10 +83,9 @@ private:
 
 	/* Split triangle by contraint segments *************************************/
 
-	void
-	addConstraintSegmentsInSingleTriangle(FastTriMesh          &subm,
-	                                      std::vector<index_t> &seg_ids,
-	                                      std::vector<Segment> &segments);
+	void addConstraintSegmentsInSingleTriangle(FastTriMesh          &subm,
+	                                           std::vector<index_t> &seg_ids,
+	                                           std::vector<Segment> &segments);
 
 	void addConstraintSegment(FastTriMesh &subm, const Segment &seg,
 	                          SegmentsList &segment_list, SubSegMap &sub_segs_map,
@@ -107,8 +104,7 @@ private:
 	index_t createTPI(FastTriMesh &subm, index_t seg0_id, index_t seg1_id);
 
 	std::pair<bool, index_t> addAndFixTPI(index_t seg0_id, index_t seg1_id,
-	                                      IPoint_TPI *vtx,
-	                                      CreateIndex create_index);
+	                                      IPoint_TPI *vtx);
 
 	index_t fixTPI(index_t seg0_id, index_t seg1_id, IPoint_TPI *vtx);
 
@@ -134,7 +130,8 @@ private:
 	/* Postfix indices **********************************************************/
 
 	void postFixIndices(std::vector<index_t> &new_tris,
-	                    std::vector<Label>   &new_labels);
+	                    std::vector<Label>   &new_labels,
+											index_t tpi_begin);
 
 private:
 	static bool pointInsideSegmentCollinear(const FastTriMesh &subm,
@@ -145,9 +142,6 @@ private:
 	TriSoup &ts;
 
 	std::vector<PntArena> &pnt_arenas;
-	std::vector<IdxArena> &idx_arenas;
-
-	index_t tpi_begin;
 };
 
 } // namespace OMC

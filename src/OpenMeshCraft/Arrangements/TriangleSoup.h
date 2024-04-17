@@ -97,10 +97,9 @@ public:
 	/***** Below data should be set by user ******/
 
 	/// implement vertices
-	concurrent_vector<GPoint *>               vertices;
+	concurrent_vector<GPoint *>             vertices;
 	/// implement indices of vertices (used in v_map)
-	concurrent_vector<std::atomic<index_t> *> indices;
-	// TODO make use of indices, remove IdxArena if possible.
+	concurrent_vector<std::atomic<index_t>> indices;
 
 	/// triangles
 	std::vector<index_t> triangles;
@@ -109,8 +108,6 @@ public:
 
 	/// all explicit and implicit points
 	std::vector<PntArena> *pnt_arenas = nullptr;
-	/// local indices
-	std::vector<IdxArena> *idx_arenas = nullptr;
 
 protected:
 	/***** Below data should be initialized by calling initialize() ******/
@@ -141,7 +138,7 @@ public: /* Vertices ***********************************************************/
 
 	const NT *vertPtr(index_t v_id) const;
 
-	index_t addImplVert(GPoint *pp, std::atomic<index_t> *ip);
+	index_t addImplVert(GPoint *pp);
 
 public: /* Edges **************************************************************/
 	Edge edge(index_t e_id) const;

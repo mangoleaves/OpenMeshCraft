@@ -98,35 +98,9 @@ struct DetectClassifyTTI<Traits>::CoplanarEEI // Edge-Edge-Intersection
 };
 
 template <typename Traits>
-struct DetectClassifyTTI<Traits>::CreateIndex
-{
-public:
-	CreateIndex(TriSoup &_ts)
-	  : ts(_ts)
-	{
-	}
-
-	index_t operator()(const GPoint *pp, std::atomic<index_t> *ip)
-	{
-		index_t idx = InvalidIndex;
-		{ // lock for new index
-			std::lock_guard<tbb::spin_mutex> lock(ts.new_vertex_mutex);
-			idx = ts.addImplVert(const_cast<GPoint *>(pp), ip);
-		}
-		ip->store(idx, std::memory_order_relaxed); // assign a valid index
-		return idx;
-	}
-
-private:
-	TriSoup &ts;
-};
-
-template <typename Traits>
-DetectClassifyTTI<Traits>::DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena,
-                                             IdxArena &_idx_arena)
+DetectClassifyTTI<Traits>::DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena)
   : ts(_ts)
   , pnt_arena(_pnt_arena)
-  , idx_arena(_idx_arena)
 {
 }
 
@@ -2191,17 +2165,13 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 	  ts.vert(min_min_vid), ts.vert(min_max_vid), ts.vert(max_min_vid),
 	  ts.vert(max_max_vid), intToPlane(hb.t_nmax)));
 
-	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
-	// index creation is delayed until point succeesfully is inserted.
-
 	// try to add the point
-	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v, new_idx);
+	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v);
 
 	if (!new_vertex_created)
 	{
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(new_idx);
 	}
 
 	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
@@ -2267,22 +2237,17 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 	}
 
-	// TODO put into pnt_arena only if it is new.
 	IPoint_SSI *new_v = pnt_arena.emplace(
 	  CreateSSI()(ts.vert(min_min_vid), ts.vert(min_max_vid),
 	              ts.vert(max_min_vid), ts.vert(max_max_vid), plane));
 
-	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
-	// index creation is delayed until point is succeesfully inserted.
-
 	// try to add the point
-	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v, new_idx);
+	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v);
 
 	if (!new_vertex_created)
 	{
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(new_idx);
 	}
 
 	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
@@ -2308,18 +2273,14 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_tri(TTIHelper &ha, index_t ea,
 	  CreateLPI()(ts.vert(e_min_vid), ts.vert(e_max_vid), ts.vert(hb.v_id[0]),
 	              ts.vert(hb.v_id[1]), ts.vert(hb.v_id[2])));
 
-	std::atomic<index_t> *new_idx = idx_arena.emplace(InvalidIndex);
-	// index creation is delayed until point is succeesfully inserted.
-
 	// try to add the point
 	auto [added_vid, new_vertex_created] =
-	  add_LPI(get_e_id(ha, ea), hb.t_id, new_v, new_idx);
+	  add_LPI(get_e_id(ha, ea), hb.t_id, new_v);
 
 	if (!new_vertex_created)
 	{
 		IPoint_LPI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
-		idx_arena.recycle(new_idx);
 	}
 
 	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
@@ -2332,17 +2293,15 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_tri(TTIHelper &ha, index_t ea,
  * @param ea_id **GLOBAL** index of an edge
  * @param eb_id **GLOBAL** index of an edge
  * @param new_v the new point
- * @param new_idx the new index
  * @return std::pair<index_t, bool> The first index is the index of the result
  * point (existed point or newly added point). The second boolean is true if
  * it succeeds to add the point, otherwise it fails because there is already an
  * existed point.
  */
 template <typename Traits>
-std::pair<index_t, bool>
-DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
-                                   IPoint_SSI           *new_v,
-                                   std::atomic<index_t> *new_idx)
+std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
+                                                            index_t     eb_id,
+                                                            IPoint_SSI *new_v)
 {
 	// get mutexes of edges.
 	index_t          min_eid   = std::min(ea_id, eb_id);
@@ -2401,8 +2360,7 @@ DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
 		}
 		else // ts.vert(found_vid_in_ea).point_type() > new_v->point_type()
 		{
-			CreateIndex create_idx(ts);
-			suitable_vid = create_idx(new_v, new_idx);
+			suitable_vid = ts.addImplVert(new_v);
 			fix_vid      = found_vid_in_ea;
 			ts.addVertexInEdge(eb_id, suitable_vid);
 			ts.fixVertexInEdge(/*edge*/ ea_id, /*old*/ fix_vid,
@@ -2420,8 +2378,7 @@ DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
 		}
 		else // ts.vert(found_vid_in_eb).point_type() > new_v->point_type()
 		{
-			CreateIndex create_idx(ts);
-			suitable_vid = create_idx(new_v, new_idx);
+			suitable_vid = ts.addImplVert(new_v);
 			fix_vid      = found_vid_in_eb;
 			ts.addVertexInEdge(ea_id, suitable_vid);
 			ts.fixVertexInEdge(/*edge*/ eb_id, /*old*/ fix_vid,
@@ -2431,8 +2388,7 @@ DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
 	}
 	else
 	{
-		CreateIndex create_idx(ts);
-		suitable_vid = create_idx(new_v, new_idx);
+		suitable_vid = ts.addImplVert(new_v);
 		ts.addVertexInEdge(ea_id, suitable_vid);
 		ts.addVertexInEdge(eb_id, suitable_vid);
 		new_vertex_created = true;
@@ -2446,15 +2402,15 @@ DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id,
  * @param e_id **GLOBAL** index of an edge
  * @param t_id **GLOBAL** index of a triangle
  * @param new_v the new point
- * @param new_idx the new index
  * @return std::pair<index_t, bool> The first index is the index of the result
  * point (existed point or newly added point). The second boolean is true if
  * it succeeds to add the point, otherwise it fails because there is already an
  * existed point.
  */
 template <typename Traits>
-std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(
-  index_t e_id, index_t t_id, IPoint_LPI *new_v, std::atomic<index_t> *new_idx)
+std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(index_t     e_id,
+                                                            index_t     t_id,
+                                                            IPoint_LPI *new_v)
 {
 	// get mutexes of edges.
 	tbb::spin_mutex &mutex = ts.getE2PMutex(e_id);
@@ -2476,8 +2432,7 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(
 		}
 		else // ts.vert(found_vid).point_type() > new_v->point_type()
 		{
-			CreateIndex create_idx(ts);
-			suitable_vid = create_idx(new_v, new_idx);
+			suitable_vid = ts.addImplVert(new_v);
 			fix_vid      = found_vid;
 			ts.fixVertexInEdge(/*edge*/ e_id, /*old*/ fix_vid,
 			                   /*new*/ suitable_vid);
@@ -2486,8 +2441,7 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(
 	}
 	else // not found
 	{
-		CreateIndex create_idx(ts);
-		suitable_vid = create_idx(new_v, new_idx);
+		suitable_vid = ts.addImplVert(new_v);
 		ts.addVertexInEdge(e_id, suitable_vid);
 		new_vertex_created = true;
 	}

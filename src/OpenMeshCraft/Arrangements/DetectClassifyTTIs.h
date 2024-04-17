@@ -81,7 +81,6 @@ protected:
 protected:
 	TriSoup               &ts;
 	std::vector<PntArena> &pnt_arenas;
-	std::vector<IdxArena> &idx_arenas;
 
 	const std::vector<Label> &labels;
 	const Tree               &tree;
