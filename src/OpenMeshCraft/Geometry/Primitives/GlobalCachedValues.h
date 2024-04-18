@@ -201,10 +201,10 @@ public:
 		exact_lambda_x    = nullptr;
 		exact_lambda_y    = nullptr;
 		exact_lambda_z    = nullptr;
+		exact_denominator = nullptr;
 		exact_beta_x      = nullptr;
 		exact_beta_y      = nullptr;
 		exact_beta_z      = nullptr;
-		exact_denominator = nullptr;
 
 		expansion_lambda_x     = nullptr;
 		expansion_lambda_y     = nullptr;
@@ -242,6 +242,9 @@ public:
 			delete exact_lambda_y;
 			delete exact_lambda_z;
 			delete exact_denominator;
+			delete exact_beta_x;
+			delete exact_beta_y;
+			delete exact_beta_z;
 		}
 	}
 };
