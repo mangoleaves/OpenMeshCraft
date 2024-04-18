@@ -45,9 +45,9 @@ protected:
 	struct TTIHelper;
 	struct CoplanarEEI;
 
-	using IntersectionPoints = InlinedVector<index_t, 4>;
-	using IntersectionTypes  = InlinedVector<PointInSimplexType, 4>;
-	using CoplanarEEIList    = InlinedVector<CoplanarEEI, 4>;
+	using IntersectionPoints = AuxVector4<index_t>;
+	using IntersectionTypes  = AuxVector4<PointInSimplexType>;
+	using CoplanarEEIList    = AuxVector4<CoplanarEEI>;
 
 protected:
 	index_t get_e_id(TTIHelper &ha, index_t ea);

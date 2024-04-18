@@ -40,13 +40,15 @@ private:
 	using SegmentsList = phmap::flat_hash_set<Segment>;
 	// Segment will be split to sub-segments by TPI points,
 	// map sub-segments to its original segment id.
-	using RefSegs =
-	  boost::container::flat_set<index_t, std::less<index_t>,
-	                             boost::container::small_vector<index_t, 4>>;
-	using SubSegMap = phmap::flat_hash_map<Segment, RefSegs>;
+	using RefSegs      = boost::container::flat_set<index_t, std::less<index_t>,
+	                                                AuxVector4<index_t>>;
+	using SubSegMap    = phmap::flat_hash_map<Segment, RefSegs>;
 	// Store segments adajcent to TPI points in a triangle.
-	using TPI2Segs =
-	  phmap::flat_hash_map<index_t, boost::container::small_vector<index_t, 4>>;
+	using TPI2Segs     = phmap::flat_hash_map<index_t, AuxVector4<index_t>>;
+	// Pockets
+	using Pocket       = AuxVector16<index_t>;
+	using Polygon      = boost::container::flat_set<index_t, std::less<index_t>,
+	                                                AuxVector16<index_t>>;
 
 public:
 	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
@@ -92,11 +94,12 @@ private:
 	                          SegmentsList &segment_list, SubSegMap &sub_segs_map,
 	                          TPI2Segs &tpi2segs);
 
-	void findIntersectingElements(
-	  FastTriMesh &subm, index_t &v_start, index_t &v_stop,
-	  boost::container::small_vector<index_t, 64> &intersected_edges,
-	  boost::container::small_vector<index_t, 64> &intersected_tris,
-	  SegmentsList &segment_list, SubSegMap &sub_segs_map, TPI2Segs &tpi2segs);
+	void findIntersectingElements(FastTriMesh &subm, index_t &v_start,
+	                              index_t              &v_stop,
+	                              AuxVector64<index_t> &intersected_edges,
+	                              AuxVector64<index_t> &intersected_tris,
+	                              SegmentsList         &segment_list,
+	                              SubSegMap &sub_segs_map, TPI2Segs &tpi2segs);
 
 	void splitSegmentInSubSegments(index_t v_start, index_t v_stop,
 	                               index_t mid_point, SubSegMap &sub_segs_map);
@@ -111,11 +114,10 @@ private:
 	template <typename tri_iterator, typename edge_iterator>
 	void boundaryWalker(const FastTriMesh &subm, index_t v_start, index_t v_stop,
 	                    tri_iterator curr_p, edge_iterator curr_e,
-	                    boost::container::small_vector<index_t, 64> &h);
+	                    AuxVector64<index_t> &h);
 
-	void earcutLinear(const FastTriMesh                                 &subm,
-	                  const boost::container::small_vector<index_t, 64> &poly,
-	                  boost::container::small_vector<index_t, 64>       &tris);
+	void earcutLinear(const FastTriMesh &subm, const AuxVector64<index_t> &poly,
+	                  AuxVector64<index_t> &tris);
 
 	/* Solve pockets ************************************************************/
 
@@ -124,9 +126,9 @@ private:
 	                                    std::vector<Label>   &new_labels,
 	                                    const Label          &label);
 
-	void findPocketsInTriangle(const FastTriMesh                 &subm,
-	                           std::vector<std::vector<index_t>> &tri_pockets,
-	                           std::vector<std::set<index_t>>    &tri_polygons);
+	void findPocketsInTriangle(const FastTriMesh    &subm,
+	                           std::vector<Pocket> &tri_pockets,
+	                           std::vector<Polygon> &tri_polygons);
 
 	/* Postfix indices **********************************************************/
 

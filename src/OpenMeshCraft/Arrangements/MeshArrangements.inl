@@ -477,7 +477,6 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 		// loop as before by use simpler way
 		// map: tri_vertices -> tri_off
 		phmap::flat_hash_map<std::array<index_t, 3>, size_t> tris_map;
-		tris_map.reserve(num_orig_tris);
 
 		for (size_t t_id = 0; t_id < num_orig_tris; ++t_id)
 		{

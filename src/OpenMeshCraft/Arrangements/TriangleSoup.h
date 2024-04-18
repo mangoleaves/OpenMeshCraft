@@ -74,13 +74,13 @@ public: /* Types **************************************************************/
 
 	struct EdgeComparator;
 	using Edge2PntsSet =
-	  boost::container::flat_set<index_t, EdgeComparator, std::vector<index_t>>;
+	  boost::container::flat_set<index_t, EdgeComparator, AuxVector8<index_t>>;
 
 	/* ----- seg2pts related structures ----- */
 
 	struct SegComparator;
 	using Seg2PntsSet =
-	  boost::container::flat_set<index_t, SegComparator, std::vector<index_t>>;
+	  boost::container::flat_set<index_t, SegComparator, AuxVector8<index_t>>;
 
 	/* ----- coplnar pockes related structures ----- */
 

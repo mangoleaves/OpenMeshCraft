@@ -13,7 +13,6 @@
 #include "OpenMeshCraft/Utils/CStyleVector.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 #include "OpenMeshCraft/Utils/IndexDef.h"
-#include "OpenMeshCraft/Utils/InlinedVector.h"
 
 #include "OpenMeshCraft/Geometry/Intersection/IntersectionUtils.h"
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
@@ -222,13 +221,15 @@ struct DuplTriInfo
 };
 
 template <typename T>
-using AuxVector64 = InlinedVector<T, 64>;
+using AuxVector64 = boost::container::small_vector<T, 64>;
 template <typename T>
-using AuxVector16 = InlinedVector<T, 16>;
+using AuxVector32 = boost::container::small_vector<T, 32>;
 template <typename T>
-using AuxVector8 = InlinedVector<T, 8>;
+using AuxVector16 = boost::container::small_vector<T, 16>;
 template <typename T>
-using AuxVector4 = InlinedVector<T, 4>;
+using AuxVector8 = boost::container::small_vector<T, 8>;
+template <typename T>
+using AuxVector4 = boost::container::small_vector<T, 4>;
 
 template <typename Points, typename Triangles, typename NT>
 void load(const Points &points, const Triangles &triangles, const size_t label,

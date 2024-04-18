@@ -3,6 +3,7 @@
 #include "OpenMeshCraft/Utils/Exception.h"
 #include "OpenMeshCraft/Utils/Macros.h"
 
+#include "parallel_hashmap/phmap.h"
 #include "tbb/tbb.h"
 
 #include <atomic>
@@ -236,16 +237,22 @@ public:
 			free(expansion_lambda_z);
 			free(expansion_denominator);
 		}
-		if (exact_cached)
+		if (exact_cached || exact_lambda_x)
 		{
-			delete exact_lambda_x;
-			delete exact_lambda_y;
-			delete exact_lambda_z;
-			delete exact_denominator;
-			delete exact_beta_x;
-			delete exact_beta_y;
-			delete exact_beta_z;
+			delete[] exact_lambda_x;
 		}
+	}
+
+	void alloc_ET()
+	{
+		ET *new_et        = new ET[7];
+		exact_lambda_x    = new_et + 0;
+		exact_lambda_y    = new_et + 1;
+		exact_lambda_z    = new_et + 2;
+		exact_denominator = new_et + 3;
+		exact_beta_x      = new_et + 4;
+		exact_beta_y      = new_et + 5;
+		exact_beta_z      = new_et + 6;
 	}
 };
 
@@ -261,7 +268,8 @@ public:
 
 	using OnePointCachedValues = OnePointCachedValues_;
 	using PointsCachedValuesMap =
-	  std::unordered_map<void *, OnePointCachedValues>;
+	  phmap::flat_hash_map<void *, OnePointCachedValues *>;
+	using PointsCachedValuesArena = std::deque<OnePointCachedValues>;
 
 public:
 	/// @brief resize to \p thread_num maps, \p thread_num is often the max
@@ -273,6 +281,8 @@ public:
 			;
 		m_maps.clear();
 		m_maps.resize(thread_num);
+		m_arenas.clear();
+		m_arenas.resize(thread_num);
 		spin_lock.clear(std::memory_order_release);
 	}
 
@@ -282,32 +292,39 @@ public:
 		OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
 		                     "thread id {} excceed maps size {}", thread_id,
 		                     m_maps.size());
-		OnePointCachedValues &value = m_maps[thread_id][point_ptr];
-		return value;
+		PointsCachedValuesMap &map  = m_maps[thread_id];
+		auto                   iter = map.find(point_ptr);
+		if (iter != map.end())
+		{
+			return *iter->second;
+		}
+		else
+		{
+			PointsCachedValuesArena &arena = m_arenas[thread_id];
+			arena.emplace_back();
+			OnePointCachedValues *cv = &arena.back();
+			map.insert(std::pair<void *, OnePointCachedValues *>(point_ptr, cv));
+			return *cv;
+		}
 	}
 
 	void remove(void *point_ptr)
 	{
-		if (m_enabled)
-		{
-			int thread_id = tbb::this_task_arena::current_thread_index();
-			OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
-			                     "thread id {} excceed maps size {}", thread_id,
-			                     m_maps.size());
-			m_maps[thread_id].erase(point_ptr);
-		}
+		int thread_id = tbb::this_task_arena::current_thread_index();
+		OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
+		                     "thread id {} excceed maps size {}", thread_id,
+		                     m_maps.size());
+		m_maps[thread_id].erase(point_ptr);
 	}
 
 	void clear_cached_values()
 	{
-		if (m_enabled)
-		{
-			int thread_id = tbb::this_task_arena::current_thread_index();
-			OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
-			                     "thread id {} excceed maps size {}", thread_id,
-			                     m_maps.size());
-			m_maps[thread_id].clear();
-		}
+		int thread_id = tbb::this_task_arena::current_thread_index();
+		OMC_EXPENSIVE_ASSERT((size_t)thread_id < m_maps.size(),
+		                     "thread id {} excceed maps size {}", thread_id,
+		                     m_maps.size());
+		m_maps[thread_id].clear();
+		m_arenas[thread_id].clear();
 	}
 
 	void enable()
@@ -333,7 +350,8 @@ public:
 
 protected:
 	/// one map per thread, map generic point's pointer to cached value
-	std::deque<PointsCachedValuesMap> m_maps;
+	std::deque<PointsCachedValuesMap>   m_maps;
+	std::deque<PointsCachedValuesArena> m_arenas;
 
 	bool m_enabled = false;
 

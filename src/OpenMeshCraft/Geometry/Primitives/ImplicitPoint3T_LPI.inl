@@ -494,14 +494,8 @@ void ImplicitPoint3T_LPI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		  global_cached_values.get((void *)this);
 		if (!cv.exact_cached)
 		{
+			cv.alloc_ET();
 			cv.exact_cached      = true;
-			cv.exact_denominator = new ET();
-			cv.exact_lambda_x    = new ET();
-			cv.exact_lambda_y    = new ET();
-			cv.exact_lambda_z    = new ET();
-			cv.exact_beta_x      = new ET();
-			cv.exact_beta_y      = new ET();
-			cv.exact_beta_z      = new ET();
 			lambda3d_LPI_exact<ET>(
 			  ET(P().x()), ET(P().y()), ET(P().z()), ET(Q().x()), ET(Q().y()),
 			  ET(Q().z()), ET(R().x()), ET(R().y()), ET(R().z()), ET(S().x()),

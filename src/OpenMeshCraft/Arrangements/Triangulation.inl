@@ -501,8 +501,8 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 	}
 
 	// find intersected edges and triangles of current segment
-	boost::container::small_vector<index_t, 64> intersected_edges;
-	boost::container::small_vector<index_t, 64> intersected_tris;
+	AuxVector64<index_t> intersected_edges;
+	AuxVector64<index_t> intersected_tris;
 
 	findIntersectingElements(subm, v_start, v_stop, intersected_edges,
 	                         intersected_tris, segment_list, sub_segs_map,
@@ -512,7 +512,7 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 		return;
 
 	// walk along the border
-	boost::container::small_vector<index_t, 64> h0, h1;
+	AuxVector64<index_t> h0, h1;
 	boundaryWalker(subm, v_start, v_stop, intersected_tris.begin(),
 	               intersected_edges.begin(), h0);
 	boundaryWalker(subm, v_stop, v_start, intersected_tris.rbegin(),
@@ -522,7 +522,7 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 	OMC_EXPENSIVE_ASSERT(h1.size() >= 3, "insufficient edges of border");
 
 	// cut ears
-	boost::container::small_vector<index_t, 64> new_tris;
+	AuxVector64<index_t> new_tris;
 	earcutLinear(subm, h0, new_tris);
 	earcutLinear(subm, h1, new_tris);
 
@@ -540,9 +540,9 @@ void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
 template <typename Traits>
 void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
-  boost::container::small_vector<index_t, 64> &intersected_edges,
-  boost::container::small_vector<index_t, 64> &intersected_tris,
-  SegmentsList &segment_list, SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
+  AuxVector64<index_t> &intersected_edges,
+  AuxVector64<index_t> &intersected_tris, SegmentsList &segment_list,
+  SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
 {
 	using IdxPair  = std::pair<index_t, index_t>;
 	using SignPair = std::pair<Sign, Sign>;
@@ -570,8 +570,8 @@ void Triangulation<Traits>::findIntersectingElements(
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
-			boost::container::small_vector<index_t, 4> &t2s = tpi2segs.at(v_inter);
+			const RefSegs &seg_ids   = sub_segs_map.at(uniquePair(v_start, v_stop));
+			AuxVector4<index_t> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
 				if (std::find(t2s.begin(), t2s.end(), seg_id) != t2s.end())
@@ -798,8 +798,8 @@ void Triangulation<Traits>::findIntersectingElements(
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
-			boost::container::small_vector<index_t, 4> &t2s = tpi2segs.at(v_inter);
+			const RefSegs &seg_ids   = sub_segs_map.at(uniquePair(v_start, v_stop));
+			AuxVector4<index_t> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
 				if (std::find(t2s.begin(), t2s.end(), seg_id) != t2s.end())
@@ -900,7 +900,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	// add two segments to tpi2segs
 	OMC_EXPENSIVE_ASSERT(tpi2segs.find(local_tpi_id) == tpi2segs.end(),
 	                     "the new tpi point has existed.");
-	boost::container::small_vector<index_t, 4> &t2s = tpi2segs[local_tpi_id];
+	AuxVector4<index_t> &t2s = tpi2segs[local_tpi_id];
 	t2s.insert(t2s.end(), seg0_ids.begin(), seg0_ids.end());
 	t2s.insert(t2s.end(), seg1_ids.begin(), seg1_ids.end());
 
@@ -1161,9 +1161,11 @@ index_t Triangulation<Traits>::fixTPI(index_t seg0_id, index_t seg1_id,
 
 template <typename Traits>
 template <typename tri_iterator, typename edge_iterator>
-void Triangulation<Traits>::boundaryWalker(
-  const FastTriMesh &subm, index_t v_start, index_t v_stop, tri_iterator curr_p,
-  edge_iterator curr_e, boost::container::small_vector<index_t, 64> &h)
+void Triangulation<Traits>::boundaryWalker(const FastTriMesh &subm,
+                                           index_t v_start, index_t v_stop,
+                                           tri_iterator          curr_p,
+                                           edge_iterator         curr_e,
+                                           AuxVector64<index_t> &h)
 {
 	h.clear();
 	h.push_back(v_start);
@@ -1206,10 +1208,9 @@ void Triangulation<Traits>::boundaryWalker(
 }
 
 template <typename Traits>
-void Triangulation<Traits>::earcutLinear(
-  const FastTriMesh                                 &subm,
-  const boost::container::small_vector<index_t, 64> &poly,
-  boost::container::small_vector<index_t, 64>       &tris)
+void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
+                                         const AuxVector64<index_t> &poly,
+                                         AuxVector64<index_t>       &tris)
 {
 	OMC_EXPENSIVE_ASSERT(poly.size() >= 3, "no valid poly dimension");
 
@@ -1218,20 +1219,20 @@ void Triangulation<Traits>::earcutLinear(
 	// doubly linked list for fat polygon inspection
 	size_t size = poly.size();
 
-	boost::container::small_vector<index_t, 64> prev(size);
-	boost::container::small_vector<index_t, 64> next(size);
+	AuxVector64<index_t> prev(size);
+	AuxVector64<index_t> next(size);
 	std::iota(prev.begin(), prev.end(), -1);
 	std::iota(next.begin(), next.end(), 1);
 	prev.front() = size - 1;
 	next.back()  = 0;
 
 	// keep a list of the ears to be cut
-	boost::container::small_vector<index_t, 64> ears;
+	AuxVector64<index_t> ears;
 	ears.reserve(size);
 
 	// this always has size |poly|, and keeps track of ears
 	// (corners that were not ears at the beginning may become so later on)
-	boost::container::small_vector<bool, 64> is_ear(size, false);
+	AuxVector64<bool> is_ear(size, false);
 
 	// detect all safe ears in O(n).
 	// This amounts to finding all convex vertices but the endpoints of the
@@ -1314,18 +1315,19 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
   const FastTriMesh &subm, std::vector<index_t> &new_tris,
   std::vector<Label> &new_labels, const Label &label)
 {
-	std::vector<std::vector<index_t>> tri_pockets;
-	std::vector<std::set<index_t>>    polygons;
+	std::vector<Pocket>  tri_pockets;
+	std::vector<Polygon> tri_polygons;
 
-	findPocketsInTriangle(subm, tri_pockets, polygons);
-	OMC_EXPENSIVE_ASSERT(tri_pockets.size() == polygons.size(), "size mismatch");
+	findPocketsInTriangle(subm, tri_pockets, tri_polygons);
+	OMC_EXPENSIVE_ASSERT(tri_pockets.size() == tri_polygons.size(),
+	                     "size mismatch");
 
 	std::vector<index_t> curr_polygon;
-	for (index_t p_id = 0; p_id < polygons.size(); p_id++)
+	for (index_t p_id = 0; p_id < tri_polygons.size(); p_id++)
 	{
 		curr_polygon.clear();
 		bool polygon_contain_tpi = false;
-		for (index_t p : polygons[p_id])
+		for (index_t p : tri_polygons[p_id])
 		{
 			if (subm.vertFlag(p))
 				polygon_contain_tpi = true;
@@ -1342,7 +1344,7 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
 
 			if (!is_valid_idx(pos)) // pocket not added yet
 			{
-				const std::vector<index_t> &tri_list = tri_pockets[p_id];
+				const Pocket &tri_list = tri_pockets[p_id];
 				for (index_t t : tri_list)
 				{
 					const index_t *tri = subm.tri(t);
@@ -1365,8 +1367,8 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::findPocketsInTriangle(
-  const FastTriMesh &subm, std::vector<std::vector<index_t>> &tri_pockets,
-  std::vector<std::set<index_t>> &tri_polygons)
+  const FastTriMesh &subm, std::vector<Pocket> &tri_pockets,
+  std::vector<Polygon> &tri_polygons)
 {
 	std::vector<bool> visited(subm.numTriangles(), false);
 
@@ -1375,9 +1377,12 @@ void Triangulation<Traits>::findPocketsInTriangle(
 		if (visited[t_seed])
 			continue;
 
-		std::vector<index_t> curr_tri_pocket;
-		std::set<index_t>    curr_tri_poly;
-		std::stack<index_t>  stack;
+		tri_pockets.emplace_back();
+		Pocket &curr_tri_pocket = tri_pockets.back();
+		tri_polygons.emplace_back();
+		Polygon &curr_tri_poly = tri_polygons.back();
+
+		std::stack<index_t, AuxVector64<index_t>> stack;
 		stack.push(t_seed);
 
 		while (!stack.empty())
@@ -1410,8 +1415,6 @@ void Triangulation<Traits>::findPocketsInTriangle(
 				}
 			}
 		}
-		tri_pockets.push_back(curr_tri_pocket);
-		tri_polygons.push_back(curr_tri_poly);
 	}
 }
 
@@ -1439,8 +1442,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	// Fix indices stored in new_tris.
 	// In this stage, no duplicate triangle will be generated.
-	tbb::parallel_for_each(new_tris.begin(), new_tris.end(),
-	                       [this](index_t &vid)
+	tbb::parallel_for_each(new_tris.begin(), new_tris.end(), [this](index_t &vid)
 	                       { vid = ts.indices[vid].load(); });
 
 	// Fix indices stored in pockets with TPI points.
