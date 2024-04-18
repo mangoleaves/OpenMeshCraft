@@ -101,12 +101,12 @@ struct TriangleSoup<Traits>::SegComparator
 	{
 	}
 
-	SegComparator(const SegComparator &other)
+	SegComparator(const SegComparator &other) noexcept
 	  : ts(other.ts)
 	  , axis(other.axis)
 	{
 	}
-	SegComparator &operator=(const SegComparator &other)
+	SegComparator &operator=(const SegComparator &other) noexcept
 	{
 		ts   = other.ts;
 		axis = other.axis;

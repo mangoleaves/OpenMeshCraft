@@ -2332,7 +2332,7 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2, double p3x,
                                 double p3y)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -2346,7 +2346,6 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d1_len, b1x, b1y, b1z);
 	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
 	                      d2_len, b2x, b2y, b2z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
 	{
 		expansionObject o;
@@ -2390,14 +2389,33 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold ||
 		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 64);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1x_et = 0, i1y_et = 0, i2x_et = 0, i2y_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+			// clang-format on
+			ET t0_et    = i1x_et * i2y_et;
+			ET t1_et    = i1y_et * i2x_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -2448,16 +2466,8 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, p3x, p3y);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dxy_IIE_exact<IT, ET>(p1, p2, p3x, p3y);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
-	OMC_EXIT("Should not happen.");
+	return return_sign;
 }
 
 template <typename IT, typename ET>
@@ -2465,7 +2475,7 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -2484,7 +2494,6 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d2_len, b2x, b2y, b2z);
 	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
 	                      d3_len, b3x, b3y, b3z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
 	{
 		expansionObject o;
@@ -2562,14 +2571,33 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t1_len;
 		double det_p[32], *det = det_p;
 		int    det_len;
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold ||
 		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 32);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1x_et = 0, i1y_et = 0, i2x_et = 0, i2y_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+			// clang-format on
+			ET t0_et    = i1x_et * i2y_et;
+			ET t1_et    = i1y_et * i2x_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -2652,16 +2680,8 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
-	OMC_EXIT("Should not happen.");
+	return return_sign;
 }
 
 template <typename IT, typename ET>
@@ -2669,7 +2689,7 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2, double p3y,
                                 double p3z)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -2683,7 +2703,6 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d1_len, b1x, b1y, b1z);
 	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
 	                      d2_len, b2x, b2y, b2z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
 	{
 		expansionObject o;
@@ -2727,14 +2746,33 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold ||
 		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 64);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1y_et = 0, i1z_et = 0, i2y_et = 0, i2z_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+			// clang-format on
+			ET t0_et    = i1y_et * i2z_et;
+			ET t1_et    = i1z_et * i2y_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -2785,16 +2823,8 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, p3y, p3z);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dyz_IIE_exact<IT, ET>(p1, p2, p3y, p3z);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
-	OMC_EXIT("Should not happen.");
+	return return_sign;
 }
 
 template <typename IT, typename ET>
@@ -2802,7 +2832,7 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -2821,7 +2851,6 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d2_len, b2x, b2y, b2z);
 	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
 	                      d3_len, b3x, b3y, b3z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
 	{
 		expansionObject o;
@@ -2900,14 +2929,33 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold ||
 		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 32);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1y_et = 0, i1z_et = 0, i2y_et = 0, i2z_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+			// clang-format on
+			ET t0_et    = i1y_et * i2z_et;
+			ET t1_et    = i1z_et * i2y_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -2990,16 +3038,8 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
-	OMC_EXIT("Should not happen.");
+	return return_sign;
 }
 
 template <typename IT, typename ET>
@@ -3007,7 +3047,7 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2, double p3x,
                                 double p3z)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -3021,7 +3061,6 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d1_len, b1x, b1y, b1z);
 	p2.getExpansionLambda(&l2x, l2x_len, &l2y, l2y_len, &l2z, l2z_len, &d2,
 	                      d2_len, b2x, b2y, b2z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0))
 	{
 		expansionObject o;
@@ -3065,14 +3104,33 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold ||
 		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 64);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 64);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1x_et = 0, i1z_et = 0, i2x_et = 0, i2z_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+			// clang-format on
+			ET t0_et    = i1z_et * i2x_et;
+			ET t1_et    = i1x_et * i2z_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -3123,16 +3181,8 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, p3x, p3z);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dzx_IIE_exact<IT, ET>(p1, p2, p3x, p3z);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
-	OMC_EXIT("Should not happen.");
+	return return_sign;
 }
 
 template <typename IT, typename ET>
@@ -3140,7 +3190,7 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
-	double return_value = NAN;
+	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
 	#endif
@@ -3159,7 +3209,6 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	                      d2_len, b2x, b2y, b2z);
 	p3.getExpansionLambda(&l3x, l3x_len, &l3y, l3y_len, &l3z, l3z_len, &d3,
 	                      d3_len, b3x, b3y, b3z);
-	bool expansion_calculated = false;
 	if ((d1[d1_len - 1] != 0) && (d2[d2_len - 1] != 0) && (d3[d3_len - 1] != 0))
 	{
 		expansionObject o;
@@ -3238,14 +3287,33 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold ||
 		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 32);
-			det_len      = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
-			return_value = det[det_len - 1];
-			expansion_calculated = true;
+			det_len = o.Gen_Diff_With_PreAlloc(t0_len, t0, t1_len, t1, &det, 32);
+			double return_value = det[det_len - 1];
+			if (return_value > 0)
+				return_sign = Sign::POSITIVE;
+			if (return_value < 0)
+				return_sign = Sign::NEGATIVE;
+			if (return_value == 0)
+				return_sign = Sign::ZERO;
+		}
+		else
+		{
+			ET i1x_et = 0, i1z_et = 0, i2x_et = 0, i2z_et = 0;
+			// clang-format off
+			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+			// clang-format on
+			ET t0_et    = i1z_et * i2x_et;
+			ET t1_et    = i1x_et * i2z_et;
+			ET det_et   = t0_et - t1_et;
+			return_sign = OMC::sign(det_et);
 		}
 
 		if (det_p != det)
@@ -3328,15 +3396,8 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	if (fetestexcept(FE_UNDERFLOW | FE_OVERFLOW))
 		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
 	#endif
-	if (!expansion_calculated)
-		return orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
 
-	if (return_value > 0)
-		return Sign::POSITIVE;
-	if (return_value < 0)
-		return Sign::NEGATIVE;
-	if (return_value == 0)
-		return Sign::ZERO;
+	return return_sign;
 	OMC_EXIT("Should not happen.");
 }
 
