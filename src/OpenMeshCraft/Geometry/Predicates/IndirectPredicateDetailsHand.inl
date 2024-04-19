@@ -2389,7 +2389,7 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold ||
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
 		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 64);
@@ -2571,7 +2571,7 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t1_len;
 		double det_p[32], *det = det_p;
 		int    det_len;
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold ||
+		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
 		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 32);
@@ -2746,7 +2746,7 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold ||
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
 		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 64);
@@ -2929,7 +2929,7 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold ||
+		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
 		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 32);
@@ -3104,7 +3104,7 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold ||
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
 		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 64);
@@ -3287,7 +3287,7 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold ||
+		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
 		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 32);
@@ -3398,7 +3398,6 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	#endif
 
 	return return_sign;
-	OMC_EXIT("Should not happen.");
 }
 
 #endif

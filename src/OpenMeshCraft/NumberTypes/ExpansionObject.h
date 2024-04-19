@@ -18,40 +18,6 @@ namespace OMC {
 // See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision
 // Floating Point Arithmetic"
 
-// Sums
-#define Quick_Two_Sum(a, b, x, y) \
-	x = a + b;                      \
-	y = b - (x - a)
-#define Two_Sum(a, b, x, y) \
-	x   = a + b;              \
-	_bv = x - a;              \
-	y   = (a - (x - _bv)) + (b - _bv)
-#define Two_One_Sum(a1, a0, b, x2, x1, x0) \
-	Two_Sum(a0, b, _i, x0);                  \
-	Two_Sum(a1, _i, x2, x1)
-
-// Differences
-#define Two_Diff(a, b, x, y) \
-	x   = a - b;               \
-	_bv = a - x;               \
-	y   = (a - (x + _bv)) + (_bv - b)
-#define Two_One_Diff(a1, a0, b, x2, x1, x0) \
-	Two_Diff(a0, b, _i, x0);                  \
-	Two_Sum(a1, _i, x2, x1)
-
-// Products
-#define Split(a, _ah, _al)           \
-	_c  = 1.3421772800000003e+008 * a; \
-	_ah = _c - (_c - a);               \
-	_al = a - _ah
-#define Two_Prod_PreSplit(a, b, _bh, _bl, x, y) \
-	x = a * b;                                    \
-	Split(a, _ah, _al);                           \
-	y = (_al * _bl) - (((x - (_ah * _bh)) - (_al * _bh)) - (_ah * _bl))
-#define Two_Product_2Presplit(a, _ah, _al, b, _bh, _bl, x, y) \
-	x = a * b;                                                  \
-	y = (_al * _bl) - (((x - _ah * _bh) - (_al * _bh)) - (_ah * _bl))
-
 // Allocate extra-memory
 #define AllocDoubles(n) ((double *)malloc((n) * sizeof(double)))
 #define FreeDoubles(p) (free(p))
@@ -60,11 +26,30 @@ namespace OMC {
 // expansion arithmetic
 class expansionObject
 {
-	// Temporary vars used in low-level arithmetic
-	double _bv, _c, _ah, _al, _bh, _bl, _i, _j, _k, _l, _0, _1, _2, _u3;
-
 public:
+	inline void Quick_Two_Sum(const double a, const double b, double &x,
+	                          double &y);
+
+	inline void Two_Sum(const double a, const double b, double &x, double &y);
+
+	inline void Two_One_Sum(const double a1, const double a0, const double b,
+	                        double &x2, double &x1, double &x0);
+
 	inline void two_Sum(const double a, const double b, double *xy);
+
+	inline void Two_Diff(const double a, const double b, double &x, double &y);
+
+	inline void Two_One_Diff(const double a1, const double a0, const double b,
+	                         double &x2, double &x1, double &x0);
+
+	inline void Split(double a, double &_ah, double &_al);
+
+	inline void Two_Prod_PreSplit(double a, double b, double _bh, double _bl,
+	                              double &x, double &y);
+
+	inline void Two_Product_2Presplit(double a, double _ah, double _al, double b,
+	                                  double _bh, double _bl, double &x,
+	                                  double &y);
 
 	inline void two_Diff(const double a, const double b, double *xy);
 
@@ -123,11 +108,8 @@ public:
 	// Calculates the second component 'y' of the expansion [x,y] = [a]-[b] when
 	// 'x' is known
 	inline void Two_Diff_Back(const double a, const double b, double &x,
-	                          double &y)
-	{
-		_bv = a - x;
-		y   = (a - (x + _bv)) + (_bv - b);
-	}
+	                          double &y);
+
 	inline void Two_Diff_Back(const double a, const double b, double *xy)
 	{
 		Two_Diff_Back(a, b, xy[1], xy[0]);

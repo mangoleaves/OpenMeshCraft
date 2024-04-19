@@ -121,8 +121,7 @@ int main(int argc, char *argv[])
 	{
 		fout << std::fixed;
 		fout << stats.pp_elapsed << "," << stats.tree_elapsed << ","
-		     << stats.di_elapsed << "," << stats.ci_elapsed << ","
-		     << stats.tr_elapsed << "," << time << ","
+		     << stats.ci_elapsed << "," << stats.tr_elapsed << "," << time << ","
 		     << OMC::getPeakMegabytesUsed() << "," << result_points.size() << ","
 		     << result_triangles.size() << "\n";
 		std::cout << filename << ": " << time << "s, "

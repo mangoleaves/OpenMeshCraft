@@ -1248,7 +1248,8 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 
 		Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
 
-		if ((prev != next) && (check == orientation && check != Sign::ZERO))
+		if ((prev[curr] != next[curr]) &&
+		    (check == orientation && check != Sign::ZERO))
 		{
 			ears.emplace_back(curr);
 			is_ear.at(curr) = true;
@@ -1442,7 +1443,8 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	// Fix indices stored in new_tris.
 	// In this stage, no duplicate triangle will be generated.
-	tbb::parallel_for_each(new_tris.begin(), new_tris.end(), [this](index_t &vid)
+	tbb::parallel_for_each(new_tris.begin(), new_tris.end(),
+	                       [this](index_t &vid)
 	                       { vid = ts.indices[vid].load(); });
 
 	// Fix indices stored in pockets with TPI points.
