@@ -887,19 +887,19 @@ int longestAxis_IE_interval(const GenericPoint3T<IT, ET> &p1, IT bx, IT by,
 
 	int    dim = -1;
 	double k   = 0.;
-	if (kx.is_sign_reliable())
+	if (kx.is_sign_reliable() && fabs(kx.inf() + kx.sup()) > k)
 	{
 		k   = fabs(kx.inf() + kx.sup());
 		dim = 0;
 	}
-	if (ky.is_sign_reliable())
+	if (ky.is_sign_reliable() && fabs(ky.inf() + ky.sup()) > k)
 	{
-		k   = std::max(k, fabs(ky.inf() + ky.sup()));
+		k   = fabs(ky.inf() + ky.sup());
 		dim = 1;
 	}
-	if (kz.is_sign_reliable())
+	if (kz.is_sign_reliable() && fabs(kz.inf() + kz.sup()) > k)
 	{
-		k   = std::max(k, fabs(kz.inf() + kz.sup()));
+		k   = fabs(kz.inf() + kz.sup());
 		dim = 2;
 	}
 
@@ -915,19 +915,22 @@ int longestAxis_IE_exact(const GenericPoint3T<IT, ET> &p1, ET bx, ET by, ET bz)
 	ET tx0 = b1x - bx;
 	ET tx1 = tx0 * d1;
 	ET kx  = tx1 + l1x;
+	kx     = OMC::abs(kx);
 
 	ET ty0 = b1y - by;
 	ET ty1 = ty0 * d1;
 	ET ky  = ty1 + l1y;
+	ky     = OMC::abs(ky);
 
 	ET tz0 = b1z - bz;
 	ET tz1 = tz0 * d1;
 	ET kz  = tz1 + l1z;
+	kz     = OMC::abs(kz);
 
-	if (OMC::abs(ky) > OMC::abs(kx))
-		return OMC::abs(kz) > ky ? 2 : 1;
+	if (ky > kx)
+		return kz > ky ? 2 : 1;
 	else
-		return OMC::abs(kz) > kx ? 2 : 0;
+		return kz > kx ? 2 : 0;
 }
 
 template <typename IT, typename ET>
@@ -1182,19 +1185,19 @@ int longestAxis_II_interval(const GenericPoint3T<IT, ET> &p1,
 
 	int    dim = -1;
 	double k   = 0.;
-	if (kx.is_sign_reliable())
+	if (kx.is_sign_reliable() && fabs(kx.inf() + kx.sup()) > k)
 	{
 		k   = fabs(kx.inf() + kx.sup());
 		dim = 0;
 	}
-	if (ky.is_sign_reliable())
+	if (ky.is_sign_reliable() && fabs(ky.inf() + ky.sup()) > k)
 	{
-		k   = std::max(k, fabs(ky.inf() + ky.sup()));
+		k   = fabs(ky.inf() + ky.sup());
 		dim = 1;
 	}
-	if (kz.is_sign_reliable())
+	if (kz.is_sign_reliable() && fabs(kz.inf() + kz.sup()) > k)
 	{
-		k   = std::max(k, fabs(kz.inf() + kz.sup()));
+		k   = fabs(kz.inf() + kz.sup());
 		dim = 2;
 	}
 
@@ -1216,6 +1219,7 @@ int longestAxis_II_exact(const GenericPoint3T<IT, ET> &p1,
 	ET tx4 = l2x * d1;
 	ET tx5 = tx2 + tx3;
 	ET kx  = tx5 - tx4;
+	kx     = OMC::abs(kx);
 
 	ET ty0 = b1y - b2y;
 	ET ty1 = ty0 * d1;
@@ -1224,6 +1228,7 @@ int longestAxis_II_exact(const GenericPoint3T<IT, ET> &p1,
 	ET ty4 = l2y * d1;
 	ET ty5 = ty2 + ty3;
 	ET ky  = ty5 - ty4;
+	ky     = OMC::abs(ky);
 
 	ET tz0 = b1z - b2z;
 	ET tz1 = tz0 * d1;
@@ -1232,11 +1237,12 @@ int longestAxis_II_exact(const GenericPoint3T<IT, ET> &p1,
 	ET tz4 = l2z * d1;
 	ET tz5 = tz2 + tz3;
 	ET kz  = tz5 - tz4;
+	kz     = OMC::abs(kz);
 
-	if (OMC::abs(ky) > OMC::abs(kx))
-		return OMC::abs(kz) > ky ? 2 : 1;
+	if (ky > kx)
+		return kz > ky ? 2 : 1;
 	else
-		return OMC::abs(kz) > kx ? 2 : 0;
+		return kz > kx ? 2 : 0;
 }
 
 template <typename IT, typename ET>
@@ -1278,7 +1284,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t5_len = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
 		double k_p[128], *k = k_p;
 		int    k_len = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
-		diff_kx      = k[k_len - 1];
+		diff_kx      = fabs(k[k_len - 1]);
 		if (k_p != k)
 			FreeDoubles(k);
 		if (t5_p != t5)
@@ -1305,7 +1311,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		t5_len  = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
 		k       = k_p;
 		k_len   = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
-		diff_ky = k[k_len - 1];
+		diff_ky = fabs(k[k_len - 1]);
 		if (k_p != k)
 			FreeDoubles(k);
 		if (t5_p != t5)
@@ -1332,7 +1338,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		t5_len  = o.Gen_Sum_With_PreAlloc(t2_len, t2, t3_len, t3, &t5, 128);
 		k       = k_p;
 		k_len   = o.Gen_Diff_With_PreAlloc(t5_len, t5, t4_len, t4, &k, 128);
-		diff_kz = k[k_len - 1];
+		diff_kz = fabs(k[k_len - 1]);
 		if (k_p != k)
 			FreeDoubles(k);
 		if (t5_p != t5)
