@@ -2,21 +2,33 @@
 
 ## Documents
 
-> Last updated: 2024.03.08-20:08.
+> Last updated: 2024.04.21-17:50.
 
 * [ChangeLog](./doc/Version/ChangeLog.md)
 
 ## Verified environment
 
-> Last updated: 2024.03.04-20:25.
+> Last updated: 2024.04.21-17:50.
 
-| Host         | Compiler                         |
-| ------------ | -------------------------------- |
-| Windows10    | VS 2019 (vc142), VS 2022 (vc143) |
-| Windows11    | VS 2022 (vc143)                  |
-| Ubuntu 20.04 | GCC 11.4.0 X86_64                |
+|        | Host         | Compiler                         |
+|--------| ------------ | -------------------------------- |
+|&check; | Windows10    | VS 2019 (vc142), VS 2022 (vc143) |
+|&check; | Windows11    | VS 2022 (vc143)                  |
+|&cross; | Ubuntu 20.04 | GCC 11.4.0 X86_64                |
 
 ## external libraries
+
+> Last updated: 2024.04.21-17:58.
+
+* Boost
+* CGAL
+* Eigen3
+* GMP
+* GoogleTest
+* MPFR
+* oneTBB
+* parallel-hashmap
+* shewchuk-predicates
 
 ### Unix
 
