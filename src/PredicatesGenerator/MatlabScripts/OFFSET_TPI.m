@@ -60,7 +60,7 @@ det_L_sub1 = (L00 - m1) * (m0 - L10);
 % v_sol = det_L_sub1 / det_L;
 
 % formulate as base + offset
-base = o;
+base = a;
 lambda_u = det_L_sub0 * (b - a);
 lambda_v = det_L_sub1 * (c - a);
 lambda = lambda_u + lambda_v

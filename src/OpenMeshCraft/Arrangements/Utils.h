@@ -380,6 +380,7 @@ enum class ArrFuncNames : size_t
 	D_BBI_SMALL,
 	D_BBI_LARGE,
 	DC_TTI,
+	IP_CNT,
 	CNT
 };
 
@@ -446,7 +447,8 @@ inline void ArrProfile::print()
 		"Detect BBI",
 		"Detect BBI unique",
 		"Detect BBI duplicate",
-	  "Detect & Classify TTI"
+	  "Detect & Classify TTI",
+		"Implicit Points Count"
   };
 
 	// clang-format on

@@ -290,8 +290,7 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(),
-		                   [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -560,6 +559,23 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 	          tri_soup.vertices.end(), arr_out_verts.begin());
 
 	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
+
+#ifdef OMC_ARR_PROFILE
+	std::vector<uint8_t> vertex_used(arr_out_verts.size(), false);
+	for (index_t vi : arr_out_tris)
+		vertex_used[vi] = true;
+
+	for (index_t vi = 0; vi < arr_out_verts.size(); vi++)
+	{
+		if (vertex_used[vi] && arr_out_verts[vi]->is_Implicit())
+		{
+			OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::IP_CNT);
+			OMC_ARR_PROFILE_INC_REACH(
+			  ArrFuncNames::IP_CNT,
+			  static_cast<size_t>(arr_out_verts[vi]->point_type()));
+		}
+	}
+#endif
 }
 
 template <typename Traits>
