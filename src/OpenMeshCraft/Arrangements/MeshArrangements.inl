@@ -290,7 +290,8 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(),
+		                   [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -575,6 +576,42 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 			  static_cast<size_t>(arr_out_verts[vi]->point_type()));
 		}
 	}
+
+	std::fstream fout;
+	fout.open("./data/test_output/arrangements/pnts_on_edges.txt", std::ios::out);
+	if (fout.is_open())
+	{
+		size_t sum = 0;
+		for (index_t ei = 0; ei < tri_soup.numEdges(); ei++)
+		{
+			auto &e2p = tri_soup.edgePointsList(ei);
+			if (!e2p.empty())
+			{
+				sum += e2p.size();
+				fout << e2p.size() << std::endl;
+			}
+		}
+		if (sum != 0)
+			fout << sum << std::endl;
+	}
+	fout.close();
+
+	fout.open("./data/test_output/arrangements/pnts_on_segs.txt", std::ios::out);
+	if (fout.is_open())
+	{
+		size_t sum = 0;
+		for (const auto &s2p : tri_soup.seg2pts)
+		{
+			if (!s2p.empty())
+			{
+				sum += s2p.size();
+				fout << s2p.size() << std::endl;
+			}
+		}
+		if (sum != 0)
+			fout << sum << std::endl;
+	}
+	fout.close();
 #endif
 }
 

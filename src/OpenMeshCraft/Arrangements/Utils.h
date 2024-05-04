@@ -470,8 +470,8 @@ inline void ArrProfile::print()
 		for (int j = 0; j <= last_branch_flag; j++)
 		{
 			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
-			std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j],
-			                         reach_raio * 100.);
+			std::cout << std::format("  line {}: {:.2f}%, {}\n", reach_line[i][j],
+			                         reach_raio * 100., reach_count[i][j]);
 		}
 	}
 }

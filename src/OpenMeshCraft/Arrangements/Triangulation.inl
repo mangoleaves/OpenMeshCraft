@@ -113,10 +113,10 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	 *                                  TRIANGLE SPLIT
 	 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-	if (t_points.size() <= 10)
-		splitSingleTriangle(subm, t_points);
-	else
-		splitSingleTriangleWithTree(subm, t_points);
+	// if (t_points.size() <= 10)
+	// 	splitSingleTriangle(subm, t_points);
+	// else
+	splitSingleTriangleWithTree(subm, t_points);
 
 	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	 *                                  EDGE SPLIT
@@ -768,16 +768,16 @@ void Triangulation<Traits>::findIntersectingElements(
 		}
 	};
 
-	if (link_size < 16)
-	{
-		if (!sequencialSearchInterEdge())
-			return;
-	}
-	else
-	{
-		if (!binarySearchInterEdge())
-			return;
-	}
+	// if (link_size < 16)
+	// {
+	if (!sequencialSearchInterEdge())
+		return;
+	// }
+	// else
+	// {
+	// 	if (!binarySearchInterEdge())
+	// 		return;
+	// }
 
 	OMC_ASSERT(intersected_edges.size() > 0, "empty intersected edges");
 
@@ -1443,8 +1443,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	// Fix indices stored in new_tris.
 	// In this stage, no duplicate triangle will be generated.
-	tbb::parallel_for_each(new_tris.begin(), new_tris.end(),
-	                       [this](index_t &vid)
+	tbb::parallel_for_each(new_tris.begin(), new_tris.end(), [this](index_t &vid)
 	                       { vid = ts.indices[vid].load(); });
 
 	// Fix indices stored in pockets with TPI points.

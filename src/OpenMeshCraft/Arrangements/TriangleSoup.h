@@ -109,7 +109,7 @@ public:
 	/// all explicit and implicit points
 	std::vector<PntArena> *pnt_arenas = nullptr;
 
-protected:
+public:
 	/***** Below data should be initialized by calling initialize() ******/
 
 	size_t num_orig_vtxs;
@@ -160,7 +160,7 @@ public: /* Triangles **********************************************************/
 
 	Label triLabel(index_t t_id) const;
 
-protected:
+public:
 	/***** Below data are calculated by arrangements  ******/
 
 	// does triangle have intersections
