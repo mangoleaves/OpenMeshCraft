@@ -81,7 +81,7 @@ using IOOptions = OMC::IOOptions;
 inline void read_mesh(const std::string &filename, Points &points,
                       Triangles &triangles, IOOptions &io_options)
 {
-	if (OMC::ends_with(filename, ".obj"))
+	if (OMC::ends_with(filename, ".obj") || OMC::ends_with(filename, ".OBJ"))
 	{
 		OBJReader reader;
 		reader.read(filename, io_options);
@@ -89,7 +89,7 @@ inline void read_mesh(const std::string &filename, Points &points,
 		points    = std::move(reader.m_points);
 		triangles = std::move(reader.m_triangles);
 	}
-	else if (OMC::ends_with(filename, ".stl"))
+	else if (OMC::ends_with(filename, ".stl") || OMC::ends_with(filename, ".STL"))
 	{
 		STLReader reader;
 		reader.read(filename, io_options);
@@ -97,19 +97,23 @@ inline void read_mesh(const std::string &filename, Points &points,
 		points    = std::move(reader.m_points);
 		triangles = std::move(reader.m_triangles);
 	}
+	else
+	{
+		throw std::runtime_error("unsupport file type.");
+	}
 }
 
 inline void write_mesh(const std::string &filename, const Points &points,
                        const Triangles &triangles, IOOptions &io_options)
 {
-	if (OMC::ends_with(filename, ".obj"))
+	if (OMC::ends_with(filename, ".obj") || OMC::ends_with(filename, ".OBJ"))
 	{
 		OBJWriter writer;
 		writer.m_points    = std::move(points);
 		writer.m_triangles = std::move(triangles);
 		writer.write(filename, io_options, DBL_DIG);
 	}
-	else if (OMC::ends_with(filename, ".stl"))
+	else if (OMC::ends_with(filename, ".stl") || OMC::ends_with(filename, ".STL"))
 	{
 		/* Precision is not enough, change to obj */
 		std::string new_fn = OMC::replace_last(filename, ".stl", ".obj");
@@ -118,6 +122,10 @@ inline void write_mesh(const std::string &filename, const Points &points,
 		writer.m_triangles    = std::move(triangles);
 		io_options.stl_binary = true;
 		writer.write(new_fn, io_options, DBL_DIG);
+	}
+	else
+	{
+		throw std::runtime_error("unsupport file type.");
 	}
 };
 

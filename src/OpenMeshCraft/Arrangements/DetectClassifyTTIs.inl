@@ -8,6 +8,27 @@
 
 #define OMC_ARR_DC_TTI_PARA
 
+#ifdef OMC_ARR_PROFILE
+	#define COLLECT_INTERSECTING_TRIANGLE                                     \
+		if (Tri3_Tri3_DoInter().intersection_type(                              \
+		      ts.triVertPtr(b0.id(), 0), ts.triVertPtr(b0.id(), 1),             \
+		      ts.triVertPtr(b0.id(), 2), ts.triVertPtr(b1.id(), 0),             \
+		      ts.triVertPtr(b1.id(), 1),                                        \
+		      ts.triVertPtr(b1.id(), 2)) >= SimplexIntersectionType::INTERSECT) \
+		{                                                                       \
+			intersecting_triangle_pairs.push_back(uniquePair(b0.id(), b1.id()));  \
+		}
+
+	#define REPORT_INTERSECTING_TRIANGLE                                \
+		remove_duplicates(intersecting_triangle_pairs);                   \
+		OMC::Logger::info(std::format(                                    \
+		  "[OpenMeshCraft Arrangements] intersecting triangle pairs: {}", \
+		  intersecting_triangle_pairs.size()));
+#else
+	#define COLLECT_INTERSECTING_TRIANGLE
+	#define REPORT_INTERSECTING_TRIANGLE
+#endif
+
 namespace OMC {
 
 template <typename Traits>
@@ -38,6 +59,7 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	parallelOnLargeNodes(large_nodes);
 	GPoint::disable_global_cached_values();
 
+	REPORT_INTERSECTING_TRIANGLE;
 	/* Post fix of Triangle-Triangle-Intersection */
 
 	// add end points to all ts.edge2pts
@@ -118,6 +140,8 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
+
+					COLLECT_INTERSECTING_TRIANGLE;
 				}
 			}
 		}
@@ -138,6 +162,8 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 
 					DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 					dc.check_TTI(b0.id(), b1.id());
+
+					COLLECT_INTERSECTING_TRIANGLE;
 				}
 			}
 		}
@@ -192,6 +218,8 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());
+
+						COLLECT_INTERSECTING_TRIANGLE;
 					}
 				}
 			}
@@ -209,6 +237,8 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 						OMC_EXPENSIVE_ASSERT(b0.id() != b1.id(), "duplicate triangles.");
 						DetectClassifyTTI<Traits> dc(ts, pnt_arenas[thread_id]);
 						dc.check_TTI(b0.id(), b1.id());
+
+						COLLECT_INTERSECTING_TRIANGLE;
 					}
 				}
 			}
@@ -296,3 +326,6 @@ void DetectClassifyTTIs<Traits>::propagateCoplanarIntersections()
 }
 
 } // namespace OMC
+
+#undef COLLECT_INTERSECTING_TRIANGLE
+#undef REPORT_INTERSECTING_TRIANGLE

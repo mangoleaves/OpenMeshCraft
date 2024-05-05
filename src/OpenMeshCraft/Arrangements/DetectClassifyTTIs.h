@@ -28,6 +28,8 @@ public:
 	using LessThan3D         = typename Traits::LessThan3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
+	using Tri3_Tri3_DoInter = typename Traits::Triangle3_Triangle3_DoIntersect;
+
 	using PntArena = PointArena<Traits>;
 	using TriSoup  = TriangleSoup<Traits>;
 
@@ -84,6 +86,10 @@ protected:
 
 	const std::vector<Label> &labels;
 	const Tree               &tree;
+
+#ifdef OMC_ARR_PROFILE
+	tbb::concurrent_vector<UIPair> intersecting_triangle_pairs;
+#endif
 
 	/* ignore intersection between triangles with same label */
 	bool                    ignore_same_label;
