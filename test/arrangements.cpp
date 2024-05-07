@@ -26,13 +26,15 @@ int main(int argc, char *argv[])
 	bool        output_stats  = false;
 	bool        output_result = false;
 	bool        verbose       = false;
+	int         threads_num   = tbb::this_task_arena::max_concurrency();
 
 	auto print_help = []()
 	{
-		std::cout << "*.exe input_file -v -s -r\n"
+		std::cout << "*.exe input_file -v -s -r -p=n\n"
 		             "-v verbose\n"
 		             "-s output stats to default file\n"
-		             "-r output result model to default file\n";
+		             "-r output result model to default file\n"
+		             "-p=n parallel threads number, n is an integer\n";
 		exit(1);
 	};
 
@@ -49,6 +51,8 @@ int main(int argc, char *argv[])
 			output_stats = true;
 		else if (param == "-r")
 			output_result = true;
+		else if (OMC::starts_with(param, "-p="))
+			threads_num = std::stoi(param.substr(3));
 		else
 			print_help();
 	}
@@ -70,6 +74,9 @@ int main(int argc, char *argv[])
 		fout.open("./ours_time.txt", std::ios::out | std::ios::app);
 		fout << filename << ",";
 	}
+
+	tbb::global_control tbb_gc(tbb::global_control::max_allowed_parallelism,
+	                           threads_num);
 
 	Arrangements arrangements(verbose);
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
