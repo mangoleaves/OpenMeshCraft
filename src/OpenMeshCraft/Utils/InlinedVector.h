@@ -102,7 +102,7 @@ public: /* Modifier **********************************************************/
 		cur_elem_size = s;
 	}
 
-	void reserve(size_t s) { OMC_THROW_NOT_IMPLEMENTED(); }
+	// void reserve(size_t s) {}
 
 public: /* Access ************************************************************/
 	const T &operator[](size_t idx) const
@@ -168,7 +168,6 @@ public: /* Iterator **********************************************************/
 		InlinedVector   *vec;
 		difference_type  cur_idx;
 	};
-	using iterator = iterator;
 
 	iterator begin() {return iterator(this, 0);}
 	iterator end() {return iterator(this, (typename iterator::difference_type)cur_elem_size);}
@@ -207,12 +206,89 @@ public: /* Iterator **********************************************************/
 		const InlinedVector   *vec;
 		difference_type       cur_idx;
 	};
-	using const_iterator = const_iterator;
 
 	const_iterator cbegin() const {return const_iterator(this, 0);}
 	const_iterator cend() const {return const_iterator(this, (typename const_iterator::difference_type)cur_elem_size);}
 	const_iterator begin() const {return const_iterator(this, 0);}
 	const_iterator end() const {return const_iterator(this, (typename const_iterator::difference_type)cur_elem_size);}
+
+	class reverse_iterator
+	{
+	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using difference_type   = std::ptrdiff_t;
+		using value_type        = T;
+		using pointer           = T*;
+		using reference         = T&;
+	public:
+		reverse_iterator(InlinedVector *_vec, difference_type _cur_idx)
+		  : vec(_vec) , cur_idx(_cur_idx) {}
+		reverse_iterator &operator++() { cur_idx--; return *this; }
+		reverse_iterator &operator--() { cur_idx++; return *this; }
+		reverse_iterator operator++(int) { reverse_iterator cpy(*this); cur_idx--; return cpy; }
+		reverse_iterator operator--(int) { reverse_iterator cpy(*this); cur_idx++; return cpy; }
+		reverse_iterator &operator+=(size_t step) { cur_idx -= step; return *this; }
+		reverse_iterator operator+(size_t step) const { reverse_iterator cpy(*this); cpy.cur_idx -= step; return cpy; }
+		reverse_iterator &operator-=(size_t step) { cur_idx += step; return *this; }
+		reverse_iterator operator-(size_t step) const { reverse_iterator cpy(*this); cpy.cur_idx += step; return cpy; }
+		size_t operator-(const reverse_iterator& other) const { return -(cur_idx - other.cur_idx); }
+		T &operator*() const { return vec->operator[](cur_idx); }
+		T &operator*() { return vec->operator[](cur_idx); }
+		T *operator->() const { return &vec->operator[](cur_idx); }
+		T *operator->() { return &vec->operator[](cur_idx); }
+		bool operator<(const reverse_iterator &rhs) const { return cur_idx > rhs.cur_idx; }
+		bool operator<=(const reverse_iterator &rhs) const { return cur_idx >= rhs.cur_idx; }
+		bool operator>(const reverse_iterator &rhs) const { return cur_idx < rhs.cur_idx; }
+		bool operator>=(const reverse_iterator &rhs) const { return cur_idx <= rhs.cur_idx; }
+		bool operator==(const reverse_iterator &rhs) const { return cur_idx == rhs.cur_idx; }
+		bool operator!=(const reverse_iterator &rhs) const { return cur_idx != rhs.cur_idx; }
+	public:
+		InlinedVector   *vec;
+		difference_type  cur_idx;
+	};
+
+	reverse_iterator rbegin() {return reverse_iterator(this, (typename reverse_iterator::difference_type)cur_elem_size - 1);}
+	reverse_iterator rend() {return reverse_iterator(this, -1);}
+
+	class const_reverse_iterator
+	{
+	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using difference_type   = std::ptrdiff_t;
+		using value_type        = T;
+		using pointer           = const T*;
+		using reference         = const T&;
+	public:
+		const_reverse_iterator(const InlinedVector *_vec, difference_type _cur_idx)
+		  : vec(_vec) , cur_idx(_cur_idx) {}
+		const_reverse_iterator &operator++() { cur_idx--; return *this; }
+		const_reverse_iterator &operator--() { cur_idx++; return *this; }
+		const_reverse_iterator operator++(int) { const_reverse_iterator cpy(*this); cur_idx--; return cpy; }
+		const_reverse_iterator operator--(int) { const_reverse_iterator cpy(*this); cur_idx++; return cpy; }
+		const_reverse_iterator &operator+=(size_t step) { cur_idx -= step; return *this; }
+		const_reverse_iterator operator+(size_t step) const { const_reverse_iterator cpy(*this); cpy.cur_idx -= step; return cpy; }
+		const_reverse_iterator &operator-=(size_t step) { cur_idx += step; return *this; }
+		const_reverse_iterator operator-(size_t step) const { const_reverse_iterator cpy(*this); cpy.cur_idx += step; return cpy; }
+		size_t operator-(const const_reverse_iterator& other) const { return -(cur_idx - other.cur_idx); }
+		const T &operator*() const { return vec->operator[](cur_idx); }
+		const T &operator*() { return vec->operator[](cur_idx); }
+		const T *operator->() const { return &vec->operator[](cur_idx); }
+		const T *operator->() { return &vec->operator[](cur_idx); }
+		bool operator<(const const_reverse_iterator &rhs) const { return cur_idx > rhs.cur_idx; }
+		bool operator<=(const const_reverse_iterator &rhs) const { return cur_idx >= rhs.cur_idx; }
+		bool operator>(const const_reverse_iterator &rhs) const { return cur_idx < rhs.cur_idx; }
+		bool operator>=(const const_reverse_iterator &rhs) const { return cur_idx <= rhs.cur_idx; }
+		bool operator==(const const_reverse_iterator &rhs) const { return cur_idx == rhs.cur_idx; }
+		bool operator!=(const const_reverse_iterator &rhs) const { return cur_idx != rhs.cur_idx; }
+	public:
+		const InlinedVector   *vec;
+		difference_type  cur_idx;
+	};
+
+	const_reverse_iterator rbegin() const {return const_reverse_iterator(this, (typename reverse_iterator::difference_type)cur_elem_size - 1);}
+	const_reverse_iterator rend() const {return const_reverse_iterator(this, -1);}
+	const_reverse_iterator crbegin() const {return const_reverse_iterator(this, (typename const_reverse_iterator::difference_type)cur_elem_size - 1);}
+	const_reverse_iterator crend() const {return const_reverse_iterator(this, -1);}
 	      // clang-format on
 
 public:

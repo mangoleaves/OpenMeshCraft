@@ -16,7 +16,8 @@ using TriSoupTraits = OMC::TriSoupTraits;
 using Points    = typename TriSoupTraits::Points;
 using Triangles = typename TriSoupTraits::Triangles;
 
-using Arrangements = OMC::MeshArrangements<EIAC, TriSoupTraits>;
+using Arrangements       = OMC::MeshArrangements<EIAC, TriSoupTraits>;
+using ArrangementsConfig = OMC::MeshArrangements_Config;
 
 boost::property_tree::ptree omc_test_config;
 
@@ -27,14 +28,19 @@ int main(int argc, char *argv[])
 	bool        output_result = false;
 	bool        verbose       = false;
 	int         threads_num   = tbb::this_task_arena::max_concurrency();
+	int         tree_leaf     = 50;
+	float       tree_adaptive = 0.1f;
 
 	auto print_help = []()
 	{
-		std::cout << "*.exe input_file -v -s -r -p=n\n"
-		             "-v verbose\n"
-		             "-s output stats to default file\n"
-		             "-r output result model to default file\n"
-		             "-p=n parallel threads number, n is an integer\n";
+		std::cout
+		  << "exe input_file -v -s -r -p=n --tree_leaf=n --tree_adaptive=f\n"
+		     "-v verbose\n"
+		     "-s output stats to default file\n"
+		     "-r output result model to default file\n"
+		     "-p=n parallel threads number, n is an integer\n"
+		     "--tree_leaf=n tree's leaf node size, n is an integer\n"
+		     "--tree_adaptive=f tree's adaptive threshold, f is an float number\n";
 		exit(1);
 	};
 
@@ -53,6 +59,10 @@ int main(int argc, char *argv[])
 			output_result = true;
 		else if (OMC::starts_with(param, "-p="))
 			threads_num = std::stoi(param.substr(3));
+		else if (OMC::starts_with(param, "--tree_leaf="))
+			tree_leaf = std::stoi(param.substr(12));
+		else if (OMC::starts_with(param, "--tree_adaptive="))
+			tree_adaptive = std::stof(param.substr(16));
 		else
 			print_help();
 	}
@@ -78,7 +88,12 @@ int main(int argc, char *argv[])
 	tbb::global_control tbb_gc(tbb::global_control::max_allowed_parallelism,
 	                           threads_num);
 
+	ArrangementsConfig arr_config;
+	arr_config.tree_adaptive_thres   = tree_adaptive;
+	arr_config.tree_split_size_thres = tree_leaf;
+
 	Arrangements arrangements(verbose);
+	arrangements.setConfig(arr_config);
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
 
