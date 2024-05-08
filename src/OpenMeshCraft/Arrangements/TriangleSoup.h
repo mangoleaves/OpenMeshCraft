@@ -2,6 +2,16 @@
 
 #include "Utils.h"
 
+// #define OMC_ARR_GLOBAL_POINT_SET
+
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+	#include "OpenMeshCraft/Utils/DisableWarnings.h"
+
+	#include "parallel_hashmap/btree.h"
+
+	#include "OpenMeshCraft/Utils/EnableWarnings.h"
+#endif
+
 #include <bitset>
 #include <map>
 #include <vector>
@@ -72,15 +82,23 @@ public: /* Types **************************************************************/
 
 	/* ----- edge2pts related structures ----- */
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	struct EdgeComparator;
 	using Edge2PntsSet =
 	  boost::container::flat_set<index_t, EdgeComparator, AuxVector8<index_t>>;
+#else
+	using Edge2PntsSet = concurrent_vector<index_t>;
+#endif
 
 	/* ----- seg2pts related structures ----- */
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	struct SegComparator;
 	using Seg2PntsSet =
 	  boost::container::flat_set<index_t, SegComparator, AuxVector8<index_t>>;
+#else
+	using Seg2PntsSet = concurrent_vector<index_t>;
+#endif
 
 	/* ----- coplnar pockes related structures ----- */
 
@@ -214,6 +232,24 @@ public:
 
 	PocketsMap pockets_map_with_tpi;
 
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+	struct AuxPoint
+	{
+		const GPoint *pnt;
+
+		// clang-format off
+		AuxPoint(const GPoint *_p) : pnt(_p) {}
+
+		bool operator<(const AuxPoint &rhs) const { return LessThan3D()(*pnt, *rhs.pnt) == Sign::NEGATIVE; }
+		bool operator==(const AuxPoint &rhs) const { return LessThan3D()(*pnt, *rhs.pnt) == Sign::ZERO; }
+		bool operator>(const AuxPoint &rhs) const { return LessThan3D()(*pnt, *rhs.pnt) == Sign::POSITIVE; }
+		// clang-format on
+	};
+
+	phmap::btree_map<AuxPoint, index_t> global_point_set;
+	tbb::spin_mutex                     new_uniq_point_mutex;
+#endif
+
 public:
 	// flags
 	bool any_index_fixed;
@@ -281,6 +317,10 @@ public: /* Add **************************************************************/
 
 	index_t addVisitedPolygonPocket(const std::vector<index_t> &polygon,
 	                                index_t pos, bool with_tpi);
+
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+	std::pair<index_t, bool> addUniquePoint(GPoint &pnt);
+#endif
 
 public: /* Query ***********************************************************/
 	/* Coplanar and colinear */

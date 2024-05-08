@@ -2086,6 +2086,7 @@ index_t DetectClassifyTTI<Traits>::add_vertex_in_edge(TTIHelper &ha, index_t ea,
 	index_t ea_id = get_e_id(ha, ea);
 	index_t vb_id = hb.v_id[vb];
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	// get the mutex
 	tbb::spin_mutex &ea_mutex = ts.getE2PMutex(ea_id);
 
@@ -2111,6 +2112,9 @@ index_t DetectClassifyTTI<Traits>::add_vertex_in_edge(TTIHelper &ha, index_t ea,
 		ts.addVertexInEdge(ea_id, vb_id);
 		// return vb_id;
 	}
+#else
+	ts.addVertexInEdge(ea_id, vb_id);
+#endif
 	return vb_id; // vb_id will always be added.
 }
 
@@ -2303,6 +2307,7 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
                                                             index_t     eb_id,
                                                             IPoint_SSI *new_v)
 {
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	// get mutexes of edges.
 	index_t          min_eid   = std::min(ea_id, eb_id);
 	index_t          max_eid   = std::max(ea_id, eb_id);
@@ -2395,6 +2400,13 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
 	}
 
 	return std::pair<index_t, bool>(suitable_vid, new_vertex_created);
+#else
+	auto [added_vid, new_vertex_created] = ts.addUniquePoint(*new_v);
+	ts.addVertexInEdge(ea_id, added_vid);
+	ts.addVertexInEdge(eb_id, added_vid);
+
+	return std::pair<index_t, bool>(added_vid, new_vertex_created);
+#endif
 }
 
 /**
@@ -2412,6 +2424,7 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(index_t     e_id,
                                                             index_t     t_id,
                                                             IPoint_LPI *new_v)
 {
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	// get mutexes of edges.
 	tbb::spin_mutex &mutex = ts.getE2PMutex(e_id);
 
@@ -2449,6 +2462,13 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(index_t     e_id,
 	ts.addVertexInTriangle(t_id, suitable_vid);
 
 	return std::pair<index_t, bool>(suitable_vid, new_vertex_created);
+#else
+	auto [added_vid, new_vertex_created] = ts.addUniquePoint(*new_v);
+	ts.addVertexInEdge(e_id, added_vid);
+	ts.addVertexInTriangle(t_id, added_vid);
+
+	return std::pair<index_t, bool>(added_vid, new_vertex_created);
+#endif
 }
 
 } // namespace OMC

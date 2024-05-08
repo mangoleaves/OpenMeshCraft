@@ -66,8 +66,10 @@ DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
 	ts.addEndPointsToE2P();
 	// remove duplicates during parallel execution
 	ts.removeDuplicatesBeforeFix();
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	// post fix of indices
 	ts.fixColinearEdgesIntersections();
+#endif
 	ts.fixAllIndices();
 	// calculate orthogonal planes and orientations
 	ts.calcTriangleOrient();

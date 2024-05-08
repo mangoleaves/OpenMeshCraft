@@ -21,6 +21,10 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 	ts.vertices.reserve(ts.numVerts() * 3);
 	ts.indices.reserve(ts.numVerts() * 3);
 
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+	ts.global_point_set.clear();
+#endif
+
 	// get triangles to split
 	std::vector<index_t> tris_to_split;
 	tris_to_split.reserve(ts.numTris());
@@ -542,7 +546,7 @@ void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
   AuxVector64<index_t> &intersected_edges,
   AuxVector64<index_t> &intersected_tris, SegmentsList &segment_list,
-  SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
+  SubSegMap &sub_segs_map, OMC_UNUSED TPI2Segs &tpi2segs)
 {
 	using IdxPair  = std::pair<index_t, index_t>;
 	using SignPair = std::pair<Sign, Sign>;
@@ -567,6 +571,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		// push (v_inter, v_stop) to check list.
 		// it is a sub-segment so we set its index to invalid index.
 		segment_list.insert(uniquePair(v_inter, v_stop));
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
@@ -586,6 +591,7 @@ void Triangulation<Traits>::findIntersectingElements(
 				t2s.push_back(seg_id);
 			}
 		}
+#endif
 		// clear and stop this traversal.
 		intersected_edges.clear();
 		intersected_tris.clear();
@@ -795,6 +801,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		// put (v_inter, v_stop) in the segment_list to check later
 		// it is a sub-segment so we set its index to invalid index.
 		segment_list.insert(uniquePair(v_inter, v_stop));
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
@@ -814,6 +821,7 @@ void Triangulation<Traits>::findIntersectingElements(
 				t2s.push_back(seg_id);
 			}
 		}
+#endif
 		// output found edges/tris intersected with (v_start, v_inter).
 		// adjust v_start and v_stop
 		v_stop = v_inter;
@@ -897,6 +905,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	subm.setEdgeConstr(edge0_id);
 	subm.setEdgeConstr(edge1_id);
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	// add two segments to tpi2segs
 	OMC_EXPENSIVE_ASSERT(tpi2segs.find(local_tpi_id) == tpi2segs.end(),
 	                     "the new tpi point has existed.");
@@ -921,6 +930,7 @@ void Triangulation<Traits>::findIntersectingElements(
 			}
 		}
 	}
+#endif
 
 	// split two segments.
 	// (note: seg0_ids and seg1_ids invalid after sub_segs_map changed)
@@ -1044,7 +1054,13 @@ index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, index_t seg0_id,
 	  CreateTPI()(*t0_pnts[0], *t0_pnts[1], *t0_pnts[2], *t1_pnts[0], *t1_pnts[1],
 	              *t1_pnts[2], *t2_pnts[0], *t2_pnts[1], *t2_pnts[2]));
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	auto [new_vertex_created, new_vid] = addAndFixTPI(seg0_id, seg1_id, new_v);
+#else
+	auto [new_vid, new_vertex_created] = ts.addUniquePoint(*new_v);
+#endif
+
+	OMC_EXPENSIVE_ASSERT(ts.vert(new_vid).is_TPI(), "point type wrong");
 
 	if (!new_vertex_created)
 	{

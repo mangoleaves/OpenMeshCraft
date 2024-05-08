@@ -29,6 +29,7 @@ struct TriangleSoup<Traits>::CCrEdgeInfo
 	bool operator==(const CCrEdgeInfo &rhs) const { return e_id == rhs.e_id; }
 };
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 template <typename Traits>
 struct TriangleSoup<Traits>::EdgeComparator
 {
@@ -82,7 +83,9 @@ struct TriangleSoup<Traits>::EdgeComparator
 		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
+#endif
 
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 template <typename Traits>
 struct TriangleSoup<Traits>::SegComparator
 {
@@ -137,6 +140,7 @@ struct TriangleSoup<Traits>::SegComparator
 		return LessThan3D().on(lhs, rhs, axis) == Sign::NEGATIVE;
 	}
 };
+#endif
 
 template <typename Traits>
 void TriangleSoup<Traits>::initialize()
@@ -164,6 +168,11 @@ void TriangleSoup<Traits>::initialize()
 	int num_hash_table = concurrency == 1 ? 1 : concurrency * 4;
 	seg_map.resize(num_hash_table);
 	seg_mutexes = std::vector<tbb::spin_mutex>(num_hash_table);
+
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+	for (size_t i = 0; i < vertices.size(); i++)
+		global_point_set[AuxPoint(vertices[i])] = indices[i].load();
+#endif
 }
 
 template <typename Traits>
@@ -225,7 +234,7 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 		NT diff_y = fabs(v0[1] - v1[1]);
 		NT diff_z = fabs(v0[2] - v1[2]);
 
-		uint32_t longest_axis =
+		OMC_UNUSED uint32_t longest_axis =
 		  diff_x > diff_y ? (diff_x > diff_z ? 0 : 2) : (diff_y > diff_z ? 1 : 2);
 
 		OMC_EXPENSIVE_ASSERT(v0[longest_axis] - v1[longest_axis] != 0.,
@@ -238,7 +247,11 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 
 #ifdef OMC_ARR_TS_PARA
 			edges_iter = edges.push_back(edge);
-			e2p_iter   = edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
+	#ifndef OMC_ARR_GLOBAL_POINT_SET
+			e2p_iter = edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
+	#else
+			e2p_iter = edge2pts.emplace_back();
+	#endif
 #else
 			edges.push_back(edge);
 			edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
@@ -375,10 +388,17 @@ index_t TriangleSoup<Traits>::findVertexInEdge(index_t       e_id,
 template <typename Traits>
 void TriangleSoup<Traits>::addVertexInEdge(index_t e_id, index_t v_id)
 {
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	OMC_EXPENSIVE_ASSERT(e_id < edge2pts.size(), "out of range");
 	Edge2PntsSet &points = edge2pts[e_id];
 	auto [iter, succeed] = points.insert(v_id);
 	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
+#else
+	Edge2PntsSet &points = edge2pts[e_id];
+	if (points.empty())
+		points.reserve(8);
+	points.push_back(v_id);
+#endif
 }
 
 /**
@@ -558,6 +578,7 @@ void TriangleSoup<Traits>::addVertexInSeg(index_t seg_id, index_t v_id)
 {
 	OMC_EXPENSIVE_ASSERT(seg_id < seg2pts.size(), "out of range");
 	Seg2PntsSet &points = seg2pts[seg_id];
+#ifndef OMC_ARR_GLOBAL_POINT_SET
 	if (points.empty())
 	{ // initialize a comparator for current seg2pts
 		const Segment &seg = segments[seg_id];
@@ -573,6 +594,11 @@ void TriangleSoup<Traits>::addVertexInSeg(index_t seg_id, index_t v_id)
 
 	auto [iter, succeed] = points.insert(v_id);
 	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
+#else
+	if (points.empty())
+		points.reserve(8);
+	points.push_back(v_id);
+#endif
 }
 
 /// @brief similar to fixVertexInEdge
@@ -596,6 +622,27 @@ void TriangleSoup<Traits>::fixVertexInSeg(index_t seg_id, index_t old_vid,
 	indices[old_vid].store(new_vid, std::memory_order_relaxed);
 	any_index_fixed = true;
 }
+
+#ifdef OMC_ARR_GLOBAL_POINT_SET
+template <typename Traits>
+std::pair<index_t, bool> TriangleSoup<Traits>::addUniquePoint(GPoint &pnt)
+{
+	std::lock_guard<tbb::spin_mutex> lock(new_uniq_point_mutex);
+
+	AuxPoint aux_pnt(&pnt);
+	auto     iter = global_point_set.find(aux_pnt);
+	if (iter == global_point_set.end())
+	{ // does not exist, add a new point
+		index_t idx               = addImplVert(&pnt);
+		global_point_set[aux_pnt] = idx;
+		return std::pair<index_t, bool>(idx, true);
+	}
+	else
+	{
+		return std::pair<index_t, bool>(iter->second, false);
+	}
+}
+#endif
 
 template <typename Traits>
 const concurrent_vector<index_t> &
@@ -970,10 +1017,11 @@ void TriangleSoup<Traits>::addEndPointsToE2P()
 {
 	auto add_end_points_to_edge2pts = [this](size_t e_id)
 	{
-		const Edge &e    = edge(e_id);
-		index_t     ev0  = e.first;
-		index_t     ev1  = e.second;
-		uint32_t    axis = edge2pts[e_id].key_comp().axis;
+		const Edge &e   = edge(e_id);
+		index_t     ev0 = e.first;
+		index_t     ev1 = e.second;
+#ifndef OMC_ARR_GLOBAL_POINT_SET
+		uint32_t axis = edge2pts[e_id].key_comp().axis;
 		if (vert(ev0)[axis] < vert(ev1)[axis])
 		{
 			edge2pts[e_id].insert(edge2pts[e_id].begin(), ev0);
@@ -984,6 +1032,21 @@ void TriangleSoup<Traits>::addEndPointsToE2P()
 			edge2pts[e_id].insert(edge2pts[e_id].begin(), ev1);
 			edge2pts[e_id].insert(edge2pts[e_id].end(), ev0);
 		}
+#else
+		Edge2PntsSet &e2p = edge2pts[e_id];
+		e2p.push_back(ev0);
+		e2p.push_back(ev1);
+		remove_duplicates(e2p);
+		std::sort(e2p.begin(), e2p.end(),
+		          [this](index_t lhs, index_t rhs) {
+			          return LessThan3D()(*vertices[lhs], *vertices[rhs]) ==
+			                 Sign::NEGATIVE;
+		          });
+
+		OMC_EXPENSIVE_ASSERT(e2p.front() == ev0 && e2p.back() == ev1 ||
+		                       e2p.front() == ev1 && e2p.back() == ev0,
+		                     "endpoints missing");
+#endif
 	};
 
 	tbb::parallel_for(size_t(0), numEdges(), add_end_points_to_edge2pts);
