@@ -53,6 +53,10 @@ TEST_F(test_Arrangements, TestIfCrash)
 
 	read_mesh(dir + filename, input_points, input_triangles, io_options);
 
+	tbb::global_control tbb_gc(
+	  tbb::global_control::max_allowed_parallelism,
+	  config.get<size_t>("thread_num", tbb::this_task_arena::max_concurrency()));
+
 	auto start = OMC::Logger::elapse_reset();
 
 	Arrangements arrangements(config.get<bool>("verbose"));
@@ -115,6 +119,10 @@ TEST_F(test_Arrangements, TestDataSet)
 		arr_config.tree_split_size_thres =
 		  parameters.get<size_t>("tree_split_size_thres");
 	}
+
+	tbb::global_control tbb_gc(
+	  tbb::global_control::max_allowed_parallelism,
+	  config.get<size_t>("thread_num", tbb::this_task_arena::max_concurrency()));
 
 	size_t skip_step   = config.get<size_t>("skip_step", 0);
 	size_t process_cnt = 0;

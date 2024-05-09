@@ -168,9 +168,9 @@ void PredicatesProfile::print()
 				  ss_succeed;
 				double e_succeed =
 				  (double)d_fail_count[i][j] / (double)total_count[i][j];
-				std::cout << std::format("  {}: {:.2f}% {:.2f}% {:.2f}%\n",
-				                         arr_names[j], ss_succeed * 100.,
-				                         d_succeed * 100., e_succeed * 100.);
+				std::cout << std::format(
+				  "  {}: {:.2f}% {:.2f}% {:.2f}% {}\n", arr_names[j], ss_succeed * 100.,
+				  d_succeed * 100., e_succeed * 100., total_count[i][j]);
 			}
 		}
 	}

@@ -119,5 +119,5 @@
 /* Macros that control behavior of predicates ************/
 /*********************************************************/
 
-// #define INDIRECT_PREDICATES
-#define OFFSET_PREDICATES
+#define INDIRECT_PREDICATES
+// #define OFFSET_PREDICATES
