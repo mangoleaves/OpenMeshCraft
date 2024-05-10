@@ -69,14 +69,14 @@ struct IntersectionProfile
 {
 	static const uint32_t BRANCH_CNT = 32;
 
-	static size_t total_count[(size_t)IntersectionNames::CNT];
-	static size_t reach_count[(size_t)IntersectionNames::CNT][BRANCH_CNT];
-	static size_t reach_line[(size_t)IntersectionNames::CNT][BRANCH_CNT];
+	static std::atomic_size_t total_count[(size_t)IntersectionNames::CNT];
+	static std::atomic_size_t reach_count[(size_t)IntersectionNames::CNT][BRANCH_CNT];
+	static std::atomic_size_t reach_line[(size_t)IntersectionNames::CNT][BRANCH_CNT];
 
 	static void initialize();
 	static void inc_total(IntersectionNames name);
-	static void inc_reach(IntersectionNames name, uint32_t branch_flag,
-	                      uint32_t branch_line);
+	static void inc_reach(IntersectionNames name, size_t branch_flag,
+	                      size_t branch_line);
 
 	static void print();
 };

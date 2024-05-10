@@ -434,9 +434,9 @@ struct PredicatesProfile
 {
 	static constexpr size_t ARR_CNT = 32;
 
-	static uint32_t total_count[(size_t)PredicateNames::CNT][ARR_CNT];
-	static uint32_t ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
-	static uint32_t d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static std::atomic_size_t total_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static std::atomic_size_t ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static std::atomic_size_t d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 
 	static void initialize();
 	static void inc_total(PredicateNames name, PntArr3 arr);

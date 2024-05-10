@@ -9,11 +9,11 @@ namespace OMC {
 
 #ifdef OMC_INTER_PROFILE
 
-size_t IntersectionProfile::total_count[(size_t)IntersectionNames::CNT];
-size_t IntersectionProfile::reach_count[(size_t)IntersectionNames::CNT]
-                                       [BRANCH_CNT];
-size_t IntersectionProfile::reach_line[(size_t)IntersectionNames::CNT]
-                                      [BRANCH_CNT];
+// clang-format off
+std::atomic_size_t IntersectionProfile::total_count[(size_t)IntersectionNames::CNT];
+std::atomic_size_t IntersectionProfile::reach_count[(size_t)IntersectionNames::CNT][BRANCH_CNT];
+std::atomic_size_t IntersectionProfile::reach_line[(size_t)IntersectionNames::CNT][BRANCH_CNT];
+// clang-format on
 
 void IntersectionProfile::initialize()
 {
@@ -32,8 +32,8 @@ void IntersectionProfile::inc_total(IntersectionNames name)
 	total_count[(size_t)name] += 1;
 }
 
-void IntersectionProfile::inc_reach(IntersectionNames name,
-                                    uint32_t branch_flag, uint32_t branch_line)
+void IntersectionProfile::inc_reach(IntersectionNames name, size_t branch_flag,
+                                    size_t branch_line)
 {
 	reach_count[(size_t)name][branch_flag] += 1;
 	reach_line[(size_t)name][branch_flag] = branch_line;
@@ -56,7 +56,7 @@ void IntersectionProfile::print()
 		// find the last non-zero branch flag
 		for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
 		{
-			if (reach_count[i][j] != 0)
+			if (reach_count[i][j].load() != 0)
 			{
 				last_branch_flag = j;
 				break;
@@ -65,8 +65,9 @@ void IntersectionProfile::print()
 
 		for (int j = 0; j <= last_branch_flag; j++)
 		{
-			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
-			std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j],
+			double reach_raio =
+			  (double)reach_count[i][j].load() / (double)total_count[i].load();
+			std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j].load(),
 			                         reach_raio * 100.);
 		}
 	}

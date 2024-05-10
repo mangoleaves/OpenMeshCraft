@@ -400,11 +400,11 @@ enum class ArrFuncNames : size_t
 
 struct ArrProfile
 {
-	static const uint32_t BRANCH_CNT = 1024;
+	static const uint32_t BRANCH_CNT = 256;
 
-	static size_t total_count[(size_t)ArrFuncNames::CNT];
-	static size_t reach_count[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
-	static size_t reach_line[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
+	static std::atomic_size_t total_count[(size_t)ArrFuncNames::CNT];
+	static std::atomic_size_t reach_count[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
+	static std::atomic_size_t reach_line[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
 
 	static inline void initialize();
 	static inline void inc_total(ArrFuncNames name);
@@ -486,8 +486,8 @@ inline void ArrProfile::print()
 		{
 			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
 			std::cout << std::format("  line {}, branch {}: {:.2f}%, {}\n",
-			                         reach_line[i][j], j, reach_raio * 100.,
-			                         reach_count[i][j]);
+			                         reach_line[i][j].load(), j, reach_raio * 100.,
+			                         reach_count[i][j].load());
 		}
 	}
 }

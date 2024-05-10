@@ -9,9 +9,11 @@ namespace OMC {
 
 #ifdef OMC_PRED_PROFILE
 
-uint32_t PredicatesProfile::total_count[(size_t)PredicateNames::CNT][ARR_CNT];
-uint32_t PredicatesProfile::ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
-uint32_t PredicatesProfile::d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+// clang-format off
+std::atomic_size_t PredicatesProfile::total_count[(size_t)PredicateNames::CNT][ARR_CNT];
+std::atomic_size_t PredicatesProfile::ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+std::atomic_size_t PredicatesProfile::d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+// clang-format on
 
 void PredicatesProfile::initialize()
 {
@@ -159,18 +161,18 @@ void PredicatesProfile::print()
 		std::cout << std::format("{}:\n", pred_names[i]);
 		for (size_t j = 0; j < ARR_CNT; j++)
 		{
-			if (total_count[i][j] != 0)
+			if (total_count[i][j].load() != 0)
 			{
-				double ss_succeed =
-				  1. - (double)ss_fail_count[i][j] / (double)total_count[i][j];
-				double d_succeed =
-				  (1. - (double)d_fail_count[i][j] / (double)total_count[i][j]) -
-				  ss_succeed;
+				double ss_succeed = 1. - (double)ss_fail_count[i][j].load() /
+				                           (double)total_count[i][j].load();
+				double d_succeed = (1. - (double)d_fail_count[i][j].load() /
+				                           (double)total_count[i][j].load()) -
+				                   ss_succeed;
 				double e_succeed =
-				  (double)d_fail_count[i][j] / (double)total_count[i][j];
+				  (double)d_fail_count[i][j].load() / (double)total_count[i][j].load();
 				std::cout << std::format(
 				  "  {}: {:.2f}% {:.2f}% {:.2f}% {}\n", arr_names[j], ss_succeed * 100.,
-				  d_succeed * 100., e_succeed * 100., total_count[i][j]);
+				  d_succeed * 100., e_succeed * 100., total_count[i][j].load());
 			}
 		}
 	}
