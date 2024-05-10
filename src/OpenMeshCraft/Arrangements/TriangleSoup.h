@@ -2,8 +2,6 @@
 
 #include "Utils.h"
 
-// #define OMC_ARR_GLOBAL_POINT_SET
-
 #ifdef OMC_ARR_GLOBAL_POINT_SET
 	#include "OpenMeshCraft/Utils/DisableWarnings.h"
 
@@ -18,7 +16,6 @@
 
 namespace OMC {
 
-#define OMC_ARR_TS_PARA
 #ifdef OMC_ARR_TS_PARA
 template <typename T>
 using concurrent_vector = tbb::concurrent_vector<T>;
@@ -259,6 +256,11 @@ public:
 	tbb::spin_mutex new_edge_mutex;
 	tbb::spin_mutex new_segment_mutex;
 	tbb::spin_mutex new_tris_mutex;
+
+#ifdef OMC_ARR_AUX_LPI
+	// jolly points
+	std::vector<GPoint *> jolly_points;
+#endif
 
 public: /* Add **************************************************************/
 	/* Coplanar and colinear */

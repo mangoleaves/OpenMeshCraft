@@ -47,7 +47,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 
 	// processing the triangles to split
 	GPoint::enable_global_cached_values(tbb::this_task_arena::max_concurrency());
-#if 1
+#ifdef OMC_ARR_TR_PARA
 	std::shuffle(tris_to_split.begin(), tris_to_split.end(),
 	             std::mt19937(std::random_device()()));
 	std::vector<FastTriMesh> subms(tbb::this_task_arena::max_concurrency());

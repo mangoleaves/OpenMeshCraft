@@ -173,6 +173,16 @@ void TriangleSoup<Traits>::initialize()
 	for (size_t i = 0; i < vertices.size(); i++)
 		global_point_set[AuxPoint(vertices[i])] = indices[i].load();
 #endif
+
+#ifdef OMC_ARR_AUX_LPI
+	// clang-format off
+	jolly_points.push_back(&(*pnt_arenas)[0].jolly.emplace_back(0.94280904158, 0.0, -0.333333333));
+	jolly_points.push_back(&(*pnt_arenas)[0].jolly.emplace_back(-0.47140452079, 0.81649658092, -0.333333333));
+	jolly_points.push_back(&(*pnt_arenas)[0].jolly.emplace_back(-0.47140452079, -0.81649658092, -0.333333333));
+	jolly_points.push_back(&(*pnt_arenas)[0].jolly.emplace_back(0.0, 0.0, 1.0));
+	jolly_points.push_back(&(*pnt_arenas)[0].jolly.emplace_back(1.0, 0.0, 0.0));
+	// clang-format on
+#endif
 }
 
 template <typename Traits>

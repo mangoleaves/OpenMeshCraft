@@ -30,6 +30,16 @@
 
 namespace OMC {
 
+// === parallel control for each part
+#define OMC_ARR_TS_PARA
+#define OMC_ARR_DC_TTI_PARA
+#define OMC_ARR_TR_PARA
+// === accelerate control for components
+#define ARR_DC_FILTER_ORIENT3D
+// === ablation control for features
+// #define OMC_ARR_GLOBAL_POINT_SET
+#define OMC_ARR_AUX_LPI
+
 constexpr int NBIT = 32;
 
 /// * Label for each triangle in arrangements (boolean, and other applications).
@@ -132,6 +142,9 @@ public:
 	std::deque<IPoint_SSI> ssi;  // SSI points
 	std::deque<IPoint_LPI> lpi;  // LPI points
 	std::deque<IPoint_TPI> tpi;  // TPI points
+#ifdef OMC_ARR_AUX_LPI
+	std::deque<EPoint> jolly; // jolly points
+#endif
 
 public:
 	void recycle(IPoint_SSI *ssi_ptr) { recycled_ssi.push(ssi_ptr); }

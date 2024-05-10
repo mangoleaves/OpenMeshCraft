@@ -124,10 +124,10 @@ protected:
 	index_t add_edge_cross_tri(TTIHelper &ha, index_t ea, TTIHelper &hb);
 
 	OMC_NODISCARD std::pair<index_t, bool> add_SSI(index_t ea_id, index_t eb_id,
-	                                               IPoint_SSI *new_v);
+	                                               GPoint *new_v);
 
 	OMC_NODISCARD std::pair<index_t, bool> add_LPI(index_t e_id, index_t t_id,
-	                                               IPoint_LPI *new_v);
+	                                               GPoint *new_v);
 };
 
 } // namespace OMC

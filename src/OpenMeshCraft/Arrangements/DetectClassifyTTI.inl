@@ -4,8 +4,6 @@
 
 namespace OMC {
 
-#define ARR_DC_FILTER_ORIENT3D
-
 template <typename Traits>
 struct DetectClassifyTTI<Traits>::TTIHelper
 {
@@ -2143,6 +2141,35 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 	}
 	// otherwise find it or create a new point
 
+#ifdef OMC_ARR_AUX_LPI
+	// find a non-coplanar jolly point
+	auto find_jolly = [this, &hb]()
+	{
+		const NT *v0 = hb.v[0], *v1 = hb.v[1], *v2 = hb.v[2];
+		for (index_t i = 0; i < 5; i++)
+		{
+			const NT *jp = ts.jolly_points[i]->EXP().data();
+			if (Orient3D()(v0, v1, v2, jp) != Sign::ZERO)
+				return i;
+		}
+		OMC_ASSERT(false, "impossible.");
+		return index_t(4);
+	};
+	index_t jp_idx = find_jolly();
+
+	IPoint_LPI *new_v = pnt_arena.emplace(CreateLPI()(
+	  ts.vert(ha.v_id[ea]), ts.vert(ha.v_id[(ea + 1) % 3]), ts.vert(hb.v_id[eb]),
+	  ts.vert(hb.v_id[(eb + 1) % 3]), *ts.jolly_points[jp_idx]));
+
+	// try to add the point
+	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v);
+
+	if (!new_vertex_created)
+	{
+		IPoint_LPI::gcv().remove(new_v);
+		pnt_arena.recycle(new_v);
+	}
+#else
 	// fix the vertex sequential of created implicit point
 	index_t min_eid, max_eid;
 	index_t min_min_vid, min_max_vid, max_min_vid, max_max_vid;
@@ -2177,6 +2204,7 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
 	}
+#endif
 
 	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
 	if (copl_edge_crosses)
@@ -2196,6 +2224,25 @@ template <typename Traits>
 index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
   TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb)
 {
+#ifdef INDIRECT_PREDICATES
+	// fix the vertex sequential of created implicit point
+	index_t e_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+	index_t e_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
+
+	IPoint_LPI *new_v = pnt_arena.emplace(
+	  CreateLPI()(ts.vert(e_min_vid), ts.vert(e_max_vid), ts.vert(hb.v_id[0]),
+	              ts.vert(hb.v_id[1]), ts.vert(hb.v_id[2])));
+
+	// try to add the point
+	auto [added_vid, new_vertex_created] =
+	  add_SSI(get_e_id(ha, ea), get_e_id(hb, eb), new_v);
+
+	if (!new_vertex_created)
+	{
+		IPoint_LPI::gcv().remove(new_v);
+		pnt_arena.recycle(new_v);
+	}
+#else
 	// find a plane for two interseted segments
 	int plane = -1;
 	{
@@ -2253,6 +2300,7 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 		IPoint_SSI::gcv().remove(new_v);
 		pnt_arena.recycle(new_v);
 	}
+#endif
 
 	OMC_EXPENSIVE_ASSERT(is_valid_idx(added_vid), "invalid index");
 	return added_vid;
@@ -2303,9 +2351,8 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_tri(TTIHelper &ha, index_t ea,
  * existed point.
  */
 template <typename Traits>
-std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
-                                                            index_t     eb_id,
-                                                            IPoint_SSI *new_v)
+std::pair<index_t, bool>
+DetectClassifyTTI<Traits>::add_SSI(index_t ea_id, index_t eb_id, GPoint *new_v)
 {
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 	// get mutexes of edges.
@@ -2318,8 +2365,8 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
 	std::lock_guard<tbb::spin_mutex> min_lock(min_mutex);
 	std::lock_guard<tbb::spin_mutex> max_lock(max_mutex);
 
-	index_t found_vid_in_ea = ts.findVertexInEdge(ea_id, AsGP()(*new_v));
-	index_t found_vid_in_eb = ts.findVertexInEdge(eb_id, AsGP()(*new_v));
+	index_t found_vid_in_ea = ts.findVertexInEdge(ea_id, *new_v);
+	index_t found_vid_in_eb = ts.findVertexInEdge(eb_id, *new_v);
 
 	bool    new_vertex_created = false;
 	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;
@@ -2420,9 +2467,8 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_SSI(index_t     ea_id,
  * existed point.
  */
 template <typename Traits>
-std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(index_t     e_id,
-                                                            index_t     t_id,
-                                                            IPoint_LPI *new_v)
+std::pair<index_t, bool>
+DetectClassifyTTI<Traits>::add_LPI(index_t e_id, index_t t_id, GPoint *new_v)
 {
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 	// get mutexes of edges.
@@ -2431,7 +2477,7 @@ std::pair<index_t, bool> DetectClassifyTTI<Traits>::add_LPI(index_t     e_id,
 	// lock until add or fix end.
 	std::lock_guard<tbb::spin_mutex> lock(mutex);
 
-	index_t found_vid = ts.findVertexInEdge(e_id, AsGP()(*new_v));
+	index_t found_vid = ts.findVertexInEdge(e_id, *new_v);
 
 	bool    new_vertex_created = false;
 	index_t suitable_vid = InvalidIndex, fix_vid = InvalidIndex;

@@ -6,7 +6,6 @@
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 
-#define OMC_ARR_DC_TTI_PARA
 
 #ifdef OMC_ARR_PROFILE
 	#define COLLECT_INTERSECTING_TRIANGLE                                     \
