@@ -3,6 +3,7 @@
     "TestIfCrash": {
       "dir": "./data/arrangements_data/",
       "filename": "CamelBox.stl",
+      "thread_num": 16,
       "verbose": true,
       "num_vf": true,
       "write": false
@@ -13,6 +14,7 @@
       "num_vf": false,
       "skip_step": 0,
       "set_parameter": false,
+      "thread_num": 16,
       "parameters": {
         "tree_enlarge_ratio": 1.01,
         "tree_adaptive_thres": 0.1,

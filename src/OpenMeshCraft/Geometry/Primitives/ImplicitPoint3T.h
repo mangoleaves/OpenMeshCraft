@@ -67,6 +67,9 @@ public: /* Lambdas ***********************************************************/
 	// clang-format on
 #endif
 
+	FT getIndirectMaxVar() const;
+	FT getOffsetMaxVar() const;
+
 	static GCV &gcv() { return global_cached_values; }
 
 private:
@@ -143,6 +146,9 @@ public: /* Lambdas ***********************************************************/
 	                        FT &bz) const;
 #endif
 
+	FT getIndirectMaxVar() const;
+	FT getOffsetMaxVar() const;
+
 	static GCV &gcv() { return global_cached_values; }
 
 private:
@@ -214,6 +220,9 @@ public: /* Lambdas ***********************************************************/
 	                        int &lz_len, FT **d, int &d_len, FT &bx, FT &by, FT &bz) const;
 	// clang-format on
 #endif
+
+	FT getIndirectMaxVar() const;
+	FT getOffsetMaxVar() const;
 
 	static GCV &gcv() { return global_cached_values; }
 

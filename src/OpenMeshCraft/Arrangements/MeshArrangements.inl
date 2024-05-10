@@ -290,8 +290,7 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 	size_t origin_num = sorted.size();
 
 	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(),
-		                   [in_vecs](auto a, auto b)
+		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
 		                   { return in_vecs[a] < in_vecs[b]; });
 	else
 		std::sort(sorted.begin(), sorted.end(),
@@ -561,7 +560,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 
 	arr_out_labels.inside.resize(arr_out_tris.size() / 3);
 
-#ifdef OMC_ARR_PROFILE
+#if defined(OMC_ARR_PROFILE)
 	std::vector<uint8_t> vertex_used(arr_out_verts.size(), false);
 	for (index_t vi : arr_out_tris)
 		vertex_used[vi] = true;
@@ -570,13 +569,30 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 	{
 		if (vertex_used[vi] && arr_out_verts[vi]->is_Implicit())
 		{
+			// count the number of different types of implicit points
 			OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::IP_CNT);
 			OMC_ARR_PROFILE_INC_REACH(
 			  ArrFuncNames::IP_CNT,
 			  static_cast<size_t>(arr_out_verts[vi]->point_type()));
+
+			// save the order differences of maxvar
+			NT indirect_maxvar, offset_maxvar;
+			indirect_maxvar = arr_out_verts[vi]->getIndirectMaxVar();
+			offset_maxvar   = arr_out_verts[vi]->getOffsetMaxVar();
+
+			NT  order         = indirect_maxvar / offset_maxvar;
+			int rounded_order = (int)std::floor(std::log10(order) * 10.);
+			int rounded_offset_order =
+			  std::min(std::max(rounded_order + 100, 0), 200);
+
+			OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::IP_MAXVAR_ORDER);
+			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::IP_MAXVAR_ORDER,
+			                          rounded_offset_order);
 		}
 	}
+#endif
 
+#if defined(OMC_ARR_PROFILE) && 0
 	std::fstream fout;
 	fout.open("./data/test_output/arrangements/pnts_on_edges.txt", std::ios::out);
 	if (fout.is_open())

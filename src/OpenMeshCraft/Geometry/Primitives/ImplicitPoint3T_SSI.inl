@@ -989,4 +989,73 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
+/// @brief This is just a function for profiling. It outputs maxvar under offset
+/// predicates to compare with indirect predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_SSI<IT, ET>::getIndirectMaxVar() const -> FT
+{
+	FT xba = B().x() - A().x();
+	FT yba = B().y() - A().y();
+	FT zba = B().z() - A().z();
+	FT xap = A().x() - P().x();
+	FT yap = A().y() - P().y();
+	FT yqp = Q().y() - P().y();
+	FT xqp = Q().x() - P().x();
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(A().x())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(A().y())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(A().z())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xqp)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
+
+/// @brief This is just a function for profiling. It outputs maxvar under offset
+/// predicates to compare with indirect predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_SSI<IT, ET>::getOffsetMaxVar() const -> FT
+{
+	FT xap = A().x() - P().x();
+	FT yap = A().y() - P().y();
+	FT yqp = Q().y() - P().y();
+	FT xqp = Q().x() - P().x();
+	FT xba = B().x() - A().x();
+	FT yba = B().y() - A().y();
+	FT zba = B().z() - A().z();
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(xap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zba)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
 } // namespace OMC

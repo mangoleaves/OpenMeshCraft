@@ -2224,7 +2224,7 @@ template <typename Traits>
 index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
   TTIHelper &ha, index_t ea, TTIHelper &hb, index_t eb)
 {
-#ifdef INDIRECT_PREDICATES
+#ifdef OMC_ARR_AUX_LPI
 	// fix the vertex sequential of created implicit point
 	index_t e_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 	index_t e_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);

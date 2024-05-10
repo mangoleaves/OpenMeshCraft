@@ -546,7 +546,7 @@ void ImplicitPoint3T_TPI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		if (!cv.exact_cached)
 		{
 			cv.alloc_ET();
-			cv.exact_cached      = true;
+			cv.exact_cached = true;
 			lambda3d_TPI_exact<ET>(
 			  ET(V1().x()), ET(V1().y()), ET(V1().z()), ET(V2().x()), ET(V2().y()),
 			  ET(V2().z()), ET(V3().x()), ET(V3().y()), ET(V3().z()), ET(W1().x()),
@@ -665,4 +665,225 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
+/// @brief This is just a function for profiling. It outputs maxvar under offset
+/// predicates to compare with indirect predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_TPI<IT, ET>::getIndirectMaxVar() const -> FT
+{
+	FT ov1x = V1().x();
+	FT ov1y = V1().y();
+	FT ov1z = V1().z();
+	FT ov2x = V2().x();
+	FT ov2y = V2().y();
+	FT ov2z = V2().z();
+	FT ov3x = V3().x();
+	FT ov3y = V3().y();
+	FT ov3z = V3().z();
+	FT ow1x = W1().x();
+	FT ow1y = W1().y();
+	FT ow1z = W1().z();
+	FT ow2x = W2().x();
+	FT ow2y = W2().y();
+	FT ow2z = W2().z();
+	FT ow3x = W3().x();
+	FT ow3y = W3().y();
+	FT ow3z = W3().z();
+	FT ou1x = U1().x();
+	FT ou1y = U1().y();
+	FT ou1z = U1().z();
+	FT ou2x = U2().x();
+	FT ou2y = U2().y();
+	FT ou2z = U2().z();
+	FT ou3x = U3().x();
+	FT ou3y = U3().y();
+	FT ou3z = U3().z();
+
+	FT v3x    = ov3x - ov2x;
+	FT v3y    = ov3y - ov2y;
+	FT v3z    = ov3z - ov2z;
+	FT v2x    = ov2x - ov1x;
+	FT v2y    = ov2y - ov1y;
+	FT v2z    = ov2z - ov1z;
+	FT w3x    = ow3x - ow2x;
+	FT w3y    = ow3y - ow2y;
+	FT w3z    = ow3z - ow2z;
+	FT w2x    = ow2x - ow1x;
+	FT w2y    = ow2y - ow1y;
+	FT w2z    = ow2z - ow1z;
+	FT u3x    = ou3x - ou2x;
+	FT u3y    = ou3y - ou2y;
+	FT u3z    = ou3z - ou2z;
+	FT u2x    = ou2x - ou1x;
+	FT u2y    = ou2y - ou1y;
+	FT u2z    = ou2z - ou1z;
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(ov1x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ov1y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ov1z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ow1x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ow1y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ow1z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ou1x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ou1y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ou1z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v2x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v2y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(v2z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w2x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w2y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(w2z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u3x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u3y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u3z)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u2x)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u2y)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(u2z)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
+
+/// @brief This is just a function for profiling. It outputs maxvar under offset
+/// predicates to compare with indirect predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_TPI<IT, ET>::getOffsetMaxVar() const -> FT
+{
+	FT xa = V1().x();
+	FT ya = V1().y();
+	FT za = V1().z();
+	FT xb = V2().x();
+	FT yb = V2().y();
+	FT zb = V2().z();
+	FT xc = V3().x();
+	FT yc = V3().y();
+	FT zc = V3().z();
+	FT xo = W1().x();
+	FT yo = W1().y();
+	FT zo = W1().z();
+	FT xp = W2().x();
+	FT yp = W2().y();
+	FT zp = W2().z();
+	FT xq = W3().x();
+	FT yq = W3().y();
+	FT zq = W3().z();
+	FT xr = U1().x();
+	FT yr = U1().y();
+	FT zr = U1().z();
+	FT xs = U2().x();
+	FT ys = U2().y();
+	FT zs = U2().z();
+	FT xt = U3().x();
+	FT yt = U3().y();
+	FT zt = U3().z();
+
+	FT xpo = xp - xo;
+	FT ypo = yp - yo;
+	FT zpo = zp - zo;
+	FT xqo = xq - xo;
+	FT yqo = yq - yo;
+	FT zqo = zq - zo;
+	FT xsr = xs - xr;
+	FT ysr = ys - yr;
+	FT zsr = zs - zr;
+	FT xtr = xt - xr;
+	FT ytr = yt - yr;
+	FT ztr = zt - zr;
+	FT xoa = xo - xa;
+	FT yoa = yo - ya;
+	FT zoa = zo - za;
+	FT xra = xr - xa;
+	FT yra = yr - ya;
+	FT zra = zr - za;
+	FT xba = xb - xa;
+	FT yba = yb - ya;
+	FT zba = zb - za;
+	FT xca = xc - xa;
+	FT yca = yc - ya;
+	FT zca = zc - za;
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(xpo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ypo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zpo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xqo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yqo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zqo)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xsr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ysr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zsr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xtr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ytr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ztr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zba)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xca)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yca)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zca)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xra)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yra)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zra)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
 } // namespace OMC

@@ -309,6 +309,30 @@ public: /* get lambda values from implicit points ****************************/
 	}
 #endif
 
+	FT getIndirectMaxVar() const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		if (point_type() == PointType::SSI)
+			return SSI().getIndirectMaxVar();
+		else if (point_type() == PointType::LPI)
+			return LPI().getIndirectMaxVar();
+		else /*if (point_type() == PointType::TPI)*/
+			return TPI().getIndirectMaxVar();
+	}
+
+	FT getOffsetMaxVar() const
+	{
+		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
+		                     "no lambda for explicit point");
+		if (point_type() == PointType::SSI)
+			return SSI().getOffsetMaxVar();
+		else if (point_type() == PointType::LPI)
+			return LPI().getOffsetMaxVar();
+		else /*if (point_type() == PointType::TPI)*/
+			return TPI().getOffsetMaxVar();
+	}
+
 public:
 	/***********************************************************************
 	 * Below functions are wrappers of functions from explicit point.

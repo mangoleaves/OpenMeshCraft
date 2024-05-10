@@ -7,7 +7,7 @@
 #include "OpenMeshCraft/Utils/Exception.h"
 
 
-#ifdef OMC_ARR_PROFILE
+#if defined(OMC_ARR_PROFILE) && 0
 	#define COLLECT_INTERSECTING_TRIANGLE                                     \
 		if (Tri3_Tri3_DoInter().intersection_type(                              \
 		      ts.triVertPtr(b0.id(), 0), ts.triVertPtr(b0.id(), 1),             \

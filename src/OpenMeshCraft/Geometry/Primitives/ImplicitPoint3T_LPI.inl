@@ -495,7 +495,7 @@ void ImplicitPoint3T_LPI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		if (!cv.exact_cached)
 		{
 			cv.alloc_ET();
-			cv.exact_cached      = true;
+			cv.exact_cached = true;
 			lambda3d_LPI_exact<ET>(
 			  ET(P().x()), ET(P().y()), ET(P().z()), ET(Q().x()), ET(Q().y()),
 			  ET(Q().z()), ET(R().x()), ET(R().y()), ET(R().z()), ET(S().x()),
@@ -606,4 +606,103 @@ void ImplicitPoint3T_LPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
+/// @brief This is just a function for profiling. It outputs maxvar under
+/// indirect predicates to compare with other predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_LPI<IT, ET>::getIndirectMaxVar() const -> FT
+{
+	FT a11   = P().x() - Q().x();
+	FT a12   = P().y() - Q().y();
+	FT a13   = P().z() - Q().z();
+	FT a21   = S().x() - R().x();
+	FT a22   = S().y() - R().y();
+	FT a23   = S().z() - R().z();
+	FT a31   = T().x() - R().x();
+	FT a32   = T().y() - R().y();
+	FT a33   = T().z() - R().z();
+	FT px_rx = P().x() - R().x();
+	FT py_ry = P().y() - R().y();
+	FT pz_rz = P().z() - R().z();
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(P().x())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(P().y())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(P().z())) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a11)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a12)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a13)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a21)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a22)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a23)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a31)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a32)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(a33)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(px_rx)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(py_ry)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(pz_rz)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
+
+/// @brief This is just a function for profiling. It outputs maxvar under offset
+/// predicates to compare with other predicates
+template <typename IT, typename ET>
+auto ImplicitPoint3T_LPI<IT, ET>::getOffsetMaxVar() const -> FT
+{
+	FT xqp = Q().x() - P().x();
+	FT yqp = Q().y() - P().y();
+	FT zqp = Q().z() - P().z();
+	FT xsr = S().x() - R().x();
+	FT ysr = S().y() - R().y();
+	FT zsr = S().z() - R().z();
+	FT xtr = T().x() - R().x();
+	FT ytr = T().y() - R().y();
+	FT ztr = T().z() - R().z();
+	FT xrq = R().x() - Q().x();
+	FT yrq = R().y() - Q().y();
+	FT zrq = R().z() - Q().z();
+
+	FT _tmp_fabs, max_var = 0.;
+	if ((_tmp_fabs = fabs(xqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zqp)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xsr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ysr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zsr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xtr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ytr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(ztr)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xrq)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yrq)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zrq)) > max_var)
+		max_var = _tmp_fabs;
+
+	return max_var;
+}
 } // namespace OMC

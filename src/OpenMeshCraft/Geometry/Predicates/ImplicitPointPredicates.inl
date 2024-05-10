@@ -1519,12 +1519,13 @@ inline void lambda3d_TPI_expansion(
 #elif defined(OFFSET_PREDICATES)
 
 inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
-                           double yb, double zb, double xo, double yo,
-                           double zo, double xp, double yp, double zp,
-                           double xq, double yq, double zq, double &lambda_d,
-                           double &lambda_x, double &lambda_y, double &lambda_z,
-                           double &beta_x, double &beta_y, double &beta_z,
-                           double &max_var)
+                                  double yb, double zb, double xo, double yo,
+                                  double zo, double xp, double yp, double zp,
+                                  double xq, double yq, double zq,
+                                  double &lambda_d, double &lambda_x,
+                                  double &lambda_y, double &lambda_z,
+                                  double &beta_x, double &beta_y,
+                                  double &beta_z, double &max_var)
 {
 	double xba      = xb - xa;
 	double yba      = yb - ya;
@@ -1587,6 +1588,13 @@ inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
 	lambda_d_eps *= lambda_d_eps;
 	lambda_d_eps *= max_var;
 	lambda_d_eps *= 4.884981308350689e-15;
+
+	if ((_tmp_fabs = fabs(xoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zoa)) > max_var)
+		max_var = _tmp_fabs;
 
 	return (lambda_d > lambda_d_eps || lambda_d < -lambda_d_eps);
 }
@@ -1811,6 +1819,13 @@ inline bool lambda3d_SSI_filtered(double xa, double ya, double za, double xb,
 	double lambda_d_eps = max_var;
 	lambda_d_eps *= lambda_d_eps;
 	lambda_d_eps *= 8.881784197001252e-16;
+
+	if ((_tmp_fabs = fabs(xap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yap)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zba)) > max_var)
+		max_var = _tmp_fabs;
 
 	return (lambda_d > lambda_d_eps || lambda_d < -lambda_d_eps);
 }
@@ -2063,6 +2078,19 @@ inline bool lambda3d_TPI_filtered(
 	lambda_d_eps *= max_var;
 	lambda_d_eps *= max_var;
 	lambda_d_eps *= 1.3145040611561864e-13;
+
+	if ((_tmp_fabs = fabs(xoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zoa)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(xra)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(yra)) > max_var)
+		max_var = _tmp_fabs;
+	if ((_tmp_fabs = fabs(zra)) > max_var)
+		max_var = _tmp_fabs;
 
 	return (lambda_d > lambda_d_eps || lambda_d < -lambda_d_eps);
 }

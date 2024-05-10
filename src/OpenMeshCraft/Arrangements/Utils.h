@@ -38,7 +38,7 @@ namespace OMC {
 #define ARR_DC_FILTER_ORIENT3D
 // === ablation control for features
 // #define OMC_ARR_GLOBAL_POINT_SET
-#define OMC_ARR_AUX_LPI
+// #define OMC_ARR_AUX_LPI
 
 constexpr int NBIT = 32;
 
@@ -394,12 +394,13 @@ enum class ArrFuncNames : size_t
 	D_BBI_LARGE,
 	DC_TTI,
 	IP_CNT,
+	IP_MAXVAR_ORDER,
 	CNT
 };
 
 struct ArrProfile
 {
-	static const uint32_t BRANCH_CNT = 64;
+	static const uint32_t BRANCH_CNT = 1024;
 
 	static size_t total_count[(size_t)ArrFuncNames::CNT];
 	static size_t reach_count[(size_t)ArrFuncNames::CNT][BRANCH_CNT];
@@ -458,10 +459,11 @@ inline void ArrProfile::print()
 	// clang-format off
   std::vector<std::string> func_names = {
 		"Detect BBI",
-		"Detect BBI unique",
-		"Detect BBI duplicate",
+		"Detect BBI small node",
+		"Detect BBI large node",
 	  "Detect & Classify TTI",
-		"Implicit Points Count"
+		"Implicit Points Count",
+		"Implicit Points MaxVar Order"
   };
 
 	// clang-format on
@@ -483,8 +485,9 @@ inline void ArrProfile::print()
 		for (int j = 0; j <= last_branch_flag; j++)
 		{
 			double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
-			std::cout << std::format("  line {}: {:.2f}%, {}\n", reach_line[i][j],
-			                         reach_raio * 100., reach_count[i][j]);
+			std::cout << std::format("  line {}, branch {}: {:.2f}%, {}\n",
+			                         reach_line[i][j], j, reach_raio * 100.,
+			                         reach_count[i][j]);
 		}
 	}
 }
