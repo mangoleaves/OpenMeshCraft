@@ -119,5 +119,7 @@
 /* Macros that control behavior of predicates ************/
 /*********************************************************/
 
-// #define INDIRECT_PREDICATES
-#define OFFSET_PREDICATES
+// #define OMC_INDIRECT_PRED
+#define OMC_OFFSET_PRED
+
+#define OMC_CACHE_SSF

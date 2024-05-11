@@ -23,6 +23,30 @@ ImplicitPoint3T_LPI<IT, ET>::ImplicitPoint3T_LPI(const EP &_p, const EP &_q,
   , is(&_s)
   , it(&_t)
 {
+#ifdef OMC_CACHE_SSF
+	#if defined(OMC_OFFSET_PRED)
+	FT bx, by, bz;
+	if (!lambda3d_LPI_filtered(P().x(), P().y(), P().z(), Q().x(), Q().y(),
+	                           Q().z(), R().x(), R().y(), R().z(), S().x(),
+	                           S().y(), S().z(), T().x(), T().y(), T().z(), m_ld,
+	                           m_lx, m_ly, m_lz, bx, by, bz, m_maxvar))
+		m_ld = 0;
+	#elif defined(OMC_INDIRECT_PRED)
+	if (!lambda3d_LPI_filtered(P().x(), P().y(), P().z(), Q().x(), Q().y(),
+	                           Q().z(), R().x(), R().y(), R().z(), S().x(),
+	                           S().y(), S().z(), T().x(), T().y(), T().z(), m_ld,
+	                           m_lx, m_ly, m_lz, m_maxvar))
+		m_ld = 0;
+	#endif
+
+	if (m_ld < 0)
+	{
+		m_lx = -m_lx;
+		m_ly = -m_ly;
+		m_lz = -m_lz;
+		m_ld = -m_ld;
+	}
+#endif
 }
 
 template <typename IT, typename ET>
@@ -39,6 +63,13 @@ ImplicitPoint3T_LPI<IT, ET>::ImplicitPoint3T_LPI(const IP &rhs) noexcept
   , is(rhs.is)
   , it(rhs.it)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -50,6 +81,13 @@ ImplicitPoint3T_LPI<IT, ET>::ImplicitPoint3T_LPI(IP &&rhs) noexcept
   , is(rhs.is)
   , it(rhs.it)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -61,6 +99,13 @@ auto ImplicitPoint3T_LPI<IT, ET>::operator=(const IP &rhs) -> IP &
 	ir                       = rhs.ir;
 	is                       = rhs.is;
 	it                       = rhs.it;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
@@ -73,10 +118,17 @@ auto ImplicitPoint3T_LPI<IT, ET>::operator=(IP &&rhs) -> IP &
 	ir                       = rhs.ir;
 	is                       = rhs.is;
 	it                       = rhs.it;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_LPI<IT, ET>::get_Explicit(EP &e) const
@@ -117,6 +169,7 @@ template <typename IT, typename ET>
 bool ImplicitPoint3T_LPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -168,6 +221,15 @@ bool ImplicitPoint3T_LPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>
@@ -329,7 +391,7 @@ void ImplicitPoint3T_LPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 	}
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_LPI<IT, ET>::get_Explicit(EP &e) const
@@ -374,6 +436,7 @@ bool ImplicitPoint3T_LPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &bx, FT &by,
                                                     FT &bz, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -429,6 +492,18 @@ bool ImplicitPoint3T_LPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	bx = P().x();
+	by = P().y();
+	bz = P().z();
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>

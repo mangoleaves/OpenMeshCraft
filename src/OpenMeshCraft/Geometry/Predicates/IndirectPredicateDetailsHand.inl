@@ -789,7 +789,7 @@ inline int maxComponentInTriangleNormal(double ov1x, double ov1y, double ov1z,
 	                                              ov2z, ov3x, ov3y, ov3z);
 }
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 template <typename IT, typename ET>
 int longestAxis_IE_filter(const GenericPoint3T<IT, ET> &p1, double bx,
                           double by, double bz, PntArr3 arr)
@@ -1306,7 +1306,7 @@ int longestAxis_II(const GenericPoint3T<IT, ET> &a,
 	return longestAxis_II_expansion<IT, ET>(a, b);
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 int longestAxis_IE_filter(const GenericPoint3T<IT, ET> &p1, double bx,
@@ -2022,7 +2022,7 @@ Sign lessThan_II(const GenericPoint3T<IT, ET> &p1,
 
 #define OrientOn2D_LengthThreshold 100
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
@@ -2852,7 +2852,7 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	OMC_EXIT("Should not happen.");
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,

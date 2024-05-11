@@ -23,6 +23,68 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
   , iq(&_q)
   , plane(_plane)
 {
+#ifdef OMC_CACHE_SSF
+	#if defined(OMC_OFFSET_PRED)
+	FT bx, by, bz;
+	if (plane == 0) // YZ
+	{
+		// first yz, then x
+		if (!lambda3d_SSI_filtered(A().y(), A().z(), A().x(), B().y(), B().z(),
+		                           B().x(), P().y(), P().z(), Q().y(), Q().z(),
+		                           m_ld, m_ly, m_lz, m_lx, by, bz, bx, m_maxvar))
+			m_ld = 0;
+	}
+	else if (plane == 1) // ZX
+	{
+		// first zx, then y
+		if (!lambda3d_SSI_filtered(A().z(), A().x(), A().y(), B().z(), B().x(),
+		                           B().y(), P().z(), P().x(), Q().z(), Q().x(),
+		                           m_ld, m_lz, m_lx, m_ly, bz, bx, by, m_maxvar))
+			m_ld = 0;
+	}
+	else if (plane == 2) // XY
+	{
+		// first xy, then z
+		if (!lambda3d_SSI_filtered(A().x(), A().y(), A().z(), B().x(), B().y(),
+		                           B().z(), P().x(), P().y(), Q().x(), Q().y(),
+		                           m_ld, m_lx, m_ly, m_lz, bx, by, bz, m_maxvar))
+			m_ld = 0;
+	}
+	#elif defined(OMC_INDIRECT_PRED)
+	if (plane == 0) // YZ
+	{
+		// first yz, then x
+		if (!lambda3d_SSI_filtered(A().y(), A().z(), A().x(), B().y(), B().z(),
+		                           B().x(), P().y(), P().z(), Q().y(), Q().z(),
+		                           m_ly, m_lz, m_lx, m_ld, m_maxvar))
+			m_ld = 0;
+	}
+	else if (plane == 1) // ZX
+	{
+		// first zx, then y
+		if (!lambda3d_SSI_filtered(A().z(), A().x(), A().y(), B().z(), B().x(),
+		                           B().y(), P().z(), P().x(), Q().z(), Q().x(),
+		                           m_lz, m_lx, m_ly, m_ld, m_maxvar))
+			m_ld = 0;
+	}
+	else if (plane == 2) // XY
+	{
+		// first xy, then z
+		if (!lambda3d_SSI_filtered(A().x(), A().y(), A().z(), B().x(), B().y(),
+		                           B().z(), P().x(), P().y(), Q().x(), Q().y(),
+		                           m_lx, m_ly, m_lz, m_ld, m_maxvar))
+			m_ld = 0;
+	}
+	#endif
+
+	if (m_ld < 0)
+	{
+		m_lx = -m_lx;
+		m_ly = -m_ly;
+		m_lz = -m_lz;
+		m_ld = -m_ld;
+	}
+#endif
 }
 
 template <typename IT, typename ET>
@@ -39,6 +101,13 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const IP &rhs) noexcept
   , iq(rhs.iq)
   , plane(rhs.plane)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -50,6 +119,13 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(IP &&rhs) noexcept
   , iq(rhs.iq)
   , plane(rhs.plane)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -61,6 +137,13 @@ auto ImplicitPoint3T_SSI<IT, ET>::operator=(const IP &rhs) -> IP &
 	ip                       = rhs.ip;
 	iq                       = rhs.iq;
 	plane                    = rhs.plane;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
@@ -73,10 +156,17 @@ auto ImplicitPoint3T_SSI<IT, ET>::operator=(IP &&rhs) -> IP &
 	ip                       = rhs.ip;
 	iq                       = rhs.iq;
 	plane                    = rhs.plane;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_SSI<IT, ET>::get_Explicit(EP &e) const
@@ -117,6 +207,7 @@ template <typename IT, typename ET>
 bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -220,6 +311,15 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>
@@ -515,7 +615,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 	}
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_SSI<IT, ET>::get_Explicit(EP &e) const
@@ -560,6 +660,7 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &bx, FT &by,
                                                     FT &bz, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -669,6 +770,18 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	bx = A().x();
+	by = A().y();
+	bz = A().z();
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>
@@ -781,7 +894,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		if (!cv.exact_cached)
 		{
 			cv.alloc_ET();
-			cv.exact_cached      = true;
+			cv.exact_cached = true;
 			if (plane == 0) // yz
 			{
 				// first yz, then x
@@ -989,8 +1102,8 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
-/// @brief This is just a function for profiling. It outputs maxvar under offset
-/// predicates to compare with indirect predicates
+/// @brief This is just a function for profiling. It outputs maxvar under indirect 
+/// predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_SSI<IT, ET>::getIndirectMaxVar() const -> FT
 {
@@ -1028,7 +1141,7 @@ auto ImplicitPoint3T_SSI<IT, ET>::getIndirectMaxVar() const -> FT
 }
 
 /// @brief This is just a function for profiling. It outputs maxvar under offset
-/// predicates to compare with indirect predicates
+/// predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_SSI<IT, ET>::getOffsetMaxVar() const -> FT
 {

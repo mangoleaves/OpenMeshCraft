@@ -1941,7 +1941,7 @@ Sign squareDistance3D(const GenericPoint3T<IT, ET> &p,
 	                                              q.y(), q.z(), dis);
 }
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 Sign dotProductSign2D_EEI_interval(const GenericPoint2T<IT, ET> &q, IT px,
@@ -17102,7 +17102,7 @@ Sign squareDistance3D_II(const GenericPoint3T<IT, ET> &p,
 	return squareDistance3D_II_expansion<IT, ET>(p, q, dis);
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 Sign lessThanOnX_IE_filtered(const GenericPoint3T<IT, ET> &p1, double bx,

@@ -51,13 +51,13 @@ public: /* Members ***********************************************************/
 	const EP &Q() const { return *iq; }
 
 public: /* Lambdas ***********************************************************/
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 	// clang-format off
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by, IT &bz) const;
@@ -81,6 +81,9 @@ private:
 	// plane == 1 -> ZX plane;
 	// plane == 2 -> XY plane.
 	int       plane;
+#ifdef OMC_CACHE_SSF
+	FT m_lx, m_ly, m_lz, m_ld, m_maxvar;
+#endif
 
 	static GCV global_cached_values;
 };
@@ -128,13 +131,13 @@ public: /* Members ***********************************************************/
 	const EP &T() const { return *it; }
 
 public: /* Lambdas ***********************************************************/
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz,
 	                       FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by,
@@ -154,6 +157,9 @@ public: /* Lambdas ***********************************************************/
 private:
 	const EP *ip, *iq;      // The line
 	const EP *ir, *is, *it; // The plane
+#ifdef OMC_CACHE_SSF
+	FT m_lx, m_ly, m_lz, m_ld, m_maxvar;
+#endif
 
 	static GCV global_cached_values;
 };
@@ -205,13 +211,13 @@ public: /* Members ***********************************************************/
 	const EP &U3() const { return *iu3; }
 
 public: /* Lambdas ***********************************************************/
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
 	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
 	                        int &lz_len, FT **d, int &d_len) const;
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 	// clang-format off
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz, FT &mv) const;
 	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d, IT &bx, IT &by, IT &bz) const;
@@ -230,11 +236,14 @@ private:
 	const EP *iv1, *iv2, *iv3; // Plane 1
 	const EP *iw1, *iw2, *iw3; // Plane 2
 	const EP *iu1, *iu2, *iu3; // Plane 3
+#ifdef OMC_CACHE_SSF
+	FT m_lx, m_ly, m_lz, m_ld, m_maxvar;
+#endif
 
 	static GCV global_cached_values;
 };
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 /// @brief Implicit point defined as a linear combination of two points.
 /// start with p and end with q: (1-t)p + tq  or  p + t(q-p).
 template <typename IT_, typename ET_>
@@ -306,7 +315,7 @@ typename ImplicitPoint3T_TPI<IT_, ET_>::GCV
   ImplicitPoint3T_TPI<IT_, ET_>::global_cached_values =
     ImplicitPoint3T_TPI<IT_, ET_>::GCV();
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 template <typename IT_, typename ET_>
 typename ImplicitPoint3T_LNC<IT_, ET_>::GCV
   ImplicitPoint3T_LNC<IT_, ET_>::global_cached_values =

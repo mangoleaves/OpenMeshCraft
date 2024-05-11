@@ -89,7 +89,7 @@ public:
 		}
 		else
 		{
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 			IT lx, ly, lz, d;
 			gp.getIntervalLambda(lx, ly, lz, d);
 			IT x = lx / d, y = ly / d, z = lz / d;
@@ -110,7 +110,7 @@ public:
 		}
 		else
 		{
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 			IT lx, ly, lz, d;
 			gp.getIntervalLambda(lx, ly, lz, d);
 			IT x = lx / d, y = ly / d, z = lz / d;

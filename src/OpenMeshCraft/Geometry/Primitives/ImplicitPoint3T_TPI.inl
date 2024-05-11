@@ -29,6 +29,34 @@ ImplicitPoint3T_TPI<IT, ET>::ImplicitPoint3T_TPI(const EP &_v1, const EP &_v2,
   , iu2(&_u2)
   , iu3(&_u3)
 {
+#ifdef OMC_CACHE_SSF
+	#if defined(OMC_OFFSET_PRED)
+	FT bx, by, bz;
+	if (!lambda3d_TPI_filtered(
+	      V1().x(), V1().y(), V1().z(), V2().x(), V2().y(), V2().z(), V3().x(),
+	      V3().y(), V3().z(), W1().x(), W1().y(), W1().z(), W2().x(), W2().y(),
+	      W2().z(), W3().x(), W3().y(), W3().z(), U1().x(), U1().y(), U1().z(),
+	      U2().x(), U2().y(), U2().z(), U3().x(), U3().y(), U3().z(), m_ld, m_lx,
+	      m_ly, m_lz, bx, by, bz, m_maxvar))
+		m_ld = 0;
+	#elif defined(OMC_INDIRECT_PRED)
+	if (!lambda3d_TPI_filtered(
+	      V1().x(), V1().y(), V1().z(), V2().x(), V2().y(), V2().z(), V3().x(),
+	      V3().y(), V3().z(), W1().x(), W1().y(), W1().z(), W2().x(), W2().y(),
+	      W2().z(), W3().x(), W3().y(), W3().z(), U1().x(), U1().y(), U1().z(),
+	      U2().x(), U2().y(), U2().z(), U3().x(), U3().y(), U3().z(), m_lx, m_ly,
+	      m_lz, m_ld, m_maxvar))
+		m_ld = 0;
+	#endif
+
+	if (m_ld < 0)
+	{
+		m_lx = -m_lx;
+		m_ly = -m_ly;
+		m_lz = -m_lz;
+		m_ld = -m_ld;
+	}
+#endif
 }
 
 template <typename IT, typename ET>
@@ -49,6 +77,13 @@ ImplicitPoint3T_TPI<IT, ET>::ImplicitPoint3T_TPI(const IP &rhs) noexcept
   , iu2(rhs.iu2)
   , iu3(rhs.iu3)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -64,6 +99,13 @@ ImplicitPoint3T_TPI<IT, ET>::ImplicitPoint3T_TPI(IP &&rhs) noexcept
   , iu2(rhs.iu2)
   , iu3(rhs.iu3)
 {
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 }
 
 template <typename IT, typename ET>
@@ -79,6 +121,13 @@ auto ImplicitPoint3T_TPI<IT, ET>::operator=(const IP &rhs) -> IP &
 	iu1                      = rhs.iu1;
 	iu2                      = rhs.iu2;
 	iu3                      = rhs.iu3;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
@@ -95,10 +144,17 @@ auto ImplicitPoint3T_TPI<IT, ET>::operator=(IP &&rhs) -> IP &
 	iu1                      = rhs.iu1;
 	iu2                      = rhs.iu2;
 	iu3                      = rhs.iu3;
+#ifdef OMC_CACHE_SSF
+	m_lx     = rhs.m_lx;
+	m_ly     = rhs.m_ly;
+	m_lz     = rhs.m_lz;
+	m_ld     = rhs.m_ld;
+	m_maxvar = rhs.m_maxvar;
+#endif
 	return *this;
 }
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_TPI<IT, ET>::get_Explicit(EP &e) const
@@ -139,6 +195,7 @@ template <typename IT, typename ET>
 bool ImplicitPoint3T_TPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -196,6 +253,15 @@ bool ImplicitPoint3T_TPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>
@@ -370,7 +436,7 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 	}
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 void ImplicitPoint3T_TPI<IT, ET>::get_Explicit(EP &e) const
@@ -415,6 +481,7 @@ bool ImplicitPoint3T_TPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
                                                     FT &d, FT &bx, FT &by,
                                                     FT &bz, FT &mv) const
 {
+	#ifndef OMC_CACHE_SSF
 	if (global_cached_values.is_enabled())
 	{
 		typename GCV::OnePointCachedValues &cv =
@@ -476,6 +543,18 @@ bool ImplicitPoint3T_TPI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			mv = mv_;
 		return d != 0;
 	}
+	#else
+	lx = m_lx;
+	ly = m_ly;
+	lz = m_lz;
+	d  = m_ld;
+	bx = V1().x();
+	by = V1().y();
+	bz = V1().z();
+	if (d != 0 && m_maxvar > mv)
+		mv = m_maxvar;
+	return d != 0;
+	#endif
 }
 
 template <typename IT, typename ET>
@@ -665,8 +744,8 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
-/// @brief This is just a function for profiling. It outputs maxvar under offset
-/// predicates to compare with indirect predicates
+/// @brief This is just a function for profiling. It outputs maxvar under indirect
+/// predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_TPI<IT, ET>::getIndirectMaxVar() const -> FT
 {
@@ -698,24 +777,24 @@ auto ImplicitPoint3T_TPI<IT, ET>::getIndirectMaxVar() const -> FT
 	FT ou3y = U3().y();
 	FT ou3z = U3().z();
 
-	FT v3x    = ov3x - ov2x;
-	FT v3y    = ov3y - ov2y;
-	FT v3z    = ov3z - ov2z;
-	FT v2x    = ov2x - ov1x;
-	FT v2y    = ov2y - ov1y;
-	FT v2z    = ov2z - ov1z;
-	FT w3x    = ow3x - ow2x;
-	FT w3y    = ow3y - ow2y;
-	FT w3z    = ow3z - ow2z;
-	FT w2x    = ow2x - ow1x;
-	FT w2y    = ow2y - ow1y;
-	FT w2z    = ow2z - ow1z;
-	FT u3x    = ou3x - ou2x;
-	FT u3y    = ou3y - ou2y;
-	FT u3z    = ou3z - ou2z;
-	FT u2x    = ou2x - ou1x;
-	FT u2y    = ou2y - ou1y;
-	FT u2z    = ou2z - ou1z;
+	FT v3x = ov3x - ov2x;
+	FT v3y = ov3y - ov2y;
+	FT v3z = ov3z - ov2z;
+	FT v2x = ov2x - ov1x;
+	FT v2y = ov2y - ov1y;
+	FT v2z = ov2z - ov1z;
+	FT w3x = ow3x - ow2x;
+	FT w3y = ow3y - ow2y;
+	FT w3z = ow3z - ow2z;
+	FT w2x = ow2x - ow1x;
+	FT w2y = ow2y - ow1y;
+	FT w2z = ow2z - ow1z;
+	FT u3x = ou3x - ou2x;
+	FT u3y = ou3y - ou2y;
+	FT u3z = ou3z - ou2z;
+	FT u2x = ou2x - ou1x;
+	FT u2y = ou2y - ou1y;
+	FT u2z = ou2z - ou1z;
 
 	FT _tmp_fabs, max_var = 0.;
 	if ((_tmp_fabs = fabs(ov1x)) > max_var)
@@ -777,7 +856,7 @@ auto ImplicitPoint3T_TPI<IT, ET>::getIndirectMaxVar() const -> FT
 }
 
 /// @brief This is just a function for profiling. It outputs maxvar under offset
-/// predicates to compare with indirect predicates
+/// predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_TPI<IT, ET>::getOffsetMaxVar() const -> FT
 {

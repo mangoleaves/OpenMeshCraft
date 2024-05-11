@@ -7,7 +7,7 @@
 
 namespace OMC {
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 bool lambda2d_SSI_filtered(double ea1x, double ea1y, double ea2x, double ea2y,
                            double eb1x, double eb1y, double eb2x, double eb2y,
@@ -1517,7 +1517,7 @@ inline void lambda3d_TPI_expansion(
 		FreeDoubles(nwyuz1);
 }
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
                                   double yb, double zb, double xo, double yo,

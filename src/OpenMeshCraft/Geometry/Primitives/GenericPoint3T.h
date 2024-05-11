@@ -138,7 +138,7 @@ public: /* functions about types **********************************************/
 			LPI().get_Explicit(e);
 		else if (point_type() == PointType::TPI)
 			TPI().get_Explicit(e);
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 		else if (point_type() == PointType::LNC)
 			LNC().get_Explicit(e);
 #endif
@@ -179,7 +179,7 @@ protected:
 	~GenericPoint3T() = default;
 
 public: /* get lambda values from implicit points ****************************/
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const
 	{
 		OMC_EXPENSIVE_ASSERT(point_type() != PointType::Explicit,
@@ -240,7 +240,7 @@ public: /* get lambda values from implicit points ****************************/
 		else /*if (point_type() == PointType::LNC)*/
 			LNC().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
 	}
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz,
 	                       FT &mv) const
 	{
@@ -458,7 +458,7 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().enable();
 		IP_LPI::gcv().enable();
 		IP_TPI::gcv().enable();
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 		IP_LNC::gcv().enable();
 #endif
 		if (s != 0)
@@ -470,7 +470,7 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().disable();
 		IP_LPI::gcv().disable();
 		IP_TPI::gcv().disable();
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 		IP_LNC::gcv().disable();
 #endif
 	}
@@ -480,7 +480,7 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().clear_cached_values();
 		IP_LPI::gcv().clear_cached_values();
 		IP_TPI::gcv().clear_cached_values();
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 		IP_LNC::gcv().clear_cached_values();
 #endif
 	}
@@ -490,7 +490,7 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().resize(s);
 		IP_LPI::gcv().resize(s);
 		IP_TPI::gcv().resize(s);
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 		IP_LNC::gcv().resize(s);
 #endif
 	}

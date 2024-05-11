@@ -6,7 +6,7 @@
 
 namespace OMC {
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 ImplicitPoint3T_LNC<IT, ET>::ImplicitPoint3T_LNC() noexcept

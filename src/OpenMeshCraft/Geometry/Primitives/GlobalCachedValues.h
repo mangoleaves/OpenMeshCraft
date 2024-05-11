@@ -82,7 +82,7 @@ public:
 	}
 };
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
 class OnePointCachedValues3
@@ -93,8 +93,10 @@ public:
 public:
 	// floating-point filter
 	// NaN demoninator is used to check if it is cached.
+	#ifdef OMC_CACHE_SSF
 	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
 	  ssfilter_denominator, ssfilter_max_val;
+	#endif
 	// dynamic filter (interval number)
 	// NaN demoninator is used to check if it is cached.
 	IT  dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator;
@@ -161,7 +163,7 @@ public:
 	}
 };
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 template <typename IT, typename ET>
 class OnePointCachedValues3
@@ -172,9 +174,11 @@ public:
 public:
 	// floating-point filter
 	// NaN demoninator is used to check if it is cached.
+	#ifdef OMC_CACHE_SSF
 	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
 	  ssfilter_denominator, ssfilter_beta_x, ssfilter_beta_y, ssfilter_beta_z,
 	  ssfilter_max_val;
+	#endif
 	// dynamic filter (interval number)
 	// NaN demoninator is used to check if it is cached.
 	IT dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator,

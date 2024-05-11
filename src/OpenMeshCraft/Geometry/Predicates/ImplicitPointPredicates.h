@@ -4,7 +4,7 @@
 
 namespace OMC {
 
-#if defined(INDIRECT_PREDICATES)
+#if defined(OMC_INDIRECT_PRED)
 
 inline bool lambda2d_SSI_filtered(double ea1x, double ea1y, double ea2x,
                                   double ea2y, double eb1x, double eb1y,
@@ -137,7 +137,7 @@ inline void lambda3d_LNC_expansion(double px, double py, double pz, double qx,
                                    double **lambda_z, int &lambda_z_len,
                                    double **lambda_d, int &lambda_d_len);
 
-#elif defined(OFFSET_PREDICATES)
+#elif defined(OMC_OFFSET_PRED)
 
 inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
                                   double yb, double zb, double xo, double yo,
