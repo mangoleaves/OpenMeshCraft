@@ -56,9 +56,9 @@ using Label = std::bitset<NBIT>;
 struct MeshArrangements_Config
 {
 	double tree_enlarge_ratio    = 1.01;
-	size_t tree_split_size_thres = 50;
+	size_t tree_split_size_thres = 400;
 	// only for OcTree
-	double tree_adaptive_thres   = 0.1;
+	double tree_adaptive_thres   = 0.2;
 };
 
 struct MeshArrangements_Stats

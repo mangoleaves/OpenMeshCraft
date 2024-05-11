@@ -106,9 +106,6 @@ TEST_F(test_Arrangements, TestDataSet)
 	bool set_parameter = config.get<bool>("set_parameter", false);
 
 	OMC::MeshArrangements_Config arr_config;
-	arr_config.tree_enlarge_ratio    = 1.01;
-	arr_config.tree_adaptive_thres   = 0.1;
-	arr_config.tree_split_size_thres = 50;
 	if (set_parameter)
 	{
 		boost::property_tree::ptree &parameters = config.get_child("parameters");

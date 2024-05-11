@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 	bool        output_result = false;
 	bool        verbose       = false;
 	int         threads_num   = tbb::this_task_arena::max_concurrency();
-	int         tree_leaf     = 50;
-	float       tree_adaptive = 0.1f;
+
+	ArrangementsConfig arr_config;
 
 	auto print_help = []()
 	{
@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
 		else if (OMC::starts_with(param, "-p="))
 			threads_num = std::stoi(param.substr(3));
 		else if (OMC::starts_with(param, "--tree_leaf="))
-			tree_leaf = std::stoi(param.substr(12));
+			arr_config.tree_split_size_thres = std::stoi(param.substr(12));
 		else if (OMC::starts_with(param, "--tree_adaptive="))
-			tree_adaptive = std::stof(param.substr(16));
+			arr_config.tree_adaptive_thres = std::stof(param.substr(16));
 		else
 			print_help();
 	}
@@ -87,10 +87,6 @@ int main(int argc, char *argv[])
 
 	tbb::global_control tbb_gc(tbb::global_control::max_allowed_parallelism,
 	                           threads_num);
-
-	ArrangementsConfig arr_config;
-	arr_config.tree_adaptive_thres   = tree_adaptive;
-	arr_config.tree_split_size_thres = tree_leaf;
 
 	Arrangements arrangements(verbose);
 	arrangements.setConfig(arr_config);
