@@ -1,5 +1,6 @@
 #pragma once
 #include "ImplicitPointPredicates.h"
+#include "IndirectDefinitions.h"
 
 #include "OpenMeshCraft/NumberTypes/ExpansionObject.h"
 #include "OpenMeshCraft/NumberTypes/IntervalNumber.h"
@@ -1527,6 +1528,7 @@ inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
                                   double &beta_x, double &beta_y,
                                   double &beta_z, double &max_var)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_lpi_filter);
 	double xba      = xb - xa;
 	double yba      = yb - ya;
 	double zba      = zb - za;
@@ -1605,6 +1607,7 @@ bool lambda3d_LPI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xo,
                            IT zq, IT &lambda_d, IT &lambda_x, IT &lambda_y,
                            IT &lambda_z, IT &beta_x, IT &beta_y, IT &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_lpi_interval);
 	typename IT::Protector P;
 
 	IT xba      = xb - xa;
@@ -1699,6 +1702,7 @@ inline void lambda3d_LPI_expansion(
   int &lambda_x_len, double **lambda_y, int &lambda_y_len, double **lambda_z,
   int &lambda_z_len, double &beta_x, double &beta_y, double &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_lpi_expansion);
 	expansionObject o;
 	double          xba[2];
 	o.two_Diff(xb, xa, xba);
@@ -1787,6 +1791,8 @@ inline bool lambda3d_SSI_filtered(double xa, double ya, double za, double xb,
                                   double &beta_y, double &beta_z,
                                   double &max_var)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_ssi_filter);
+
 	double xap = xa - xp;
 	double yap = ya - yp;
 	double yqp = yq - yp;
@@ -1836,6 +1842,7 @@ bool lambda3d_SSI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xp,
                            IT &lambda_y, IT &lambda_z, IT &beta_x, IT &beta_y,
                            IT &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_ssi_interval);
 	typename IT::Protector P;
 
 	IT xap   = xa - xp;
@@ -1895,6 +1902,7 @@ inline void lambda3d_SSI_expansion(double xa, double ya, double za, double xb,
                                    int &lambda_z_len, double &beta_x,
                                    double &beta_y, double &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_ssi_expansion);
 	expansionObject o;
 	double          xap[2];
 	o.two_Diff(xa, xp, xap);
@@ -1941,6 +1949,7 @@ inline bool lambda3d_TPI_filtered(
   double &lambda_d, double &lambda_x, double &lambda_y, double &lambda_z,
   double &beta_x, double &beta_y, double &beta_z, double &max_var)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_tpi_filter);
 	double xpo            = xp - xo;
 	double ypo            = yp - yo;
 	double zpo            = zp - zo;
@@ -2103,6 +2112,7 @@ bool lambda3d_TPI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xc,
                            IT &lambda_d, IT &lambda_x, IT &lambda_y,
                            IT &lambda_z, IT &beta_x, IT &beta_y, IT &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_tpi_interval);
 	typename IT::Protector P;
 
 	IT xpo            = xp - xo;
@@ -2313,6 +2323,7 @@ inline void lambda3d_TPI_expansion(
   double **lambda_y, int &lambda_y_len, double **lambda_z, int &lambda_z_len,
   double &beta_x, double &beta_y, double &beta_z)
 {
+	OMC_PRED_PROFILE_INC_CNT(PredicateNames::_tpi_expansion);
 	expansionObject o;
 	double          xpo[2];
 	o.two_Diff(xp, xo, xpo);

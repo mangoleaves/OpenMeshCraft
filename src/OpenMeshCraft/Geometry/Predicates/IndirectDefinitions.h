@@ -427,6 +427,15 @@ enum class PredicateNames : size_t
 	_orientOn2Dzx_IEE,
 	_orientOn2Dzx_IIE,
 	_orientOn2Dzx_III,
+	_ssi_filter,
+	_ssi_interval,
+	_ssi_expansion,
+	_lpi_filter,
+	_lpi_interval,
+	_lpi_expansion,
+	_tpi_filter,
+	_tpi_interval,
+	_tpi_expansion,
 	CNT
 };
 
@@ -443,6 +452,8 @@ struct PredicatesProfile
 	static void inc_ss_fail(PredicateNames name, PntArr3 arr);
 	static void inc_d_fail(PredicateNames name, PntArr3 arr);
 
+	static void inc_count(PredicateNames name);
+
 	static void print();
 };
 
@@ -458,6 +469,9 @@ struct PredicatesProfile
 #define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)\
 	OMC::PredicatesProfile::inc_d_fail(pred, arr)
 
+#define OMC_PRED_PROFILE_INC_CNT(name)\
+	OMC::PredicatesProfile::inc_count(name)
+
 #else
 
 #define OMC_PRED_PROFILE_INIT
@@ -466,6 +480,8 @@ struct PredicatesProfile
 #define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)
 #define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
 #define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
+
+#define OMC_PRED_PROFILE_INC_CNT(name)
 
 #endif
 

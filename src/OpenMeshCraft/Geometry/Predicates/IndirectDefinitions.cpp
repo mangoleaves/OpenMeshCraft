@@ -112,6 +112,11 @@ void PredicatesProfile::inc_d_fail(PredicateNames name, PntArr3 arr)
 	// clang-format on
 }
 
+void PredicatesProfile::inc_count(PredicateNames name)
+{
+	total_count[(size_t)name][0] += 1;
+}
+
 void PredicatesProfile::print()
 {
 	// clang-format off
@@ -131,6 +136,15 @@ void PredicatesProfile::print()
 	  "orientOn2Dzx_IEE",
 	  "orientOn2Dzx_IIE",
 	  "orientOn2Dzx_III",
+		"SSI_filtered",
+		"SSI_interval",
+		"SSI_expansion",
+		"LPI_filtered",
+		"LPI_interval",
+		"LPI_expansion",
+		"TPI_filtered",
+		"TPI_interval",
+		"TPI_expansion"
   };
 
 	std::vector<std::string> arr_names = {
@@ -156,7 +170,7 @@ void PredicatesProfile::print()
 	};
 	// clang-format on
 
-	for (size_t i = 0; i < (size_t)PredicateNames::CNT; i++)
+	for (size_t i = 0; i <= (size_t)PredicateNames::_orientOn2Dzx_III; i++)
 	{
 		std::cout << std::format("{}:\n", pred_names[i]);
 		for (size_t j = 0; j < ARR_CNT; j++)
@@ -175,6 +189,12 @@ void PredicatesProfile::print()
 				  d_succeed * 100., e_succeed * 100., total_count[i][j].load());
 			}
 		}
+	}
+
+
+	for (size_t i = (size_t)PredicateNames::_ssi_filter; i <= (size_t)PredicateNames::_tpi_expansion; i++)
+	{
+		std::cout << std::format("{}: {}\n", pred_names[i], total_count[i][0].load());
 	}
 }
 
