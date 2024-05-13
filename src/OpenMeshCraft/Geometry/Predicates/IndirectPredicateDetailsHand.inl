@@ -2020,7 +2020,8 @@ Sign lessThan_II(const GenericPoint3T<IT, ET> &p1,
 	return lessThanOnZ_II<IT, ET, WithSSFilter>(p1, p2, arr);
 }
 
-#define OrientOn2D_LengthThreshold 100
+#define OMC_EXPANSION_LENGTH_THRES 100
+#define OMC_SUM_LENGTH_THRES 40
 
 #if defined(OMC_INDIRECT_PRED)
 
@@ -2072,8 +2073,8 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2206,8 +2207,8 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2348,8 +2349,8 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2482,8 +2483,8 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2624,8 +2625,8 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2758,8 +2759,8 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double efgh_p[64], *efgh = efgh_p;
 		double L_p[64], *L       = L_p;
 		int    abcd_len, efgh_len, L_len;
-		if (ab_len * cd_len <= OrientOn2D_LengthThreshold &&
-		    ef_len * gh_len <= OrientOn2D_LengthThreshold)
+		if (ab_len * cd_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    ef_len * gh_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			abcd_len = o.Gen_Product_With_PreAlloc(ab_len, ab, cd_len, cd, &abcd, 64);
 			efgh_len = o.Gen_Product_With_PreAlloc(ef_len, ef, gh_len, gh, &efgh, 64);
@@ -2916,8 +2917,8 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
-		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
+		if (i1x_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1y_len * i2x_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 64);
@@ -3098,8 +3099,8 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t1_len;
 		double det_p[32], *det = det_p;
 		int    det_len;
-		if (i1x_len * i2y_len <= OrientOn2D_LengthThreshold &&
-		    i1y_len * i2x_len <= OrientOn2D_LengthThreshold)
+		if (i1x_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1y_len * i2x_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2y_len, i2y, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2x_len, i2x, &t1, 32);
@@ -3114,17 +3115,25 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		}
 		else
 		{
-			ET i1x_et = 0, i1y_et = 0, i2x_et = 0, i2y_et = 0;
-			// clang-format off
-			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
-			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
-			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
-			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
-			// clang-format on
-			ET t0_et    = i1x_et * i2y_et;
-			ET t1_et    = i1y_et * i2x_et;
-			ET det_et   = t0_et - t1_et;
-			return_sign = OMC::sign(det_et);
+			if (i1x_len <= OMC_SUM_LENGTH_THRES && i1y_len <= OMC_SUM_LENGTH_THRES &&
+			    i2x_len <= OMC_SUM_LENGTH_THRES && i2y_len <= OMC_SUM_LENGTH_THRES)
+			{
+				ET i1x_et = 0, i1y_et = 0, i2x_et = 0, i2y_et = 0;
+				// clang-format off
+				for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+				for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+				for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+				for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+				// clang-format on
+				ET t0_et    = i1x_et * i2y_et;
+				ET t1_et    = i1y_et * i2x_et;
+				ET det_et   = t0_et - t1_et;
+				return_sign = OMC::sign(det_et);
+			}
+			else
+			{
+				return_sign = orientOn2Dxy_III_exact<IT, ET>(p1, p2, p3);
+			}
 		}
 
 		if (det_p != det)
@@ -3273,8 +3282,8 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
-		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
+		if (i1y_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1z_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 64);
@@ -3456,8 +3465,8 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1y_len * i2z_len <= OrientOn2D_LengthThreshold &&
-		    i1z_len * i2y_len <= OrientOn2D_LengthThreshold)
+		if (i1y_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1z_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1y_len, i1y, i2z_len, i2z, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2y_len, i2y, &t1, 32);
@@ -3472,17 +3481,25 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		}
 		else
 		{
-			ET i1y_et = 0, i1z_et = 0, i2y_et = 0, i2z_et = 0;
-			// clang-format off
-			for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
-			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
-			for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
-			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
-			// clang-format on
-			ET t0_et    = i1y_et * i2z_et;
-			ET t1_et    = i1z_et * i2y_et;
-			ET det_et   = t0_et - t1_et;
-			return_sign = OMC::sign(det_et);
+			if (i1y_len <= OMC_SUM_LENGTH_THRES && i1z_len <= OMC_SUM_LENGTH_THRES &&
+			    i2y_len <= OMC_SUM_LENGTH_THRES && i2z_len <= OMC_SUM_LENGTH_THRES)
+			{
+				ET i1y_et = 0, i1z_et = 0, i2y_et = 0, i2z_et = 0;
+				// clang-format off
+				for (int i = 0; i < i1y_len; i++) i1y_et += i1y[i];
+				for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+				for (int i = 0; i < i2y_len; i++) i2y_et += i2y[i];
+				for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+				// clang-format on
+				ET t0_et    = i1y_et * i2z_et;
+				ET t1_et    = i1z_et * i2y_et;
+				ET det_et   = t0_et - t1_et;
+				return_sign = OMC::sign(det_et);
+			}
+			else
+			{
+				return orientOn2Dyz_III_exact<IT, ET>(p1, p2, p3);
+			}
 		}
 
 		if (det_p != det)
@@ -3631,8 +3648,8 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[64], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
-		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
+		if (i1z_len * i2x_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1x_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 64);
 			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 64);
@@ -3814,8 +3831,8 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double det_p[32], *det = det_p;
 		int    det_len;
 
-		if (i1z_len * i2x_len <= OrientOn2D_LengthThreshold &&
-		    i1x_len * i2z_len <= OrientOn2D_LengthThreshold)
+		if (i1z_len * i2x_len <= OMC_EXPANSION_LENGTH_THRES &&
+		    i1x_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES)
 		{
 			t0_len = o.Gen_Product_With_PreAlloc(i1z_len, i1z, i2x_len, i2x, &t0, 32);
 			t1_len = o.Gen_Product_With_PreAlloc(i1x_len, i1x, i2z_len, i2z, &t1, 32);
@@ -3830,17 +3847,25 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		}
 		else
 		{
-			ET i1x_et = 0, i1z_et = 0, i2x_et = 0, i2z_et = 0;
-			// clang-format off
-			for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
-			for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
-			for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
-			for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
-			// clang-format on
-			ET t0_et    = i1z_et * i2x_et;
-			ET t1_et    = i1x_et * i2z_et;
-			ET det_et   = t0_et - t1_et;
-			return_sign = OMC::sign(det_et);
+			if (i1x_len <= OMC_SUM_LENGTH_THRES && i1z_len <= OMC_SUM_LENGTH_THRES &&
+			    i2x_len <= OMC_SUM_LENGTH_THRES && i2z_len <= OMC_SUM_LENGTH_THRES)
+			{
+				ET i1x_et = 0, i1z_et = 0, i2x_et = 0, i2z_et = 0;
+				// clang-format off
+				for (int i = 0; i < i1x_len; i++) i1x_et += i1x[i];
+				for (int i = 0; i < i1z_len; i++) i1z_et += i1z[i];
+				for (int i = 0; i < i2x_len; i++) i2x_et += i2x[i];
+				for (int i = 0; i < i2z_len; i++) i2z_et += i2z[i];
+				// clang-format on
+				ET t0_et    = i1z_et * i2x_et;
+				ET t1_et    = i1x_et * i2z_et;
+				ET det_et   = t0_et - t1_et;
+				return_sign = OMC::sign(det_et);
+			}
+			else
+			{
+				return_sign = orientOn2Dzx_III_exact<IT, ET>(p1, p2, p3);
+			}
 		}
 
 		if (det_p != det)

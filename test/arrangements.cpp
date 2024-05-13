@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
 	bool        output_stats  = false;
 	bool        output_result = false;
 	bool        verbose       = false;
-	int         threads_num   = tbb::this_task_arena::max_concurrency();
 
 	ArrangementsConfig arr_config;
 
@@ -58,7 +57,11 @@ int main(int argc, char *argv[])
 		else if (param == "-r")
 			output_result = true;
 		else if (OMC::starts_with(param, "-p="))
-			threads_num = std::stoi(param.substr(3));
+		{
+			int                 threads_num = std::stoi(param.substr(3));
+			tbb::global_control tbb_gc(tbb::global_control::max_allowed_parallelism,
+			                           threads_num);
+		}
 		else if (OMC::starts_with(param, "--tree_leaf="))
 			arr_config.tree_split_size_thres = std::stoi(param.substr(12));
 		else if (OMC::starts_with(param, "--tree_adaptive="))
@@ -84,9 +87,6 @@ int main(int argc, char *argv[])
 		fout.open("./ours_time.txt", std::ios::out | std::ios::app);
 		fout << filename << ",";
 	}
-
-	tbb::global_control tbb_gc(tbb::global_control::max_allowed_parallelism,
-	                           threads_num);
 
 	Arrangements arrangements(verbose);
 	arrangements.setConfig(arr_config);
