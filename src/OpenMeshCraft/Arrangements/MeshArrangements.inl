@@ -575,6 +575,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 			  ArrFuncNames::IP_CNT,
 			  static_cast<size_t>(arr_out_verts[vi]->point_type()));
 
+	#ifdef OMC_ARR_PROF_MAXVAR
 			// save the order differences of maxvar
 			NT indirect_maxvar, offset_maxvar;
 			indirect_maxvar = arr_out_verts[vi]->getIndirectMaxVar();
@@ -588,11 +589,43 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 			OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::IP_MAXVAR_ORDER);
 			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::IP_MAXVAR_ORDER,
 			                          rounded_offset_order);
+	#endif
+
+	#ifdef OMC_ARR_PROF_TPI_LENGTH
+			// get the length of TPI's expansion
+			NT *lx = nullptr, *ly = nullptr, *lz = nullptr, *ld = nullptr;
+			int lx_len = 0, ly_len = 0, lz_len = 0, d_len = 0;
+			NT  bx, by, bz;
+			arr_out_verts[vi]->getExpansionLambda(&lx, lx_len, &ly, ly_len, &lz,
+			                                      lz_len, &ld, d_len, bx, by, bz);
+
+			size_t point_type_name = static_cast<size_t>(ArrFuncNames::SSI_EXP_LEN);
+			if (arr_out_verts[vi]->is_LPI())
+				point_type_name = static_cast<size_t>(ArrFuncNames::LPI_EXP_LEN);
+			if (arr_out_verts[vi]->is_TPI())
+				point_type_name = static_cast<size_t>(ArrFuncNames::TPI_EXP_LEN);
+
+			// clang-format off
+			OMC_ARR_PROFILE_INC_TOTAL_CNT(static_cast<ArrFuncNames>(point_type_name), 4);
+			OMC_ARR_PROFILE_INC_REACH(static_cast<ArrFuncNames>(point_type_name), lx_len);
+			OMC_ARR_PROFILE_INC_REACH(static_cast<ArrFuncNames>(point_type_name), ly_len);
+			OMC_ARR_PROFILE_INC_REACH(static_cast<ArrFuncNames>(point_type_name), lz_len);
+			OMC_ARR_PROFILE_INC_REACH(static_cast<ArrFuncNames>(point_type_name), d_len);
+			// clang-format on
+
+			if (lx)
+				FreeDoubles(lx);
+			if (ly)
+				FreeDoubles(ly);
+			if (lz)
+				FreeDoubles(lz);
+			if (ld)
+				FreeDoubles(ld);
+	#endif
 		}
 	}
-#endif
 
-#if defined(OMC_ARR_PROFILE) && 0
+	#ifdef OMC_ARR_PROF_ES_PNTS
 	std::fstream fout;
 	fout.open("./data/test_output/arrangements/pnts_on_edges.txt", std::ios::out);
 	if (fout.is_open())
@@ -628,6 +661,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 			fout << sum << std::endl;
 	}
 	fout.close();
+	#endif
 #endif
 }
 

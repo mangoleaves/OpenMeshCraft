@@ -39,7 +39,7 @@ namespace OMC {
 // === ablation control for features
 // #define OMC_ARR_GLOBAL_POINT_SET
 // #define OMC_ARR_AUX_LPI
-#define OMC_ARR_3D_PREDS
+// #define OMC_ARR_3D_PREDS
 
 constexpr int NBIT = 32;
 
@@ -384,6 +384,13 @@ struct hash<std::vector<T>>
 
 #ifdef OMC_ARR_PROFILE
 
+// === profile control
+// #define OMC_ARR_PROF_TTI
+// #define OMC_ARR_PROF_MAXVAR
+// #define OMC_ARR_PROF_TPI_LENGTH
+// #define OMC_ARR_PROF_ES_PNTS
+// #define OMC_ARR_PROF_TREE_NODE
+
 	#include <fstream>
 
 namespace OMC {
@@ -396,6 +403,9 @@ enum class ArrFuncNames : size_t
 	DC_TTI,
 	IP_CNT,
 	IP_MAXVAR_ORDER,
+	SSI_EXP_LEN,
+	LPI_EXP_LEN,
+	TPI_EXP_LEN,
 	CNT
 };
 
@@ -464,7 +474,10 @@ inline void ArrProfile::print()
 		"Detect BBI large node",
 	  "Detect & Classify TTI",
 		"Implicit Points Count",
-		"Implicit Points MaxVar Order"
+		"Implicit Points MaxVar Order",
+		"SSI Expansion Length",
+		"LPI Expansion Length",
+		"TPI Expansion Length"
   };
 
 	// clang-format on

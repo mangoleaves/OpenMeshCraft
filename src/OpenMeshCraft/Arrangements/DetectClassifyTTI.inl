@@ -4,6 +4,15 @@
 
 namespace OMC {
 
+#ifdef OMC_ARR_PROF_TTI
+	#define OMC_ARR_PROF_TTI_INCT OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::DC_TTI)
+	#define OMC_ARR_PROF_TTI_INCR(branch) \
+		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, branch)
+#else
+	#define OMC_ARR_PROF_TTI_INCT
+	#define OMC_ARR_PROF_TTI_INCR(branch)
+#endif
+
 template <typename Traits>
 struct DetectClassifyTTI<Traits>::TTIHelper
 {
@@ -129,7 +138,7 @@ void DetectClassifyTTI<Traits>::check_TTI(index_t ta, index_t tb)
 	  CollinearPoints3D().misaligned(ha.v[0], ha.v[1], ha.v[2]) &&
 	    CollinearPoints3D().misaligned(hb.v[0], hb.v[1], hb.v[2]),
 	  "Detect degenerate triangle in check TTI.");
-	OMC_ARR_PROFILE_INC_TOTAL(ArrFuncNames::DC_TTI);
+	OMC_ARR_PROF_TTI_INCT;
 
 	// classify two triangles to three cases:
 	// sharing edge, sharing vertex or sharing nothing.
@@ -152,7 +161,7 @@ template <typename Traits>
 void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
                                                      TTIHelper &hb)
 {
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 0);
+	OMC_ARR_PROF_TTI_INCR(0);
 	// Let e be the shared edge and { oppa, oppb } be the two vertices opposite to
 	// e in `ta` and `tb`, respectively. If oppa and oppb lie at the same side of
 	// e, the two triangles overlap. Otherwise they are edge-adjacent and form a
@@ -179,7 +188,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	if (get_v_wrt_tri(hb, oppb, ha) != Sign::ZERO)
 		return; // do not intersect
 
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 1);
+	OMC_ARR_PROF_TTI_INCR(1);
 
 	// now `ta` and `tb` are coplanar
 	ha.t_nmax = ts.triPlane(ha.t_id);
@@ -201,7 +210,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	ts.addCoplanarTriangles(ha.t_id, hb.t_id);
 	ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 2);
+	OMC_ARR_PROF_TTI_INCR(2);
 
 	// cache the orientation result
 	ha.init_v_wrt_seg();
@@ -226,7 +235,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_edge(TTIHelper &ha,
 	classify_coplanar_edge_intersections(hb, (eb + 1) % 3, ha, &cec);
 	classify_coplanar_edge_intersections(hb, (eb + 2) % 3, ha, &cec);
 
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 3);
+	OMC_ARR_PROF_TTI_INCR(3);
 
 	return; // end check.
 }
@@ -235,7 +244,7 @@ template <typename Traits>
 void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
                                                        TTIHelper &hb)
 {
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 4);
+	OMC_ARR_PROF_TTI_INCR(4);
 	// check if `ta` and `tb` intersect.
 
 	index_t va = 0; // index of the shared vertex in `ta`
@@ -289,7 +298,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 
 	if (eav0_wrt_tb == Sign::ZERO && eav1_wrt_tb == Sign::ZERO)
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 5);
+		OMC_ARR_PROF_TTI_INCR(5);
 
 		{ // initialize cache
 #ifdef ARR_DC_FILTER_ORIENT3D
@@ -320,7 +329,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		if ((eav0_wrt_sector == 2 || eav0_wrt_sector == 3) &&
 		    (eav1_wrt_sector == 2 || eav1_wrt_sector == 3))
 			return; // ta and tb do not intersect
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 6);
+		OMC_ARR_PROF_TTI_INCR(6);
 
 		size_t ebv0_wrt_sector = get_vtx_wrt_sector(hb, ebv0, ha, ea);
 		size_t ebv1_wrt_sector = get_vtx_wrt_sector(hb, ebv1, ha, ea);
@@ -331,7 +340,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		if ((ebv0_wrt_sector == 2 || ebv0_wrt_sector == 3) &&
 		    (ebv1_wrt_sector == 2 || ebv1_wrt_sector == 3))
 			return; // ta and tb do not intersect
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 7);
+		OMC_ARR_PROF_TTI_INCR(7);
 
 		// ea is coplanar to `tb`, so `ta` and `tb` are coplanar
 		size_t ic = 0; // intersection count, excluding shared vertex
@@ -358,21 +367,21 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 
 		if (ic != 0)
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 8);
+			OMC_ARR_PROF_TTI_INCR(8);
 			ts.addCoplanarTriangles(ha.t_id, hb.t_id);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 
 		return;
 	}
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 9);
+	OMC_ARR_PROF_TTI_INCR(9);
 
 	Sign ebv0_wrt_ta = get_v_wrt_tri(hb, ebv0, ha);
 	Sign ebv1_wrt_ta = get_v_wrt_tri(hb, ebv1, ha);
 
 	if (ebv0_wrt_ta != Sign::ZERO && ebv0_wrt_ta == ebv1_wrt_ta)
 		return; // above or below `tb`, do not intersect
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 10);
+	OMC_ARR_PROF_TTI_INCR(10);
 
 	// otherwise they cross each other's plane, possibly intersect.
 
@@ -406,7 +415,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	if (eav0_wrt_tb == Sign::POSITIVE && eav1_wrt_tb == Sign::NEGATIVE ||
 	    eav0_wrt_tb == Sign::NEGATIVE && eav1_wrt_tb == Sign::POSITIVE)
 	{ // ea cross the support plane of `tb`
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 11);
+		OMC_ARR_PROF_TTI_INCR(11);
 
 		// intersection list
 		IntersectionPoints intersection_points;
@@ -417,7 +426,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		// check if a new intersection point exists between `ea` and `tb`.
 		if (noncoplanar_seg_tri_do_intersect(ha, ea, hb))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 12);
+			OMC_ARR_PROF_TTI_INCR(12);
 			classify_noncoplanar_edge_intersections(ha, ea, hb, intersection_points,
 			                                        intersection_types);
 		}
@@ -449,19 +458,19 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			add_symbolic_segment(v0_id, v1_id, ha, hb);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 13);
+			OMC_ARR_PROF_TTI_INCR(13);
 			return; // all possible intersections are found, return.
 		}
 	}
 	else if (eav0_wrt_tb == Sign::ZERO || eav1_wrt_tb == Sign::ZERO)
 	{ // one edge of `ta` on the support plane of `tb`
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 14);
+		OMC_ARR_PROF_TTI_INCR(14);
 		index_t copl_ea = eav0_wrt_tb == Sign::ZERO ? (ea + 2) % 3 : (ea + 1) % 3;
 		index_t copl_va = eav0_wrt_tb == Sign::ZERO ? ea : (ea + 1) % 3;
 
 		if (get_vtx_wrt_sector(ha, copl_va, hb, eb) == 0)
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 15);
+			OMC_ARR_PROF_TTI_INCR(15);
 			classify_coplanar_edge_intersections(ha, copl_ea, hb, nullptr);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
@@ -476,7 +485,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	if (ebv0_wrt_ta == Sign::POSITIVE && ebv1_wrt_ta == Sign::NEGATIVE ||
 	    ebv0_wrt_ta == Sign::NEGATIVE && ebv1_wrt_ta == Sign::POSITIVE)
 	{ // `eb` cross the support plane of `ta`
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 16);
+		OMC_ARR_PROF_TTI_INCR(16);
 
 		// intersection list
 		IntersectionPoints intersection_points;
@@ -487,7 +496,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		// check if a new intersection point exists between ea and `tb`.
 		if (noncoplanar_seg_tri_do_intersect(hb, eb, ha))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 17);
+			OMC_ARR_PROF_TTI_INCR(17);
 			classify_noncoplanar_edge_intersections(hb, eb, ha, intersection_points,
 			                                        intersection_types);
 		}
@@ -509,13 +518,13 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	}
 	else if (ebv0_wrt_ta == Sign::ZERO || ebv1_wrt_ta == Sign::ZERO)
 	{ // one edge of `tb` on the support plane of `ta`
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 18);
+		OMC_ARR_PROF_TTI_INCR(18);
 		index_t copl_eb = ebv0_wrt_ta == Sign::ZERO ? (eb + 2) % 3 : (eb + 1) % 3;
 		index_t copl_vb = ebv0_wrt_ta == Sign::ZERO ? eb : (eb + 1) % 3;
 
 		if (get_vtx_wrt_sector(hb, copl_vb, ha, ea) == 0)
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 19);
+			OMC_ARR_PROF_TTI_INCR(19);
 			classify_coplanar_edge_intersections(hb, copl_eb, ha, nullptr);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
@@ -610,7 +619,7 @@ template <typename Traits>
 void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 {
 	// `ta` and `tb` do not share any edge or vertex.
-	OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 20);
+	OMC_ARR_PROF_TTI_INCR(20);
 
 	// intersection list
 	IntersectionPoints intersection_points;
@@ -663,13 +672,13 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	    _sameOrientation(orAB[1], orAB[2]) && (orAB[0] != Sign::ZERO))
 	{
 		// CASE: no intersection found
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 21);
+		OMC_ARR_PROF_TTI_INCR(21);
 		return;
 	}
 
 	if (_allCoplanarEdges(orAB))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 22);
+		OMC_ARR_PROF_TTI_INCR(22);
 		// CASE: all edge of ta are coplanar to all edges of tb   (orAB: 0 0 0)
 
 		{ // initialize cache
@@ -715,7 +724,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 
 		if (ic > 0)
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 23);
+			OMC_ARR_PROF_TTI_INCR(23);
 			ts.addCoplanarTriangles(ha.t_id, hb.t_id);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
@@ -751,11 +760,11 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 
 	if (_singleCoplanarEdge(orAB, edge_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 24);
+		OMC_ARR_PROF_TTI_INCR(24);
 		// CASE: a single coplanar edge of ta is coplanar to tb (e.g. orAB: 0 0 1).
 		if (coplanar_seg_tri_do_intersect(ha, edge_id, hb))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 25);
+			OMC_ARR_PROF_TTI_INCR(25);
 			classify_coplanar_edge_intersections(ha, edge_id, hb, nullptr);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
@@ -763,20 +772,20 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	}
 	else if (_vtxInPlaneAndOppositeEdgeOnSameSide(orAB, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 26);
+		OMC_ARR_PROF_TTI_INCR(26);
 		// CASE: a vertex of ta is coplanar to tb, and the opposite edge is on the
 		// same side respect to tb  (e.g. orAB: 1 0 1)
 		if (classify_coplanr_vtx_intersections(ha, vtx_id, hb, intersection_points,
 		                                       intersection_types))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 27);
+			OMC_ARR_PROF_TTI_INCR(27);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 		return; // whether intersections are found or not, return.
 	}
 	else if (_vtxInPlaneAndOppositeEdgeCrossPlane(orAB, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 28);
+		OMC_ARR_PROF_TTI_INCR(28);
 		// CASE: a vertex of ta is coplanar to tb, and the opposite edge could
 		// intersect tb (e.g. orAB: -1 0 1)
 		classify_coplanr_vtx_intersections(ha, vtx_id, hb, intersection_points,
@@ -786,7 +795,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 
 		if (noncoplanar_seg_tri_do_intersect(ha, opp_edge_id, hb))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 29);
+			OMC_ARR_PROF_TTI_INCR(29);
 			classify_noncoplanar_edge_intersections(
 			  ha, opp_edge_id, hb, intersection_points, intersection_types);
 		}
@@ -794,18 +803,18 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	}
 	else if (_vtxOnASideAndOppositeEdgeOnTheOther(orAB, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 30);
+		OMC_ARR_PROF_TTI_INCR(30);
 		// CASE: a vertex of ta is on one side of the plane defined to tb, and the
 		// opposite edge (always in ta) is in the other (e.g. orAB: -1 1 1)
 		if (noncoplanar_seg_tri_do_intersect(ha, vtx_id, hb))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 31);
+			OMC_ARR_PROF_TTI_INCR(31);
 			classify_noncoplanar_edge_intersections(
 			  ha, vtx_id, hb, intersection_points, intersection_types);
 		}
 		if (noncoplanar_seg_tri_do_intersect(ha, (vtx_id + 2) % 3, hb))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 32);
+			OMC_ARR_PROF_TTI_INCR(32);
 			classify_noncoplanar_edge_intersections(
 			  ha, (vtx_id + 2) % 3, hb, intersection_points, intersection_types);
 		}
@@ -835,7 +844,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		add_symbolic_segment(v0_id, v1_id, ha, hb);
 		ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 33);
+		OMC_ARR_PROF_TTI_INCR(33);
 		return; // all possible intersections are found, return.
 	}
 	// intersection_types is not used after here.
@@ -854,17 +863,17 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	    _sameOrientation(orBA[1], orBA[2]) && (orBA[0] != Sign::ZERO))
 	{
 		// CASE: no intersection found
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 34);
+		OMC_ARR_PROF_TTI_INCR(34);
 		return;
 	}
 
 	if (_singleCoplanarEdge(orBA, edge_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 35);
+		OMC_ARR_PROF_TTI_INCR(35);
 		// CASE: a single edge of tB is coplanar to tA    (e.g. orBA: 1 0 0)
 		if (coplanar_seg_tri_do_intersect(hb, edge_id, ha))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 36);
+			OMC_ARR_PROF_TTI_INCR(36);
 			classify_coplanar_edge_intersections(hb, edge_id, ha, nullptr);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
@@ -872,20 +881,20 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	}
 	else if (_vtxInPlaneAndOppositeEdgeOnSameSide(orBA, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 37);
+		OMC_ARR_PROF_TTI_INCR(37);
 		// CASE: a vertex of tB is coplanar to tA, and the opposite edge is on the
 		// same side respect to tA  (e.g. orBA: 1 0 1)
 		if (classify_coplanr_vtx_intersections(hb, vtx_id, ha, intersection_points,
 		                                       intersection_types))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 38);
+			OMC_ARR_PROF_TTI_INCR(38);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 		return; // whether intersections are found or not, return.
 	}
 	else if (_vtxInPlaneAndOppositeEdgeCrossPlane(orBA, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 39);
+		OMC_ARR_PROF_TTI_INCR(39);
 		// CASE: a vertex of tB is coplanar to tA, and the opposite edge could
 		// intersect tA (e.g. orBA: -1 0 1)
 		classify_coplanr_vtx_intersections(hb, vtx_id, ha, intersection_points,
@@ -895,25 +904,25 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 
 		if (noncoplanar_seg_tri_do_intersect(hb, opp_edge_id, ha))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 40);
+			OMC_ARR_PROF_TTI_INCR(40);
 			classify_noncoplanar_edge_intersections(
 			  hb, opp_edge_id, ha, intersection_points, intersection_types);
 		}
 	}
 	else if (_vtxOnASideAndOppositeEdgeOnTheOther(orBA, vtx_id))
 	{
-		OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 41);
+		OMC_ARR_PROF_TTI_INCR(41);
 		// CASE: a vertex of tB is on one side of the plane defined to tA, and the
 		// opposite edge (always in tB) is in the other (e.g. orBA: -1 1 1)
 		if (noncoplanar_seg_tri_do_intersect(hb, vtx_id, ha))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 42);
+			OMC_ARR_PROF_TTI_INCR(42);
 			classify_noncoplanar_edge_intersections(
 			  hb, vtx_id, ha, intersection_points, intersection_types);
 		}
 		if (noncoplanar_seg_tri_do_intersect(hb, (vtx_id + 2) % 3, ha))
 		{
-			OMC_ARR_PROFILE_INC_REACH(ArrFuncNames::DC_TTI, 43);
+			OMC_ARR_PROF_TTI_INCR(43);
 			classify_noncoplanar_edge_intersections(
 			  hb, (vtx_id + 2) % 3, ha, intersection_points, intersection_types);
 		}

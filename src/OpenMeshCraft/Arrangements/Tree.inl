@@ -33,7 +33,7 @@ void Arr_Tree_Intersection<AppTraits>::init_from_triangle_soup(
 	this->construct(/*compact*/ true, config.tree_enlarge_ratio,
 	                config.tree_adaptive_thres);
 
-#if 0 && defined(OMC_ARR_PROFILE)
+#if defined(OMC_ARR_PROFILE) && defined(OMC_ARR_PROF_TREE_NODE)
 
 	std::fstream fout;
 	fout.open("./data/test_output/Arrangements/octree_nodes_size.txt",

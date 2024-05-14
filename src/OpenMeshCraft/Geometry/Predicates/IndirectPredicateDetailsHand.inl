@@ -3003,6 +3003,7 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
+	OMC_PRED_PROFILE_INC_LEN_TOTAL(PredicateNames::_orientOn2D_III, 20);
 	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
@@ -3093,6 +3094,28 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double i2y_p[32], *i2y = i2y_p;
 		int    i2y_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2y_len, d3d2_b2b3_l2y,
 		                                          l3d2y_len, l3d2y, &i2y, 32);
+
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2y_len);
+
 		double t0_p[32], *t0 = t0_p;
 		int    t0_len;
 		double t1_p[32], *t1 = t1_p;
@@ -3368,6 +3391,7 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
+	OMC_PRED_PROFILE_INC_LEN_TOTAL(PredicateNames::_orientOn2D_III, 20);
 	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
@@ -3458,6 +3482,28 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double i2z_p[32], *i2z = i2z_p;
 		int    i2z_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2z_len, d3d2_b2b3_l2z,
 		                                          l3d2z_len, l3d2z, &i2z, 32);
+
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2y_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2z_len);
+
 		double t0_p[32], *t0 = t0_p;
 		int    t0_len;
 		double t1_p[32], *t1 = t1_p;
@@ -3734,6 +3780,7 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
                                 const GenericPoint3T<IT, ET> &p2,
                                 const GenericPoint3T<IT, ET> &p3)
 {
+	OMC_PRED_PROFILE_INC_LEN_TOTAL(PredicateNames::_orientOn2D_III, 20);
 	Sign return_sign = Sign::UNCERTAIN;
 	#ifdef CHECK_FOR_XYZERFLOWS
 	feclearexcept(FE_ALL_EXCEPT);
@@ -3824,6 +3871,28 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double i2x_p[32], *i2x = i2x_p;
 		int    i2x_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2x_len, d3d2_b2b3_l2x,
 		                                          l3d2x_len, l3d2x, &i2x, 32);
+
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3_l1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d1_b1b3_l1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d2_b2b3_l2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d3d2_b2b3_l2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, l3d2x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i1x_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2z_len);
+		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, i2x_len);
+
 		double t0_p[32], *t0 = t0_p;
 		int    t0_len;
 		double t1_p[32], *t1 = t1_p;

@@ -10708,7 +10708,7 @@ Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1, double bx, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnX_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -10926,7 +10926,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnX_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -11073,7 +11073,7 @@ Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1, double by, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnY_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -11291,7 +11291,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnY_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -11438,7 +11438,7 @@ Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1, double bz, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnZ_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -11656,7 +11656,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnZ_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -14623,7 +14623,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
                       double p3x, double p3y, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -14813,7 +14813,7 @@ Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3x,
                       double op3y, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -15068,7 +15068,7 @@ Sign orientOn2Dxy_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -15274,7 +15274,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1, double p2y, double p2z,
                       double p3y, double p3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -15464,7 +15464,7 @@ Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3y,
                       double op3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -15719,7 +15719,7 @@ Sign orientOn2Dyz_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -15925,7 +15925,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2z,
                       double p3x, double p3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -16115,7 +16115,7 @@ Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double op3x,
                       double op3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -16370,7 +16370,7 @@ Sign orientOn2Dzx_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -17239,7 +17239,7 @@ Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1, double bx, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnX_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -17484,7 +17484,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnX_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnX_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnX_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -17635,7 +17635,7 @@ Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1, double by, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnY_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -17880,7 +17880,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnY_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnY_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnY_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -18031,7 +18031,7 @@ Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1, double bz, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_IE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnZ_IE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -18276,7 +18276,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign lessThanOnZ_II(const GenericPoint3T<IT, ET> &p1,
                     const GenericPoint3T<IT, ET> &p2, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_lessThanOnZ_II, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_lessThanOnZ_II, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -20885,7 +20885,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
                       double p3x, double p3y, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -21079,7 +21079,7 @@ Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double p3x, double p3y,
                       PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -21388,7 +21388,7 @@ Sign orientOn2Dxy_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dxy_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dxy_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -21602,7 +21602,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1, double p2y, double p2z,
                       double p3y, double p3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -21796,7 +21796,7 @@ Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double p3y, double p3z,
                       PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -22105,7 +22105,7 @@ Sign orientOn2Dyz_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dyz_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dyz_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -22319,7 +22319,7 @@ template <typename IT, typename ET, bool WithSSFilter>
 Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2z,
                       double p3x, double p3z, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IEE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_IEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -22513,7 +22513,7 @@ Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2, double p3x, double p3z,
                       PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_IIE, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_IIE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -22822,7 +22822,7 @@ Sign orientOn2Dzx_III(const GenericPoint3T<IT, ET> &p1,
                       const GenericPoint3T<IT, ET> &p2,
                       const GenericPoint3T<IT, ET> &p3, PntArr3 arr)
 {
-	OMC_PRED_PROFILE_INC_TOTAL(PredicateNames::_orientOn2Dzx_III, arr);
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orientOn2Dzx_III, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{

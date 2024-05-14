@@ -410,8 +410,14 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 
 #ifdef OMC_PRED_PROFILE
 
+// === profile control
+// #define OMC_PRED_PROFILE_FILTER
+// #define OMC_PRED_PROFILE_IPOINT
+// #define OMC_PRED_PROFILE_LENGTH
+
 enum class PredicateNames : size_t
 {
+	// below use filter,ss_fail,d_fail count
 	_lessThanOnX_IE = 0,
 	_lessThanOnX_II,
 	_lessThanOnY_IE,
@@ -427,6 +433,7 @@ enum class PredicateNames : size_t
 	_orientOn2Dzx_IEE,
 	_orientOn2Dzx_IIE,
 	_orientOn2Dzx_III,
+	// below use total count
 	_ssi_filter,
 	_ssi_interval,
 	_ssi_expansion,
@@ -436,6 +443,8 @@ enum class PredicateNames : size_t
 	_tpi_filter,
 	_tpi_interval,
 	_tpi_expansion,
+	// below use total, branch count
+	_orientOn2D_III,
 	CNT
 };
 
@@ -443,45 +452,75 @@ struct PredicatesProfile
 {
 	static constexpr size_t ARR_CNT = 32;
 
-	static std::atomic_size_t total_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static std::atomic_size_t filter_count[(size_t)PredicateNames::CNT][ARR_CNT];
 	static std::atomic_size_t ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 	static std::atomic_size_t d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 
+	static std::atomic_size_t total_count[(size_t)PredicateNames::CNT];
+
+	static constexpr size_t BRANCH_CNT = 256;
+
+	static std::atomic_size_t branch_count[(size_t)PredicateNames::CNT]
+	                                      [BRANCH_CNT];
+
 	static void initialize();
-	static void inc_total(PredicateNames name, PntArr3 arr);
+	static void inc_filter(PredicateNames name, PntArr3 arr);
 	static void inc_ss_fail(PredicateNames name, PntArr3 arr);
 	static void inc_d_fail(PredicateNames name, PntArr3 arr);
 
-	static void inc_count(PredicateNames name);
+	static void inc_total(PredicateNames name, size_t count);
+
+	static void inc_branch(PredicateNames name, size_t branch);
 
 	static void print();
 };
 
-#define OMC_PRED_PROFILE_INIT OMC::PredicatesProfile::initialize()
-#define OMC_PRED_PROFILE_PRINT OMC::PredicatesProfile::print()
+	#define OMC_PRED_PROFILE_INIT OMC::PredicatesProfile::initialize()
+	#define OMC_PRED_PROFILE_PRINT OMC::PredicatesProfile::print()
 
-#define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)\
-	OMC::PredicatesProfile::inc_total(pred, arr)
+	#ifdef OMC_PRED_PROFILE_FILTER
+		#define OMC_PRED_PROFILE_INC_FILTER(pred, arr) \
+			OMC::PredicatesProfile::inc_filter(pred, arr)
+		#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr) \
+			OMC::PredicatesProfile::inc_ss_fail(pred, arr)
+		#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr) \
+			OMC::PredicatesProfile::inc_d_fail(pred, arr)
+	#else
+		#define OMC_PRED_PROFILE_INC_FILTER(pred, arr)
+		#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
+		#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
+	#endif
 
-#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)\
-	OMC::PredicatesProfile::inc_ss_fail(pred, arr)
+	#ifdef OMC_PRED_PROFILE_IPOINT
+		#define OMC_PRED_PROFILE_INC_IP_TOTAL(name) \
+			OMC::PredicatesProfile::inc_total(name, 1)
+	#else
+		#define OMC_PRED_PROFILE_INC_IP_TOTAL(name)
+	#endif
 
-#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)\
-	OMC::PredicatesProfile::inc_d_fail(pred, arr)
-
-#define OMC_PRED_PROFILE_INC_CNT(name)\
-	OMC::PredicatesProfile::inc_count(name)
+	#ifdef OMC_PRED_PROFILE_LENGTH
+		#define OMC_PRED_PROFILE_INC_LEN_TOTAL(name, count) \
+			OMC::PredicatesProfile::inc_total(name, count)
+		#define OMC_PRED_PROFILE_INC_LEN(name, branch) \
+			OMC::PredicatesProfile::inc_branch(name, branch)
+	#else
+		#define OMC_PRED_PROFILE_INC_LEN_TOTAL(name, count)
+		#define OMC_PRED_PROFILE_INC_LEN(name, branch)
+	#endif
 
 #else
 
-#define OMC_PRED_PROFILE_INIT
-#define OMC_PRED_PROFILE_PRINT
+	#define OMC_PRED_PROFILE_INIT
+	#define OMC_PRED_PROFILE_PRINT
 
-#define OMC_PRED_PROFILE_INC_TOTAL(pred, arr)
-#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
-#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
+	#define OMC_PRED_PROFILE_INC_FILTER(pred, arr)
+	#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
+	#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
 
-#define OMC_PRED_PROFILE_INC_CNT(name)
+	#define OMC_PRED_PROFILE_INC_IP_TOTAL(name)
+
+	#define OMC_PRED_PROFILE_INC_LEN_TOTAL(name, count)
+	#define OMC_PRED_PROFILE_INC_LEN(name, branch)
 
 #endif
 
