@@ -117,9 +117,6 @@ void Triangulation<Traits>::triangulateSingleTriangle(
 	 *                                  TRIANGLE SPLIT
 	 * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-	// if (t_points.size() <= 10)
-	// 	splitSingleTriangle(subm, t_points);
-	// else
 	splitSingleTriangleWithTree(subm, t_points);
 
 	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -180,101 +177,6 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
 }
 
 template <typename Traits>
-void Triangulation<Traits>::splitSingleTriangle(
-  FastTriMesh &subm, const std::vector<size_t> &points)
-{
-	if (points.empty())
-		return;
-
-	std::vector<uint8_t> tri_visited(points.size() * 4, false);
-
-	// traverse triangles in subm to find which on contains the point
-	auto locatePointWalking =
-	  [this, &subm, &tri_visited](const GPoint &p, index_t curr_tid)
-	{
-		std::fill(tri_visited.begin(), tri_visited.end(), false);
-		Sign subm_ori = subm.Orientation();
-		while (true)
-		{
-			index_t v0 = subm.triVertID(curr_tid, 0);
-			index_t v1 = subm.triVertID(curr_tid, 1);
-			index_t v2 = subm.triVertID(curr_tid, 2);
-			index_t e0 = subm.triEdgeID(curr_tid, 0);
-			index_t e1 = subm.triEdgeID(curr_tid, 1);
-			index_t e2 = subm.triEdgeID(curr_tid, 2);
-			// clang-format off
-			Sign ori0 = OrientOn2D()(subm.vert(v0), subm.vert(v1), p, planeToInt(subm.refPlane()));
-			Sign ori1 = OrientOn2D()(subm.vert(v1), subm.vert(v2), p, planeToInt(subm.refPlane()));
-			Sign ori2 = OrientOn2D()(subm.vert(v2), subm.vert(v0), p, planeToInt(subm.refPlane()));
-			// clang-format on
-
-			if ((ori0 == Sign::ZERO || ori0 == subm_ori) &&
-			    (ori1 == Sign::ZERO || ori1 == subm_ori) &&
-			    (ori2 == Sign::ZERO || ori2 == subm_ori))
-			{ // inside or on boundary
-				if (ori0 == subm_ori && ori1 == subm_ori && ori2 == subm_ori)
-				{ // inside
-					return std::pair<index_t, bool>(curr_tid, true);
-				}
-				else
-				{ // on edge
-					if (ori0 == Sign::ZERO)
-						return std::pair<index_t, bool>(e0, false);
-					if (ori1 == Sign::ZERO)
-						return std::pair<index_t, bool>(e1, false);
-					if (ori2 == Sign::ZERO)
-						return std::pair<index_t, bool>(e2, false);
-				}
-			}
-			else
-			{ // outside, walk to another triangle
-				tri_visited[curr_tid] = true;
-				if (ori0 == reverse_sign(subm_ori) && !subm.edgeIsBoundary(e0) &&
-				    !tri_visited[subm.triOppToEdge(e0, curr_tid)])
-					curr_tid = subm.triOppToEdge(e0, curr_tid);
-				else if (ori1 == reverse_sign(subm_ori) && !subm.edgeIsBoundary(e1) &&
-				         !tri_visited[subm.triOppToEdge(e1, curr_tid)])
-					curr_tid = subm.triOppToEdge(e1, curr_tid);
-				else if (ori2 == reverse_sign(subm_ori) && !subm.edgeIsBoundary(e2) &&
-				         !tri_visited[subm.triOppToEdge(e2, curr_tid)])
-					curr_tid = subm.triOppToEdge(e2, curr_tid);
-				else
-					break;
-			}
-		}
-
-		// this should not happen
-		OMC_ASSERT(false, "No containing triangle found!");
-		return std::pair<index_t, bool>(InvalidIndex, true);
-	};
-
-	// add the first point
-	auto    curr  = points.begin();
-	index_t v_pos = subm.addVert(&ts.vert(*curr), *curr);
-	subm.splitTri(0, v_pos);
-
-	index_t last_tid = 0;
-
-	// progressively add the other points, looking for the triangle
-	// that contains them only among the newly generated triangles
-	while (++curr != points.end())
-	{
-		v_pos = subm.addVert(&ts.vert(*curr), *curr);
-
-		// find triangle from last found one.
-		auto [cont_id, is_tri] = locatePointWalking(subm.vert(v_pos), last_tid);
-
-		if (is_tri)
-		{
-			subm.splitTri(cont_id, v_pos);
-			last_tid = cont_id;
-		}
-		else
-			subm.splitEdge(cont_id, v_pos);
-	}
-}
-
-template <typename Traits>
 void Triangulation<Traits>::splitSingleTriangleWithTree(
   FastTriMesh &subm, const std::vector<size_t> &points)
 {
@@ -287,25 +189,45 @@ void Triangulation<Traits>::splitSingleTriangleWithTree(
 	subm.setTriInfo(0, n_id);
 
 	// add the first point to split triangle
-	auto    curr  = points.begin();
-	index_t v_pos = subm.addVert(&ts.vert(*curr), *curr);
-	subm.splitTri(0, v_pos, tree);
+	auto    curr = points.begin();
+	index_t p_id = subm.addVert(&ts.vert(*curr), *curr);
+	subm.splitTri(0, p_id, tree);
 
 	// progressively add the other points, looking for the triangle
 	// that contains them only among the newly generated triangles
 	while (++curr != points.end())
 	{
-		v_pos = subm.addVert(&ts.vert(*curr), *curr);
+		p_id = subm.addVert(&ts.vert(*curr), *curr);
 
-		auto [cont_id, is_tri] = locatePointInTree(subm, v_pos, tree);
+#ifndef OMC_ARR_3D_PREDS
+		auto [cont_id, is_tri] = locatePointInTree(subm, p_id, tree);
 
 		OMC_EXPENSIVE_ASSERT(is_valid_idx(cont_id),
 		                     "No containing triangle found!");
 
 		if (is_tri)
-			subm.splitTri(cont_id, v_pos, tree);
+			subm.splitTri(cont_id, p_id, tree);
 		else
-			subm.splitEdge(cont_id, v_pos, tree);
+			subm.splitEdge(cont_id, p_id, tree);
+#else
+		index_t cont_t_id = locatePointInTree(subm, p_id, tree);
+
+		OMC_EXPENSIVE_ASSERT(is_valid_idx(cont_t_id),
+		                     "No containing triangle found!");
+
+		index_t e0_id = subm.triEdgeID(cont_t_id, 0);
+		index_t e1_id = subm.triEdgeID(cont_t_id, 1);
+		index_t e2_id = subm.triEdgeID(cont_t_id, 2);
+
+		if (fastPointOnLine(subm, e0_id, p_id))
+			subm.splitEdge(e0_id, p_id, tree);
+		else if (fastPointOnLine(subm, e1_id, p_id))
+			subm.splitEdge(e1_id, p_id, tree);
+		else if (fastPointOnLine(subm, e2_id, p_id))
+			subm.splitEdge(e2_id, p_id, tree);
+		else
+			subm.splitTri(cont_t_id, p_id, tree);
+#endif
 	}
 }
 
@@ -351,6 +273,7 @@ void Triangulation<Traits>::splitSingleEdge(FastTriMesh &subm, index_t v0_id,
 	subm.removeEdge(e_id);
 }
 
+#ifndef OMC_ARR_3D_PREDS
 template <typename Traits>
 std::pair<index_t, bool>
 Triangulation<Traits>::locatePointInTree(const FastTriMesh &subm, index_t p_id,
@@ -442,6 +365,45 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 	OMC_ASSERT(false, "no containing triangle found");
 	return std::pair<index_t, bool>(InvalidIndex, true); // warning killer
 }
+#else
+template <typename Traits>
+index_t Triangulation<Traits>::locatePointInTree(const FastTriMesh &subm,
+                                                 index_t            p_id,
+                                                 const SplitTree   &tree)
+{
+	return locatePointInTreeRecur(subm, subm.vert(p_id), tree, 0);
+}
+
+template <typename Traits>
+index_t Triangulation<Traits>::locatePointInTreeRecur(const FastTriMesh &subm,
+                                                      const GPoint      &p,
+                                                      const SplitTree   &tree,
+                                                      index_t node_id)
+{
+	const SplitTree::Node &nd = tree.getNode(node_id);
+
+	if (!is_valid_idx(nd.c[0]))
+		return subm.triID(nd.v[0], nd.v[1], nd.v[2]);
+
+	// check its children
+	for (index_t i = 0; i < 3; i++) // max 3 children
+	{
+		index_t ch_idx = nd.c[i];
+
+		if (is_valid_idx(ch_idx))
+		{
+			const SplitTree::Node &ch = tree.getNode(ch_idx);
+
+			if (Triangle3_Point3_DoIntersect().in_triangle(
+			      subm.vert(ch.v[0]), subm.vert(ch.v[1]), subm.vert(ch.v[2]), p) <=
+			    PointInType::ON_BOUNDARY)
+				return locatePointInTreeRecur(subm, p, tree, ch_idx);
+		}
+	}
+
+	return InvalidIndex; // warning killer
+}
+#endif
 
 template <typename Traits>
 void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
@@ -555,8 +517,6 @@ void Triangulation<Traits>::findIntersectingElements(
 	/*          Search the first intersecting element                  */
 	/*******************************************************************/
 
-	size_t link_size = subm.adjV2T(v_start).size();
-
 	auto firstIntersectVertex = [&](index_t v_inter) -> void
 	{
 		// current segment (v_start, v_stop) is split in (v_start, v_inter) and
@@ -597,9 +557,9 @@ void Triangulation<Traits>::findIntersectingElements(
 		intersected_tris.clear();
 	};
 
+#ifndef OMC_ARR_3D_PREDS
 	/// @brief find the edge in link(seed) that intersect {A,B}
 	/// @return true if found.
-	auto sequencialSearchInterEdge = [&]() -> bool
 	{
 		const Sign orientation = subm.Orientation();
 		const bool CCW         = orientation == Sign::POSITIVE;
@@ -623,13 +583,13 @@ void Triangulation<Traits>::findIntersectingElements(
 			    pointInsideSegmentCollinear(subm, v_start, v_stop, curr_ev.first))
 			{ // meet the collinear point, check if it is in the constraint segment
 				firstIntersectVertex(curr_ev.first);
-				return false;
+				return;
 			}
 			if (curr_ori.second == Sign::ZERO &&
 			    pointInsideSegmentCollinear(subm, v_start, v_stop, curr_ev.second))
 			{ // meet the collinear point, check if it is in the constraint segment
 				firstIntersectVertex(curr_ev.second);
-				return false;
+				return;
 			}
 
 			if (curr_ori.first != curr_ori.second)
@@ -640,7 +600,7 @@ void Triangulation<Traits>::findIntersectingElements(
 					intersected_edges.push_back(
 					  subm.edgeID(curr_ev.first, curr_ev.second));
 					intersected_tris.push_back(curr_tri);
-					return true;
+					break;
 				}
 			}
 
@@ -670,120 +630,35 @@ void Triangulation<Traits>::findIntersectingElements(
 			else    curr_ori.second = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
 			// clang-format on
 		}
-
-		OMC_ASSERT(false, "can't find intersect vertex or edge.");
-		return false;
-	};
-
-	/// @brief find the edge in link(seed) that intersect {A,B}
-	/// @return true if found.
-	auto binarySearchInterEdge = [&]() -> bool
+	}
+#else
+	for (index_t t_id : subm.adjV2T(v_start))
 	{
-		const Sign orientation = subm.Orientation();
-		const bool CCW         = orientation == Sign::POSITIVE;
-
-		std::vector<index_t>  visited_tri(link_size, InvalidIndex);
-		std::vector<IdxPair>  visited_ev(link_size,
-		                                 IdxPair{InvalidIndex, InvalidIndex});
-		std::vector<SignPair> calculated_ori(
-		  link_size, SignPair{Sign::UNCERTAIN, Sign::UNCERTAIN});
-
-		index_t  curr_tri = subm.adjV2T(v_start)[0];
-		IdxPair  curr_ev{subm.nextVertInTri(curr_tri, v_start),
-                    subm.prevVertInTri(curr_tri, v_start)};
-		SignPair curr_ori{
-		  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-		               subm.vert(curr_ev.first), planeToInt(subm.refPlane())),
-		  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-		               subm.vert(curr_ev.second), planeToInt(subm.refPlane()))};
-
-		// walk around v_start to find intersected vertex/edge.
-		size_t local_idx = 0;
-		size_t step      = link_size / 2;
-		while (true)
+		index_t e_id   = subm.edgeOppToVert(t_id, v_start);
+		index_t ev0_id = subm.edgeVertID(e_id, 0);
+		index_t ev1_id = subm.edgeVertID(e_id, 1);
+		if (segmentsIntersectInside(subm, v_start, v_stop, ev0_id, ev1_id))
 		{
-			if (curr_ori.first == Sign::ZERO &&
-			    pointInsideSegmentCollinear(subm, v_start, v_stop, curr_ev.first))
-			{ // meet the collinear point, check if it is in the constraint segment
-				firstIntersectVertex(curr_ev.first);
-				return false;
-			}
-			if (curr_ori.second == Sign::ZERO &&
-			    pointInsideSegmentCollinear(subm, v_start, v_stop, curr_ev.second))
-			{ // meet the collinear point, check if it is in the constraint segment
-				firstIntersectVertex(curr_ev.second);
-				return false;
-			}
-
-			if (curr_ori.first != curr_ori.second)
-			{ // meet edge that possibly crosses the contraint segment
-				if (curr_ori.first == reverse_sign(orientation) &&
-				    curr_ori.second == orientation)
-				{
-					intersected_edges.push_back(
-					  subm.edgeID(curr_ev.first, curr_ev.second));
-					intersected_tris.push_back(curr_tri);
-					return true;
-				}
-			}
-
-			bool step_dir;
-			if (curr_ori.first <= Sign::ZERO && curr_ori.second <= Sign::ZERO)
-				step_dir = CCW; // curr_tri is at negative side
-			else if (curr_ori.first >= Sign::ZERO && curr_ori.second >= Sign::ZERO)
-				step_dir = !CCW; // curr_tri is at positive side
-			else
-				step_dir = CCW; // curr_tri overlaps both sides, either direction is ok
-
-			visited_tri[local_idx]    = curr_tri;
-			visited_ev[local_idx]     = curr_ev;
-			calculated_ori[local_idx] = curr_ori;
-
-			// gonna step to next triangle
-			curr_tri  = subm.rotateAroundVertex(v_start, curr_tri, step, step_dir);
-			curr_ev   = IdxPair{subm.nextVertInTri(curr_tri, v_start),
-                        subm.prevVertInTri(curr_tri, v_start)};
-			curr_ori  = SignPair{Sign::UNCERTAIN, Sign::UNCERTAIN};
-			local_idx = CCW ? (local_idx + step) % link_size
-			                : (local_idx + link_size - step) % link_size;
-			step      = std::max(size_t(1), step / 2);
-			index_t next_lid = (local_idx + 1) % link_size;
-			index_t last_lid = (local_idx + link_size - 1) % link_size;
-			// clang-format off
-			if (is_valid_idx(visited_tri[next_lid]))
-			{
-				if      (curr_ev.first == visited_ev[next_lid].first)  curr_ori.first = calculated_ori[next_lid].first;
-				else if (curr_ev.first == visited_ev[next_lid].second) curr_ori.first = calculated_ori[next_lid].second;
-
-				if      (curr_ev.second == visited_ev[next_lid].first)  curr_ori.second = calculated_ori[next_lid].first;
-				else if (curr_ev.second == visited_ev[next_lid].second) curr_ori.second = calculated_ori[next_lid].second;
-			}
-			if (is_valid_idx(visited_tri[last_lid]))
-			{
-				if      (curr_ev.first == visited_ev[last_lid].first)  curr_ori.first = calculated_ori[last_lid].first;
-				else if (curr_ev.first == visited_ev[last_lid].second) curr_ori.first = calculated_ori[last_lid].second;
-
-				if      (curr_ev.second == visited_ev[last_lid].first)  curr_ori.second = calculated_ori[last_lid].first;
-				else if (curr_ev.second == visited_ev[last_lid].second) curr_ori.second = calculated_ori[last_lid].second;
-			}
-			if (curr_ori.first == Sign::UNCERTAIN)
-				curr_ori.first = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
-			if (curr_ori.second == Sign::UNCERTAIN)
-				curr_ori.second = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
-			// clang-format on
+			intersected_edges.push_back(e_id);
+			intersected_tris.push_back(t_id);
+			break;
 		}
-	};
-
-	// if (link_size < 16)
-	// {
-	if (!sequencialSearchInterEdge())
-		return;
-	// }
-	// else
-	// {
-	// 	if (!binarySearchInterEdge())
-	// 		return;
-	// }
+		else if (pointInsideSegment(subm, v_start, v_stop, ev0_id))
+		{
+			// the original edge (v_start, v_stop) is split in (v_start-v0) -
+			// (v0-v_stop) and put in the segment_list to check later
+			firstIntersectVertex(ev0_id);
+			return;
+		}
+		else if (pointInsideSegment(subm, v_start, v_stop, ev1_id))
+		{
+			// the original edge (v_start, v_stop) is split in (v_start-v1) -
+			// (v1-v_stop) and put in the segment_list to check later
+			firstIntersectVertex(ev1_id);
+			return;
+		}
+	}
+#endif
 
 	OMC_ASSERT(intersected_edges.size() > 0, "empty intersected edges");
 
@@ -838,10 +713,12 @@ void Triangulation<Traits>::findIntersectingElements(
 
 	// walk along the topology to find the sorted list of edges and tris that
 	// intersect {v_start, v_stop}
-	Sign    orientation = subm.Orientation();
-	index_t e_id        = intersected_edges.back();
-	index_t ev0_id      = subm.edgeVertID(e_id, 0);
-	index_t ev1_id      = subm.edgeVertID(e_id, 1);
+#ifndef OMC_ARR_3D_PREDS
+	Sign orientation = subm.Orientation();
+#endif
+	index_t e_id   = intersected_edges.back();
+	index_t ev0_id = subm.edgeVertID(e_id, 0);
+	index_t ev1_id = subm.edgeVertID(e_id, 1);
 	while (!subm.edgeIsConstr(e_id))
 	{
 		index_t t_id = subm.triOppToEdge(e_id, intersected_tris.back());
@@ -856,7 +733,8 @@ void Triangulation<Traits>::findIntersectingElements(
 			                     "");
 			return;
 		}
-		// walk to next triangle.
+#ifndef OMC_ARR_3D_PREDS
+		// check whether meet a vertex of triangle.
 		Sign v2_ori = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
 		                           subm.vert(v2), planeToInt(subm.refPlane()));
 		if (v2_ori == Sign::ZERO)
@@ -871,6 +749,19 @@ void Triangulation<Traits>::findIntersectingElements(
 			else
 				intersectEdge(v2, subm.prevVertInTri(t_id, v2), t_id);
 		}
+#else
+		if (segmentsIntersectInside(subm, v_start, v_stop, ev0_id, v2))
+			// meet an edge
+			intersectEdge(ev0_id, v2, t_id);
+		else if (segmentsIntersectInside(subm, v_start, v_stop, ev1_id, v2))
+			// meet an edge
+			intersectEdge(ev1_id, v2, t_id);
+		else // meet a vertex
+		{
+			intersectVertex(v2, t_id);
+			return;
+		}
+#endif
 		// walk to next edge.
 		e_id   = intersected_edges.back();
 		ev0_id = subm.edgeVertID(e_id, 0);
@@ -1534,6 +1425,7 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 	new_labels.resize(new_size);
 }
 
+#ifndef OMC_ARR_3D_PREDS
 template <typename Traits>
 bool Triangulation<Traits>::pointInsideSegmentCollinear(const FastTriMesh &subm,
                                                         index_t ev0_id,
@@ -1544,5 +1436,38 @@ bool Triangulation<Traits>::pointInsideSegmentCollinear(const FastTriMesh &subm,
 	         subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id)) ==
 	       PointInType::STRICTLY_INSIDE;
 }
+#else
+template <typename Traits>
+bool Triangulation<Traits>::fastPointOnLine(const FastTriMesh &subm,
+                                            index_t e_id, index_t p_id)
+{
+	index_t ev0_id = subm.edgeVertID(e_id, 0);
+	index_t ev1_id = subm.edgeVertID(e_id, 1);
+
+	return OrientOn2D()(subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id),
+	                    planeToInt(subm.refPlane())) == Sign::ZERO;
+}
+
+template <typename Traits>
+bool Triangulation<Traits>::pointInsideSegment(const FastTriMesh &subm,
+                                               index_t e0_id, index_t e1_id,
+                                               index_t p_id)
+{
+	return Segment3_Point3_DoIntersect().in_segment(
+	         subm.vert(e0_id), subm.vert(e1_id), subm.vert(p_id)) ==
+	       PointInType::STRICTLY_INSIDE;
+}
+
+template <typename Traits>
+bool Triangulation<Traits>::segmentsIntersectInside(const FastTriMesh &subm,
+                                                    index_t            e00_id,
+                                                    index_t            e01_id,
+                                                    index_t            e10_id,
+                                                    index_t            e11_id)
+{
+	return Segment3_Segment3_DoIntersect().cross_inner(
+	  subm.vert(e00_id), subm.vert(e01_id), subm.vert(e10_id), subm.vert(e11_id));
+}
+#endif
 
 } // namespace OMC

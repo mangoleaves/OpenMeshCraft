@@ -39,6 +39,7 @@ namespace OMC {
 // === ablation control for features
 // #define OMC_ARR_GLOBAL_POINT_SET
 // #define OMC_ARR_AUX_LPI
+#define OMC_ARR_3D_PREDS
 
 constexpr int NBIT = 32;
 

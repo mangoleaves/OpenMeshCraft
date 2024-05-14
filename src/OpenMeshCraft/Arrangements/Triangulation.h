@@ -29,6 +29,10 @@ private:
 
 	using Segment3_Point3_DoIntersect =
 	  typename Traits::Segment3_Point3_DoIntersect;
+	using Segment3_Segment3_DoIntersect =
+	  typename Traits::Segment3_Segment3_DoIntersect;
+	using Triangle3_Point3_DoIntersect =
+	  typename Traits::Triangle3_Point3_DoIntersect;
 
 	using FastTriMesh = FastTriMesh<Traits>;
 	using PntArena    = PointArena<Traits>;
@@ -66,15 +70,13 @@ private:
 	                             index_t v0_id, index_t v1_id,
 	                             std::vector<index_t> &out_point_list);
 
-	void splitSingleTriangle(FastTriMesh                &subm,
-	                         const std::vector<index_t> &points);
-
 	void splitSingleTriangleWithTree(FastTriMesh                &subm,
 	                                 const std::vector<index_t> &points);
 
 	void splitSingleEdge(FastTriMesh &subm, index_t v0_id, index_t v1_id,
 	                     std::vector<index_t> &points);
 
+#ifndef OMC_ARR_3D_PREDS
 	std::pair<index_t, bool> locatePointInTree(const FastTriMesh &subm,
 	                                           index_t            p_id,
 	                                           const SplitTree   &tree);
@@ -83,6 +85,13 @@ private:
 	                                                const GPoint      &p,
 	                                                const SplitTree   &tree,
 	                                                index_t node_id, UIPair ev);
+#else
+	index_t locatePointInTree(const FastTriMesh &subm, index_t p_id,
+	                          const SplitTree &tree);
+
+	index_t locatePointInTreeRecur(const FastTriMesh &subm, const GPoint &p,
+	                               const SplitTree &tree, index_t node_id);
+#endif
 
 	/* Split triangle by contraint segments *************************************/
 
@@ -127,7 +136,7 @@ private:
 	                                    const Label          &label);
 
 	void findPocketsInTriangle(const FastTriMesh    &subm,
-	                           std::vector<Pocket> &tri_pockets,
+	                           std::vector<Pocket>  &tri_pockets,
 	                           std::vector<Polygon> &tri_polygons);
 
 	/* Postfix indices **********************************************************/
@@ -136,9 +145,21 @@ private:
 	                    std::vector<Label> &new_labels, index_t tpi_begin);
 
 private:
+#ifndef OMC_ARR_3D_PREDS
 	static bool pointInsideSegmentCollinear(const FastTriMesh &subm,
 	                                        index_t ev0_id, index_t ev1_id,
 	                                        index_t p_id);
+#else
+	static bool fastPointOnLine(const FastTriMesh &subm, index_t e_id,
+	                            index_t p_id);
+
+	static bool pointInsideSegment(const FastTriMesh &subm, index_t e0_id,
+	                               index_t e1_id, index_t p_id);
+
+	static bool segmentsIntersectInside(const FastTriMesh &subm, index_t e00_id,
+	                                    index_t e01_id, index_t e10_id,
+	                                    index_t e11_id);
+#endif
 
 private:
 	TriSoup &ts;
