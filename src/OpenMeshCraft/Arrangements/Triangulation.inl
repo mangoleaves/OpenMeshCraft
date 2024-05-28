@@ -1269,6 +1269,10 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 	// (corners that were not ears at the beginning may become so later on)
 	AuxVector64<bool> is_ear(size, false);
 
+	/*********************************************************************/
+	/*       Cut all ears containing TPI points                          */
+	/*********************************************************************/
+
 	// detect all safe ears in O(n).
 	// This amounts to finding all convex vertices but the endpoints of the
 	// constrained edge
@@ -1279,29 +1283,103 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 		if (prev[curr] == next[curr])
 			continue;
 
-		const GPoint &p0 = subm.vert(poly[prev[curr]]);
-		const GPoint &p1 = subm.vert(poly[curr]);
-		const GPoint &p2 = subm.vert(poly[next[curr]]);
+		if (subm.vert(poly[curr]).is_TPI())
+		{
+#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+			const GPoint &p0 = subm.vert(poly[prev[curr]]);
+			const GPoint &p1 = subm.vert(poly[curr]);
+			const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-		if (p1.is_TPI())
-		{
-			ears.emplace_back(curr);
-			is_ear.at(curr) = true;
-		}
-		else
-		{
 			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-			if (check == orientation)
-			{
-				ears.emplace_back(curr);
-				is_ear.at(curr) = true;
-			}
+			OMC_ASSERT(check == orientation, "TPI vertex is not convex.");
+#endif
+			ears.emplace_back(curr);
+			is_ear[curr] = true;
 		}
 	}
 
 	// progressively delete all ears, also updating the data structure
 	size_t length = size;
-	while (true)
+	while (!ears.empty())
+	{
+		index_t curr = ears.back();
+		ears.pop_back();
+
+		// make new_tri
+		tris.push_back(poly[prev[curr]]);
+		tris.push_back(poly[curr]);
+		tris.push_back(poly[next[curr]]);
+
+		// exclude curr from the polygon, connecting prev and next
+		next[prev[curr]] = next[curr];
+		prev[next[curr]] = prev[curr];
+
+		// last triangle?
+		if (--length < 3)
+			return;
+
+		// check if prev and next have become new_ears
+		if (!is_ear[prev[curr]] && prev[curr] != 0)
+		{
+			if (subm.vert(poly[prev[curr]]).is_TPI())
+			{
+#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+				const GPoint &p0 = subm.vert(poly[prev[prev[curr]]]);
+				const GPoint &p1 = subm.vert(poly[prev[curr]]);
+				const GPoint &p2 = subm.vert(poly[next[curr]]);
+				Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+				OMC_ASSERT(check == orientation, "TPI vertex is not convex.")
+#endif
+				ears.emplace_back(prev[curr]);
+				is_ear[prev[curr]] = true;
+			}
+		}
+
+		if (!is_ear[next[curr]] && next[curr] < size - 1)
+		{
+			if (subm.vert(poly[next[curr]]).is_TPI())
+			{
+#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+				const GPoint &p0 = subm.vert(poly[prev[curr]]);
+				const GPoint &p1 = subm.vert(poly[next[curr]]);
+				const GPoint &p2 = subm.vert(poly[next[next[curr]]]);
+				Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+				OMC_ASSERT(check == orientation, "TPI vertex is not convex.")
+#endif
+				ears.emplace_back(next[curr]);
+				is_ear[next[curr]] = true;
+			}
+		}
+	}
+
+	/*********************************************************************/
+	/*                   Cut remaining ears                              */
+	/*********************************************************************/
+
+	// detect all safe ears in O(n).
+	// This amounts to finding all convex vertices but the endpoints of the
+	// constrained edge
+	for (index_t curr = 1; curr < size - 1; ++curr)
+	{
+		// NOTE: the polygon may contain danging edges, prev!=next
+		// avoids to even do the ear test for them
+		if (prev[curr] == next[curr] || is_ear[curr])
+			continue;
+
+		const GPoint &p0 = subm.vert(poly[prev[curr]]);
+		const GPoint &p1 = subm.vert(poly[curr]);
+		const GPoint &p2 = subm.vert(poly[next[curr]]);
+
+		Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+		if (check == orientation)
+		{
+			ears.emplace_back(curr);
+			is_ear.at(curr) = true;
+		}
+	}
+
+	// progressively delete all ears, also updating the data structure
+	while (!ears.empty())
 	{
 		index_t curr = ears.back();
 		ears.pop_back();
@@ -1326,22 +1404,11 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			const GPoint &p1 = subm.vert(poly[prev[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-			if (prev[prev[curr]] != next[curr])
+			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			if (check == orientation)
 			{
-				if (p1.is_TPI())
-				{
-					ears.emplace_back(prev[curr]);
-					is_ear.at(prev[curr]) = true;
-				}
-				else
-				{
-					Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-					if (check == orientation)
-					{
-						ears.emplace_back(prev[curr]);
-						is_ear.at(prev[curr]) = true;
-					}
-				}
+				ears.emplace_back(prev[curr]);
+				is_ear.at(prev[curr]) = true;
 			}
 		}
 
@@ -1351,22 +1418,11 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			const GPoint &p1 = subm.vert(poly[next[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[next[curr]]]);
 
-			if (next[next[curr]] != prev[curr])
+			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			if (check == orientation)
 			{
-				if (p1.is_TPI())
-				{
-					ears.emplace_back(next[curr]);
-					is_ear.at(next[curr]) = true;
-				}
-				else
-				{
-					Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-					if (check == orientation)
-					{
-						ears.emplace_back(next[curr]);
-						is_ear.at(next[curr]) = true;
-					}
-				}
+				ears.emplace_back(next[curr]);
+				is_ear.at(next[curr]) = true;
 			}
 		}
 	}
