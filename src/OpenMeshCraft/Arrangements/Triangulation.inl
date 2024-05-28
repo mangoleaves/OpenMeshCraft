@@ -421,8 +421,10 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 	// Store unique segments
 	SegmentsList         added_segment_list;
 	std::vector<Segment> segment_list(segments.begin(), segments.end());
+	std::shuffle(segment_list.begin(), segment_list.end(),
+	             std::mt19937(std::random_device()()));
 	// store segments adjacent to a TPI point in tpi2segs
-	TPI2Segs             tpi2segs;
+	TPI2Segs tpi2segs;
 
 	// add segments to triangle mesh
 	while (segment_list.size() > 0)
@@ -1335,7 +1337,7 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			}
 		}
 
-		if (!is_ear[next[curr]] && next[curr] < size - 1)
+		if (!is_ear[next[curr]] && next[curr] != size - 1)
 		{
 			if (subm.vert(poly[next[curr]]).is_TPI())
 			{
@@ -1355,6 +1357,21 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 	/*********************************************************************/
 	/*                   Cut remaining ears                              */
 	/*********************************************************************/
+
+	if (length == 3)
+	{
+		// there is only one last triangle.
+		for (index_t curr = 1; curr < size - 1; ++curr)
+		{
+			if (!is_ear[curr])
+			{
+				tris.push_back(poly[prev[curr]]);
+				tris.push_back(poly[curr]);
+				tris.push_back(poly[next[curr]]);
+				return;
+			}
+		}
+	}
 
 	// detect all safe ears in O(n).
 	// This amounts to finding all convex vertices but the endpoints of the
@@ -1394,8 +1411,18 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 		prev[next[curr]] = prev[curr];
 
 		// last triangle?
-		if (--length < 3)
+		if (--length <= 3)
+		{
+			// there is only one last triangle.
+			if (is_ear[prev[curr]] || prev[curr] != 0)
+				curr = prev[curr];
+			if (is_ear[next[curr]] || next[curr] != size - 1)
+				curr = next[curr];
+			tris.push_back(poly[prev[curr]]);
+			tris.push_back(poly[curr]);
+			tris.push_back(poly[next[curr]]);
 			return;
+		}
 
 		// check if prev and next have become new_ears
 		if (!is_ear[prev[curr]] && prev[curr] != 0)
@@ -1412,7 +1439,7 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			}
 		}
 
-		if (!is_ear[next[curr]] && next[curr] < size - 1)
+		if (!is_ear[next[curr]] && next[curr] != size - 1)
 		{
 			const GPoint &p0 = subm.vert(poly[prev[curr]]);
 			const GPoint &p1 = subm.vert(poly[next[curr]]);
