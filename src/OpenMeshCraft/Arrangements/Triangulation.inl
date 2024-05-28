@@ -419,26 +419,29 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 	for (index_t i = 0; i < segments.size(); i++)
 		sub_segs_map[segments[i]].insert(seg_ids[i]);
 	// Store unique segments
-	SegmentsList segment_list(segments.begin(), segments.end());
+	SegmentsList         added_segment_list;
+	std::vector<Segment> segment_list(segments.begin(), segments.end());
 	// store segments adjacent to a TPI point in tpi2segs
-	TPI2Segs     tpi2segs;
+	TPI2Segs             tpi2segs;
 
 	// add segments to triangle mesh
 	while (segment_list.size() > 0)
 	{
-		Segment seg = *segment_list.begin();
-		segment_list.erase(segment_list.begin());
+		Segment seg = segment_list.back();
+		segment_list.pop_back();
 
-		addConstraintSegment(subm, seg, segment_list, sub_segs_map, tpi2segs);
+		if (added_segment_list.count(seg) == 0)
+		{
+			added_segment_list.insert(seg);
+			addConstraintSegment(subm, seg, segment_list, sub_segs_map, tpi2segs);
+		}
 	}
 }
 
 template <typename Traits>
-void Triangulation<Traits>::addConstraintSegment(FastTriMesh   &subm,
-                                                 const Segment &seg,
-                                                 SegmentsList  &segment_list,
-                                                 SubSegMap     &sub_segs_map,
-                                                 TPI2Segs      &tpi2segs)
+void Triangulation<Traits>::addConstraintSegment(
+  FastTriMesh &subm, const Segment &seg, std::vector<Segment> &segment_list,
+  SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
 {
 	// get two local endpoints
 	index_t v0_id = seg.first;
@@ -507,7 +510,7 @@ template <typename Traits>
 void Triangulation<Traits>::findIntersectingElements(
   FastTriMesh &subm, index_t &v_start, index_t &v_stop,
   AuxVector64<index_t> &intersected_edges,
-  AuxVector64<index_t> &intersected_tris, SegmentsList &segment_list,
+  AuxVector64<index_t> &intersected_tris, std::vector<Segment> &segment_list,
   SubSegMap &sub_segs_map, OMC_UNUSED TPI2Segs &tpi2segs)
 {
 	using IdxPair  = std::pair<index_t, index_t>;
@@ -530,7 +533,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// push (v_inter, v_stop) to check list.
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.insert(uniquePair(v_inter, v_stop));
+		segment_list.push_back(uniquePair(v_inter, v_stop));
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
@@ -675,7 +678,7 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// put (v_inter, v_stop) in the segment_list to check later
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.insert(uniquePair(v_inter, v_stop));
+		segment_list.push_back(uniquePair(v_inter, v_stop));
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
@@ -832,7 +835,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	// (new_tpi, v_stop).
 
 	// put (new_tpi, v_stop) in the segment_list to check later
-	segment_list.insert(uniquePair(local_tpi_id, v_stop));
+	segment_list.push_back(uniquePair(local_tpi_id, v_stop));
 
 	// output found edges/tris intersected with (v_start, new_ip).
 	if (intersected_tris.size() == 1)
@@ -1148,18 +1151,26 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 	{
 		// NOTE: the polygon may contain danging edges, prev!=next
 		// avoids to even do the ear test for them
+		if (prev[curr] == next[curr])
+			continue;
 
 		const GPoint &p0 = subm.vert(poly[prev[curr]]);
 		const GPoint &p1 = subm.vert(poly[curr]);
 		const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-		Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-
-		if ((prev[curr] != next[curr]) &&
-		    (check == orientation && check != Sign::ZERO))
+		if (p1.is_TPI())
 		{
 			ears.emplace_back(curr);
 			is_ear.at(curr) = true;
+		}
+		else
+		{
+			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			if (check == orientation)
+			{
+				ears.emplace_back(curr);
+				is_ear.at(curr) = true;
+			}
 		}
 	}
 
@@ -1190,13 +1201,22 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			const GPoint &p1 = subm.vert(poly[prev[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-
-			if ((prev[prev[curr]] != next[curr]) &&
-			    (check != Sign::ZERO && check == orientation))
+			if (prev[prev[curr]] != next[curr])
 			{
-				ears.emplace_back(prev[curr]);
-				is_ear.at(prev[curr]) = true;
+				if (p1.is_TPI())
+				{
+					ears.emplace_back(prev[curr]);
+					is_ear.at(prev[curr]) = true;
+				}
+				else
+				{
+					Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+					if (check == orientation)
+					{
+						ears.emplace_back(prev[curr]);
+						is_ear.at(prev[curr]) = true;
+					}
+				}
 			}
 		}
 
@@ -1206,13 +1226,22 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 			const GPoint &p1 = subm.vert(poly[next[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[next[curr]]]);
 
-			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
-
-			if ((next[next[curr]] != prev[curr]) &&
-			    (check != Sign::ZERO && check == orientation))
+			if (next[next[curr]] != prev[curr])
 			{
-				ears.emplace_back(next[curr]);
-				is_ear.at(next[curr]) = true;
+				if (p1.is_TPI())
+				{
+					ears.emplace_back(next[curr]);
+					is_ear.at(next[curr]) = true;
+				}
+				else
+				{
+					Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+					if (check == orientation)
+					{
+						ears.emplace_back(next[curr]);
+						is_ear.at(next[curr]) = true;
+					}
+				}
 			}
 		}
 	}

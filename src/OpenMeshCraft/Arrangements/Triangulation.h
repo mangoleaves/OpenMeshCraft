@@ -100,14 +100,14 @@ private:
 	                                           std::vector<Segment> &segments);
 
 	void addConstraintSegment(FastTriMesh &subm, const Segment &seg,
-	                          SegmentsList &segment_list, SubSegMap &sub_segs_map,
-	                          TPI2Segs &tpi2segs);
+	                          std::vector<Segment> &segment_list,
+	                          SubSegMap &sub_segs_map, TPI2Segs &tpi2segs);
 
 	void findIntersectingElements(FastTriMesh &subm, index_t &v_start,
 	                              index_t              &v_stop,
 	                              AuxVector64<index_t> &intersected_edges,
 	                              AuxVector64<index_t> &intersected_tris,
-	                              SegmentsList         &segment_list,
+	                              std::vector<Segment>         &segment_list,
 	                              SubSegMap &sub_segs_map, TPI2Segs &tpi2segs);
 
 	void splitSegmentInSubSegments(index_t v_start, index_t v_stop,
