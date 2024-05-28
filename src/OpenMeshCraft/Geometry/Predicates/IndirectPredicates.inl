@@ -395,6 +395,20 @@ Sign Orient3D_Indirect<FT, IT, ET>::operator()(const FT *a, const FT *b,
 }
 
 template <typename FT, typename IT, typename ET>
+Sign Orient3D_Indirect<FT, IT, ET>::operator()(const FT *a, const FT *b,
+                                               const FT *c, const PointT &d)
+{
+	if (d.is_Explicit())
+		return orient3d(a, b, c, d.data());
+	else if (d.has_ssf())
+		return orient3D_IEEE<SSF>(d, a[0], a[1], a[2], c[0], c[1], c[2], b[0], b[1],
+		                          b[2], static_cast<PntArr3>(PntType(d)));
+	else
+		return orient3D_IEEE<DF>(d, a[0], a[1], a[2], c[0], c[1], c[2], b[0], b[1],
+		                         b[2], PntArr3::I);
+}
+
+template <typename FT, typename IT, typename ET>
 void Orient3D_Indirect<FT, IT, ET>::get_minors(const FT *a, const FT *b,
                                                const FT *c, FT *minor, FT *perm)
 {
@@ -1075,10 +1089,9 @@ bool CollinearPoints3D_Indirect<FT, IT, ET>::misaligned(const PointT &A,
 }
 
 template <typename FT, typename IT, typename ET>
-auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(const PointT &p,
-                                                      const PointT &q,
-                                                      const PointT &r)
-  -> std::tuple<const PointT &, const PointT &, const PointT &>
+auto CollinearSort3D_Indirect<FT, IT, ET>::operator()(
+  const PointT &p, const PointT &q,
+  const PointT &r) -> std::tuple<const PointT &, const PointT &, const PointT &>
 {
 	using CR = const PointT &;
 	using CP = const PointT *;

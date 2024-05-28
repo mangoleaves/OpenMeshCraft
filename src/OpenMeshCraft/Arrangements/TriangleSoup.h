@@ -112,9 +112,9 @@ public:
 	/***** Below data should be set by user ******/
 
 	/// implement vertices
-	concurrent_vector<GPoint *>             vertices;
+	concurrent_vector<GPoint *>                  vertices;
 	/// implement indices of vertices (used in v_map)
-	concurrent_vector<std::atomic<index_t>> indices;
+	tbb::concurrent_vector<std::atomic<index_t>> indices;
 
 	/// triangles
 	std::vector<index_t> triangles;

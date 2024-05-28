@@ -36,6 +36,7 @@ namespace OMC {
 #define OMC_ARR_TR_PARA
 // === accelerate control for components
 #define ARR_DC_FILTER_ORIENT3D
+#define OMC_ARR_AVOID_TPI
 // === ablation control for features
 // #define OMC_ARR_GLOBAL_POINT_SET
 // #define OMC_ARR_AUX_LPI

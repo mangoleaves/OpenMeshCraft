@@ -960,7 +960,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 	// fix indices stored in coplanar_edges
 	auto fix_coplanar_edges = [this](index_t t_id)
 	{
-		tbb::concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
+		concurrent_vector<CCrEdgeInfo> &ce = coplanar_edges[t_id];
 
 		remove_duplicates(ce);
 		if (any_index_fixed)

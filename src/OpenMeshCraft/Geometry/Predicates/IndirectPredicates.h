@@ -184,8 +184,8 @@ public:
 	}
 };
 
-/// @brief ad = b-a, bd = c-a, cd = d-a
-/// det = dot(cross(ad,bd), cd), ZERO -> coplanar, POSITIVE -> positive volume,
+/// @brief ab = b-a, ac = c-a, ad = d-a
+/// det = dot(cross(ab,ac), ad), ZERO -> coplanar, POSITIVE -> positive volume,
 /// NEGATIVE -> negative volume.
 /// @details In geometric sense, a, b, c come from a triangle, and d is the
 /// query point.
@@ -197,16 +197,21 @@ public:
 	using PointT = GenericPoint3T<IT, ET>;
 
 public:
-	/// @brief ad = b-a, bd = c-a, cd = d-a
-	/// det = dot(cross(ad,bd), cd), ZERO -> coplanar, POSITIVE -> positive
+	/// @brief ab = b-a, ac = c-a, ad = d-a
+	/// det = dot(cross(ab,ac), ad), ZERO -> coplanar, POSITIVE -> positive
 	/// volume, NEGATIVE -> negtive volume.
 	Sign operator()(const PointT &a, const PointT &b, const PointT &c,
 	                const PointT &d);
 
-	/// @brief ad = b-a, bd = c-a, cd = d-a
-	/// det = dot(cross(ad,bd), cd), ZERO -> coplanar, POSITIVE -> positive
+	/// @brief ab = b-a, ac = c-a, ad = d-a
+	/// det = dot(cross(ab,ac), ad), ZERO -> coplanar, POSITIVE -> positive
 	/// volume, NEGATIVE -> negtive volume.
 	Sign operator()(const FT *a, const FT *b, const FT *c, const FT *d);
+
+	/// @brief ab = b-a, ac = c-a, ad = d-a
+	/// det = dot(cross(ab,ac), ad), ZERO -> coplanar, POSITIVE -> positive
+	/// volume, NEGATIVE -> negtive volume.
+	Sign operator()(const FT *a, const FT *b, const FT *c, const PointT& d);
 
 public: // for cache
 	/// @brief Calculate cached data for three points pa, pb and pc (which
