@@ -18641,6 +18641,7 @@ Sign orient3D_IEEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
                    double p2z, double p3x, double p3y, double p3z, double p4x,
                    double p4y, double p4z, PntArr3 arr)
 {
+	OMC_PRED_PROFILE_INC_FILTER(PredicateNames::_orient3D_IEEE, arr);
 	Sign ret;
 	if constexpr (WithSSFilter)
 	{
@@ -18648,11 +18649,13 @@ Sign orient3D_IEEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
 		                                     p4y, p4z, arr);
 		if (is_sign_reliable(ret))
 			return ret;
+		OMC_PRED_PROFILE_INC_SSFAIL(PredicateNames::_orient3D_IEEE, arr);
 	}
 	ret = orient3D_IEEE_interval<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
 	                                     p4y, p4z);
 	if (is_sign_reliable(ret))
 		return ret;
+	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orient3D_IEEE, arr);
 	return orient3D_IEEE_expansion<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
 	                                       p4y, p4z);
 }

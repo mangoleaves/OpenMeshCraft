@@ -148,6 +148,7 @@ void PredicatesProfile::print()
 	  "orientOn2Dzx_IEE",
 	  "orientOn2Dzx_IIE",
 	  "orientOn2Dzx_III",
+		"orient3D_IEEE",
 		"SSI_filtered",
 		"SSI_interval",
 		"SSI_expansion",
@@ -184,7 +185,7 @@ void PredicatesProfile::print()
 	// clang-format on
 
 	#ifdef OMC_PRED_PROFILE_FILTER
-	for (size_t i = 0; i <= (size_t)PredicateNames::_orientOn2Dzx_III; i++)
+	for (size_t i = 0; i <= (size_t)PredicateNames::_orient3D_IEEE; i++)
 	{
 		std::cout << std::format("{}:\n", pred_names[i]);
 		for (size_t j = 0; j < ARR_CNT; j++)

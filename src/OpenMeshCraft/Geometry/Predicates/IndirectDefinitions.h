@@ -433,6 +433,7 @@ enum class PredicateNames : size_t
 	_orientOn2Dzx_IEE,
 	_orientOn2Dzx_IIE,
 	_orientOn2Dzx_III,
+	_orient3D_IEEE,
 	// below use total count
 	_ssi_filter,
 	_ssi_interval,
