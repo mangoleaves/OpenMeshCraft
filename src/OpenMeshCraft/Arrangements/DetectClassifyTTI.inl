@@ -455,7 +455,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 				ts.addCoplanarEdge(ha.t_id, get_e_id(hb, copl_eb), v0_id, v1_id);
 			}
 
-			add_symbolic_segment(v0_id, v1_id, ha, false, hb, false);
+			add_symbolic_segment(v0_id, v1_id, ha, InvalidIndex, hb, InvalidIndex);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
 			OMC_ARR_PROF_TTI_INCR(13);
@@ -511,7 +511,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 			index_t v0_id = intersection_points[0];
 			index_t v1_id = intersection_points[1];
 
-			add_symbolic_segment(v0_id, v1_id, ha, false, hb, false);
+			add_symbolic_segment(v0_id, v1_id, ha, InvalidIndex, hb, InvalidIndex);
 			ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 		}
 		return; // whether intersections are found or not, return.
@@ -841,7 +841,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 			ts.addCoplanarEdge(ha.t_id, get_e_id(hb, edge_id), v0_id, v1_id);
 		}
 
-		add_symbolic_segment(v0_id, v1_id, ha, false, hb, false);
+		add_symbolic_segment(v0_id, v1_id, ha, InvalidIndex, hb, InvalidIndex);
 		ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 
 		OMC_ARR_PROF_TTI_INCR(33);
@@ -942,7 +942,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		index_t v0_id = intersection_points[0];
 		index_t v1_id = intersection_points[1];
 
-		add_symbolic_segment(v0_id, v1_id, ha, false, hb, false);
+		add_symbolic_segment(v0_id, v1_id, ha, InvalidIndex, hb, InvalidIndex);
 		ts.setTriangleHasIntersections(ha.t_id, hb.t_id);
 	}
 }
@@ -1540,7 +1540,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	{
 		if (ev0_in_seg != ev1_in_seg) // ea crosses tb
 		{
-			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		}
 		else // ea is totally contained in an edge of tb
@@ -1554,7 +1554,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	{
 		if (ev0_in_seg == (ev1_in_vtx + 1) % 3) // ea crosses tb
 		{
-			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		}
 		else // ea is totally contained in an edge of tb
@@ -1568,7 +1568,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	{
 		if (ev1_in_seg == (ev0_in_vtx + 1) % 3) // ea crosses tb
 		{
-			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		}
 		else // ea is totally contained in an edge of tb
@@ -1586,7 +1586,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 	if ((is_valid_idx(ev0_in_seg) || is_valid_idx(ev0_in_vtx)) && ev1_in_tri)
 	{ // v0 in a segment or vtx and v1 inside triangle
-		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		return true;
 	}
@@ -1597,14 +1597,14 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 	if ((is_valid_idx(ev1_in_seg) || is_valid_idx(ev1_in_vtx)) && ev0_in_tri)
 	{ // v1 in a segment or vtx and v0 inside triangle
-		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		return true;
 	}
 
 	if (ev0_in_tri && ev1_in_tri)
 	{ // v0 and v1 are both inside the triangle, ea is totally inside tb
-		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, true, hb, false);
+		add_symbolic_segment(ha.v_id[ev0], ha.v_id[ev1], ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], ha.v_id[ev1]);
 		return true;
 	}
@@ -1665,7 +1665,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev0_in_seg == /*eb*/ 1 || ev0_in_tri)
 		{ // ea crosses tb (also crosses vb0)
-			add_symbolic_segment(hb.v_id[0], ha.v_id[ev0], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[0], ha.v_id[ev0], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], hb.v_id[0]);
 			return true;
 		}
@@ -1684,7 +1684,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev1_in_seg == /*eb*/ 1 || ev1_in_tri)
 		{ // ea crosses tb (also crosses vb0)
-			add_symbolic_segment(hb.v_id[0], ha.v_id[ev1], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[0], ha.v_id[ev1], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], hb.v_id[0]);
 			return true;
 		}
@@ -1709,7 +1709,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev0_in_seg == /*eb*/ 2 || ev0_in_tri)
 		{ // ea crosses tb (also crosses vb1)
-			add_symbolic_segment(hb.v_id[1], ha.v_id[ev0], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[1], ha.v_id[ev0], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], hb.v_id[1]);
 			return true;
 		}
@@ -1728,7 +1728,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev1_in_seg == /*eb*/ 2 || ev1_in_tri)
 		{ // ea crosses tb (also crosses vb1)
-			add_symbolic_segment(hb.v_id[1], ha.v_id[ev1], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[1], ha.v_id[ev1], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], hb.v_id[1]);
 			return true;
 		}
@@ -1753,7 +1753,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev0_in_seg == /*eb*/ 0 || ev0_in_tri)
 		{ // ea crosses tb (also crosses vb2)
-			add_symbolic_segment(hb.v_id[2], ha.v_id[ev0], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[2], ha.v_id[ev0], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], hb.v_id[2]);
 			return true;
 		}
@@ -1772,7 +1772,7 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (ev1_in_seg == /*eb*/ 0 || ev1_in_tri)
 		{ // ea crosses tb (also crosses vb2)
-			add_symbolic_segment(hb.v_id[2], ha.v_id[ev1], hb, false, ha, true);
+			add_symbolic_segment(hb.v_id[2], ha.v_id[ev1], hb, InvalidIndex, ha, ea);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], hb.v_id[2]);
 			return true;
 		}
@@ -1831,19 +1831,19 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (is_valid_idx(ev0_in_vtx) || is_valid_idx(ev0_in_seg) || ev0_in_tri)
 		{ // cross eb0 and tb
-			add_symbolic_segment(ha.v_id[ev0], seg0_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], seg0_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], seg0_cross);
 			return true;
 		}
 		if (is_valid_idx(ev1_in_vtx) || is_valid_idx(ev1_in_seg) || ev1_in_tri)
 		{ // cross eb0 and tb
-			add_symbolic_segment(ha.v_id[ev1], seg0_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev1], seg0_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], seg0_cross);
 			return true;
 		}
 		if (vb2_in_ea)
 		{ // cross eb0 and (opposite vertex) vb2
-			add_symbolic_segment(hb.v_id[/*vb*/ 2], seg0_cross, ha, true, hb, false);
+			add_symbolic_segment(hb.v_id[/*vb*/ 2], seg0_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), hb.v_id[2], seg0_cross);
 			return true;
 		}
@@ -1865,19 +1865,19 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (is_valid_idx(ev0_in_vtx) || is_valid_idx(ev0_in_seg) || ev0_in_tri)
 		{ // cross eb1 and tb
-			add_symbolic_segment(ha.v_id[ev0], seg1_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], seg1_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], seg1_cross);
 			return true;
 		}
 		if (is_valid_idx(ev1_in_vtx) || is_valid_idx(ev1_in_seg) || ev1_in_tri)
 		{ // cross eb1 and tb
-			add_symbolic_segment(ha.v_id[ev1], seg1_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev1], seg1_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], seg1_cross);
 			return true;
 		}
 		if (vb0_in_ea)
 		{ // cross eb1 and (opposite vertex) vb0
-			add_symbolic_segment(hb.v_id[/*vb*/ 0], seg1_cross, ha, true, hb, false);
+			add_symbolic_segment(hb.v_id[/*vb*/ 0], seg1_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), hb.v_id[0], seg1_cross);
 			return true;
 		}
@@ -1899,19 +1899,19 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 
 		if (is_valid_idx(ev0_in_vtx) || is_valid_idx(ev0_in_seg) || ev0_in_tri)
 		{ // cross eb2 and tb
-			add_symbolic_segment(ha.v_id[ev0], seg2_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev0], seg2_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev0], seg2_cross);
 			return true;
 		}
 		if (is_valid_idx(ev1_in_vtx) || is_valid_idx(ev1_in_seg) || ev1_in_tri)
 		{ // cross eb2 and tb
-			add_symbolic_segment(ha.v_id[ev1], seg2_cross, ha, true, hb, false);
+			add_symbolic_segment(ha.v_id[ev1], seg2_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), ha.v_id[ev1], seg2_cross);
 			return true;
 		}
 		if (vb1_in_ea)
 		{ // cross eb2 and (opposite vertex) vb1
-			add_symbolic_segment(hb.v_id[/*vb*/ 1], seg2_cross, ha, true, hb, false);
+			add_symbolic_segment(hb.v_id[/*vb*/ 1], seg2_cross, ha, ea, hb, InvalidIndex);
 			ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), hb.v_id[1], seg2_cross);
 			return true;
 		}
@@ -1920,19 +1920,19 @@ bool DetectClassifyTTI<Traits>::classify_coplanar_edge_intersections(
 	// final probably symbolic edges: `ea` cross two edges of `tb`
 	if (is_valid_idx(seg0_cross) && is_valid_idx(seg1_cross))
 	{
-		add_symbolic_segment(seg0_cross, seg1_cross, ha, true, hb, false);
+		add_symbolic_segment(seg0_cross, seg1_cross, ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), seg0_cross, seg1_cross);
 		return true;
 	}
 	if (is_valid_idx(seg0_cross) && is_valid_idx(seg2_cross))
 	{
-		add_symbolic_segment(seg0_cross, seg2_cross, ha, true, hb, false);
+		add_symbolic_segment(seg0_cross, seg2_cross, ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), seg0_cross, seg2_cross);
 		return true;
 	}
 	if (is_valid_idx(seg1_cross) && is_valid_idx(seg2_cross))
 	{
-		add_symbolic_segment(seg1_cross, seg2_cross, ha, true, hb, false);
+		add_symbolic_segment(seg1_cross, seg2_cross, ha, ea, hb, InvalidIndex);
 		ts.addCoplanarEdge(hb.t_id, get_e_id(ha, ea), seg1_cross, seg2_cross);
 		return true;
 	}
@@ -2041,31 +2041,37 @@ bool DetectClassifyTTI<Traits>::classify_noncoplanar_edge_intersections(
  * @param v0 **GLOBAL** index of a vertex
  * @param v1 **GLOBAL** index of a vertex
  * @param ha helper for a triangle
+ * @param ea ea is a valid index if segment comes from ea
  * @param hb helper for another triangle
+ * @param eb eb is a valid index if segment comes from eb
  * @details symbolic segment is symmetric.
  */
 template <typename Traits>
 void DetectClassifyTTI<Traits>::add_symbolic_segment(index_t v0, index_t v1,
-                                                     TTIHelper &ha,
-                                                     bool       is_part_of_ea,
-                                                     TTIHelper &hb,
-                                                     bool       is_part_of_eb)
+                                                     TTIHelper &ha, index_t ea,
+                                                     TTIHelper &hb, index_t eb)
 {
 	OMC_EXPENSIVE_ASSERT(v0 != v1, "trying to add a 0-length symbolic edge");
-	UIPair  seg    = uniquePair(v0, v1);
-	index_t seg_id = ts.getOrAddSegment(seg);
+	UIPair  seg = uniquePair(v0, v1);
+	index_t seg_id;
+	if (is_valid_idx(ea))
+		seg_id = ts.getOrAddSegment(seg, get_e_id(ha, ea));
+	else if (is_valid_idx(eb))
+		seg_id = ts.getOrAddSegment(seg, get_e_id(hb, eb));
+	else
+		seg_id = ts.getOrAddSegment(seg, InvalidIndex);
 
 	// check if (v0,v1) is an edge of ta
 	// if (!(ha.contains_vtx(v0) && ha.contains_vtx(v1)))
 	// check if (v0,v1) is an edge of ta
-	if (!is_part_of_ea)
+	if (!is_valid_idx(ea))
 		// if not, add segment to ta
 		ts.addSegmentInTriangle(ha.t_id, seg_id);
 
 	// check if (v0,v1) is an edge of tb
 	// if (!(hb.contains_vtx(v0) && hb.contains_vtx(v1)))
 	// if not, add segment to tb
-	if (!is_part_of_eb)
+	if (!is_valid_idx(eb))
 		ts.addSegmentInTriangle(hb.t_id, seg_id);
 
 	// seg2tris will be constructed after classification.

@@ -266,7 +266,11 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 	#endif
 #else
 			edges.push_back(edge);
+	#ifndef OMC_ARR_GLOBAL_POINT_SET
 			edge2pts.emplace_back(EdgeComparator(*this, longest_axis));
+	#else
+			e2p_iter = edge2pts.emplace_back();
+	#endif
 			edges_iter = edges.end() - 1;
 			e2p_iter   = edge2pts.end() - 1;
 #endif
@@ -286,6 +290,22 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 		OMC_EXPENSIVE_ASSERT(insert_iter.second, "fail to add edge.");
 		return edge_id;
 	}
+}
+
+template <typename Traits>
+auto TriangleSoup<Traits>::edgeVert(index_t e_id,
+                                    index_t off) const -> const GPoint &
+{
+	OMC_EXPENSIVE_ASSERT(e_id < numEdges(), "e_id out of range");
+	return *vertices[*(&edges[e_id].first + off)];
+}
+
+template <typename Traits>
+auto TriangleSoup<Traits>::edgeVertPtr(index_t e_id,
+                                       index_t off) const -> const NT *
+{
+	OMC_EXPENSIVE_ASSERT(e_id < numEdges(), "e_id out of range");
+	return vertices[*(&edges[e_id].first + off)]->data();
 }
 
 template <typename Traits>
@@ -443,7 +463,7 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 }
 
 template <typename Traits>
-index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg)
+index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg, index_t e_id)
 {
 	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
 	index_t outer_map = (seg.first + seg.second) % seg_map.size();
@@ -455,7 +475,12 @@ index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg)
 
 	auto find_iter = sm.find(seg);
 	if (find_iter != sm.end()) // segment exists, just return it.
-		return find_iter->second;
+	{
+		index_t seg_id = find_iter->second;
+		if (!is_valid_idx(seg_edge[seg_id]) && is_valid_idx(e_id))
+			seg_edge[seg_id] = e_id;
+		return seg_id;
+	}
 	else // segment does not exist, add it
 	{
 		// 1. add a new segment.
@@ -464,9 +489,11 @@ index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg)
 			std::lock_guard<tbb::spin_mutex> lock_segs(new_segment_mutex);
 #ifdef OMC_ARR_TS_PARA
 			segs_iter = segments.push_back(seg);
+			seg_edge.push_back(e_id);
 #else
 			segments.push_back(seg);
 			segs_iter = segments.end() - 1;
+			seg_edge.push_back(e_id);
 #endif
 		}
 		// 2. get new segment's index
@@ -498,9 +525,16 @@ index_t TriangleSoup<Traits>::segmentID(const Segment &seg) const
 
 	auto find_iter = sm.find(seg);
 	if (find_iter != sm.end()) // segment exists, just return it.
-		return find_iter->second;
+		return find_iter->second.first;
 	else
 		return InvalidIndex;
+}
+
+template <typename Traits>
+index_t TriangleSoup<Traits>::segmentEdgeID(index_t seg_id) const
+{
+	OMC_EXPENSIVE_ASSERT(seg_id < segments.size(), "out of range");
+	return seg_edge[seg_id];
 }
 
 template <typename Traits>
@@ -919,7 +953,7 @@ void TriangleSoup<Traits>::fixAllIndices()
 				seg_new_id[seg_id] = seg_id;
 			else
 			{
-				seg_new_id[seg_id] = getOrAddSegment(new_seg);
+				seg_new_id[seg_id] = getOrAddSegment(new_seg, seg_edge[seg_id]);
 				OMC_EXPENSIVE_ASSERT(is_valid_idx(seg_new_id[seg_id]),
 				                     "Invalid segment");
 				any_seg_fixed = true;

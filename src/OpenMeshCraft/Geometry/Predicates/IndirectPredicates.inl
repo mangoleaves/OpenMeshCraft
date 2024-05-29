@@ -665,6 +665,39 @@ Sign OrientOn2D_Indirect<FT, IT, ET>::on_zx(const PointT &a, const PointT &b,
 
 template <typename FT, typename IT, typename ET>
 Sign OrientOn2D_Indirect<FT, IT, ET>::operator()(const FT *a, const FT *b,
+                                                 const PointT &c, int n_max)
+{
+	if (c.is_Explicit())
+		return operator()(a, b, c.data(), n_max);
+
+	if (n_max == 0) // yz
+	{
+		if (c.has_ssf())
+			return orientOn2Dyz_IEE<SSF>(c, a[1], a[2], b[1], b[2],
+			                             static_cast<PntArr3>(c.point_type()));
+		else
+			return orientOn2Dyz_IEE<DF>(c, a[1], a[2], b[1], b[2], PntArr3::I);
+	}
+	else if (n_max == 1) // zx
+	{
+		if (c.has_ssf())
+			return orientOn2Dzx_IEE<SSF>(c, a[0], a[2], b[0], b[2],
+			                             static_cast<PntArr3>(c.point_type()));
+		else
+			return orientOn2Dzx_IEE<DF>(c, a[0], a[2], b[0], b[2], PntArr3::I);
+	}
+	else // xy
+	{
+		if (c.has_ssf())
+			return orientOn2Dxy_IEE<SSF>(c, a[0], a[1], b[0], b[1],
+			                             static_cast<PntArr3>(c.point_type()));
+		else
+			return orientOn2Dxy_IEE<DF>(c, a[0], a[1], b[0], b[1], PntArr3::I);
+	}
+}
+
+template <typename FT, typename IT, typename ET>
+Sign OrientOn2D_Indirect<FT, IT, ET>::operator()(const FT *a, const FT *b,
                                                  const FT *c, int n_max)
 {
 	if (n_max == 0)

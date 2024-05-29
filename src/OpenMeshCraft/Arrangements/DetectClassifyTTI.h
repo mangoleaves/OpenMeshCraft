@@ -106,9 +106,8 @@ protected:
 	  IntersectionPoints &intersection_points,
 	  IntersectionTypes  &intersection_types);
 
-	void add_symbolic_segment(index_t v0, index_t v1, TTIHelper &ha,
-	                          bool is_part_of_ea, TTIHelper &hb,
-	                          bool is_part_of_eb);
+	void add_symbolic_segment(index_t v0, index_t v1, TTIHelper &ha, index_t ea,
+	                          TTIHelper &hb, index_t eb);
 
 	index_t add_vertex_in_tri(TTIHelper &ha, TTIHelper &hb, index_t vb);
 

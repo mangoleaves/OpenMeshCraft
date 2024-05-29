@@ -518,50 +518,35 @@ void Triangulation<Traits>::findIntersectingElements(
 #ifndef OMC_ARR_3D_PREDS
 	#ifdef OMC_ARR_AVOID_TPI
 	index_t   nc_t_id = InvalidIndex;
-	const NT *aux_plane[3];
+	const NT *aux_separator[3];
 
+	// find a line or plane as aux separator to replace segment.
 	{
 		index_t t_id = subm.meshInfo();
 
 		const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
 		index_t        seg_id  = *seg_ids.begin();
 
-		const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
-		const concurrent_vector<index_t> &e_s2t = ts.segmentTrianglesList(seg_id);
-
-		// find a non-coplanar plane (triangle)
-		for (index_t st_id : e_s2t)
+		index_t seg_e_id = ts.segmentEdgeID(seg_id);
+		if (is_valid_idx(seg_e_id))
 		{
-			if (st_id == t_id)
-				continue;
-			if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
-			{
-				nc_t_id = st_id;
-				break;
-			}
-		}
-
-		if (is_valid_idx(nc_t_id))
-		{
-			// determine the orientation of the plane
-			aux_plane[0] = ts.triVertPtr(nc_t_id, 0);
-			aux_plane[1] = ts.triVertPtr(nc_t_id, 1);
-			aux_plane[2] = ts.triVertPtr(nc_t_id, 2);
-
+			aux_separator[0] = ts.edgeVertPtr(seg_e_id, 0);
+			aux_separator[1] = ts.edgeVertPtr(seg_e_id, 1);
+			aux_separator[2] = nullptr;
 			for (index_t i = 0; i < 3; i++)
 			{
 				const GPoint &gv = subm.vert(i);
 
-				Sign ori_to_plane =
-				  Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2], gv.data());
-				if (ori_to_plane != Sign::ZERO)
+				Sign ori_to_line = OrientOn2D()(aux_separator[0], aux_separator[1],
+				                                gv.data(), planeToInt(subm.refPlane()));
+				if (ori_to_line != Sign::ZERO)
 				{
 					Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
 					                               gv, planeToInt(subm.refPlane()));
 					OMC_EXPENSIVE_ASSERT(ori_to_seg != Sign::ZERO, "wrong orientation.");
-					if (ori_to_plane != ori_to_seg)
+					if (ori_to_line != ori_to_seg)
 						// reverse the orientation of the plane.
-						std::swap(aux_plane[0], aux_plane[1]);
+						std::swap(aux_separator[0], aux_separator[1]);
 
 					// end determining.
 					break;
@@ -572,10 +557,69 @@ void Triangulation<Traits>::findIntersectingElements(
 			{
 				const GPoint &gv = subm.vert(i);
 
-				Sign ori_to_plane =
-				  Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2], gv.data());
-				Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-				                               gv, planeToInt(subm.refPlane()));
+				Sign ori_to_line = OrientOn2D()(aux_separator[0], aux_separator[1],
+				                                gv.data(), planeToInt(subm.refPlane()));
+				Sign ori_to_seg  = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+                                       gv, planeToInt(subm.refPlane()));
+				OMC_ASSERT(ori_to_line == ori_to_seg, "mismatch");
+			}
+		#endif
+			// now, for any atrbitrary point in the subm,
+			// the orientation of it w.r.t. the plane (orient3d)
+			// is the same as the orientation of it w.r.t the segment (orientOn2d).
+		}
+		else
+		{
+			const concurrent_vector<index_t> &copl_tris = ts.coplanarTriangles(t_id);
+			const concurrent_vector<index_t> &e_s2t = ts.segmentTrianglesList(seg_id);
+
+			// find a non-coplanar plane (triangle)
+			for (index_t st_id : e_s2t)
+			{
+				if (st_id == t_id)
+					continue;
+				if (!std::binary_search(copl_tris.begin(), copl_tris.end(), st_id))
+				{
+					nc_t_id = st_id;
+					break;
+				}
+			}
+
+			OMC_ASSERT(is_valid_idx(nc_t_id), "can't find a non-coplanar plane");
+
+			// determine the orientation of the plane
+			aux_separator[0] = ts.triVertPtr(nc_t_id, 0);
+			aux_separator[1] = ts.triVertPtr(nc_t_id, 1);
+			aux_separator[2] = ts.triVertPtr(nc_t_id, 2);
+
+			for (index_t i = 0; i < 3; i++)
+			{
+				const GPoint &gv = subm.vert(i);
+
+				Sign ori_to_plane = Orient3D()(aux_separator[0], aux_separator[1],
+				                               aux_separator[2], gv.data());
+				if (ori_to_plane != Sign::ZERO)
+				{
+					Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+					                               gv, planeToInt(subm.refPlane()));
+					OMC_EXPENSIVE_ASSERT(ori_to_seg != Sign::ZERO, "wrong orientation.");
+					if (ori_to_plane != ori_to_seg)
+						// reverse the orientation of the plane.
+						std::swap(aux_separator[0], aux_separator[1]);
+
+					// end determining.
+					break;
+				}
+			}
+		#ifdef OMC_ENABLE_EXPENSIVE_ASSERT
+			for (index_t i = 0; i < 3; i++)
+			{
+				const GPoint &gv = subm.vert(i);
+
+				Sign ori_to_plane = Orient3D()(aux_separator[0], aux_separator[1],
+				                               aux_separator[2], gv.data());
+				Sign ori_to_seg   = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+                                       gv, planeToInt(subm.refPlane()));
 				OMC_ASSERT(ori_to_plane == ori_to_seg, "mismatch");
 			}
 		#endif
@@ -583,8 +627,6 @@ void Triangulation<Traits>::findIntersectingElements(
 			// the orientation of it w.r.t. the plane (orient3d)
 			// is the same as the orientation of it w.r.t the segment (orientOn2d).
 		}
-		// otherwise, this segment is caused by an coplanar edge, we can't find a
-		// non-coplanar triangle.
 	}
 	#endif
 #endif
@@ -650,18 +692,18 @@ void Triangulation<Traits>::findIntersectingElements(
 		SignPair curr_ori;
 		if (is_valid_idx(nc_t_id))
 		{
-			curr_ori.first  = Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2],
-                                  subm.vert(curr_ev.first));
-			curr_ori.second = Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2],
-			                             subm.vert(curr_ev.second));
+			curr_ori.first  = Orient3D()(aux_separator[0], aux_separator[1],
+                                  aux_separator[2], subm.vert(curr_ev.first));
+			curr_ori.second = Orient3D()(aux_separator[0], aux_separator[1],
+			                             aux_separator[2], subm.vert(curr_ev.second));
 		}
 		else
 		{
 			curr_ori.first =
-			  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+			  OrientOn2D()(aux_separator[0], aux_separator[1],
 			               subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
 			curr_ori.second =
-			  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+			  OrientOn2D()(aux_separator[0], aux_separator[1],
 			               subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
 		}
 	#else
@@ -724,8 +766,8 @@ void Triangulation<Traits>::findIntersectingElements(
 			#ifdef OMC_ARR_AVOID_TPI
 				curr_ori.first =
 					is_valid_idx(nc_t_id) ?
-					Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2], subm.vert(curr_ev.first)):
-					OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
+					Orient3D()(aux_separator[0], aux_separator[1], aux_separator[2], subm.vert(curr_ev.first)):
+					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
 			#else
 				curr_ori.first = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
 			#endif
@@ -738,8 +780,8 @@ void Triangulation<Traits>::findIntersectingElements(
 			#ifdef OMC_ARR_AVOID_TPI
 				curr_ori.second = 
 					is_valid_idx(nc_t_id) ?
-					Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2], subm.vert(curr_ev.second)):
-					OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
+					Orient3D()(aux_separator[0], aux_separator[1], aux_separator[2], subm.vert(curr_ev.second)):
+					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
 			#else
 				curr_ori.second = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
 			#endif
@@ -852,11 +894,11 @@ void Triangulation<Traits>::findIntersectingElements(
 #ifndef OMC_ARR_3D_PREDS
 	// check whether meet a vertex of triangle.
 	#ifdef OMC_ARR_AVOID_TPI
-		Sign v2_ori =
-		  is_valid_idx(nc_t_id)
-		    ? Orient3D()(aux_plane[0], aux_plane[1], aux_plane[2], subm.vert(v2))
-		    : OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(v2),
-		                   planeToInt(subm.refPlane()));
+		Sign v2_ori = is_valid_idx(nc_t_id)
+		                ? Orient3D()(aux_separator[0], aux_separator[1],
+		                             aux_separator[2], subm.vert(v2))
+		                : OrientOn2D()(aux_separator[0], aux_separator[1],
+		                               subm.vert(v2), planeToInt(subm.refPlane()));
 	#else
 		Sign v2_ori = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
 		                           subm.vert(v2), planeToInt(subm.refPlane()));

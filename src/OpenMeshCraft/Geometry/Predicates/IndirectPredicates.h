@@ -211,7 +211,7 @@ public:
 	/// @brief ab = b-a, ac = c-a, ad = d-a
 	/// det = dot(cross(ab,ac), ad), ZERO -> coplanar, POSITIVE -> positive
 	/// volume, NEGATIVE -> negtive volume.
-	Sign operator()(const FT *a, const FT *b, const FT *c, const PointT& d);
+	Sign operator()(const FT *a, const FT *b, const FT *c, const PointT &d);
 
 public: // for cache
 	/// @brief Calculate cached data for three points pa, pb and pc (which
@@ -251,6 +251,8 @@ public:
 	Sign on_zx(const PointT &a, const PointT &b, const PointT &c);
 
 	Sign operator()(const FT *a, const FT *b, const FT *c, int n_max);
+
+	Sign operator()(const FT *a, const FT *b, const PointT &c, int n_max);
 
 	Sign on_xy(const FT *a, const FT *b, const FT *c);
 	Sign on_yz(const FT *a, const FT *b, const FT *c);

@@ -163,6 +163,10 @@ public: /* Edges **************************************************************/
 
 	index_t getOrAddEdge(index_t v0_id, index_t v1_id);
 
+	const GPoint &edgeVert(index_t e_id, index_t off) const;
+
+	const NT *edgeVertPtr(index_t e_id, index_t off) const;
+
 public: /* Triangles **********************************************************/
 	const index_t *tri(index_t t_id) const;
 
@@ -203,6 +207,8 @@ public:
 
 	// all unique constarined segments
 	concurrent_vector<Segment> segments;
+	// edges where segment come from (invalid index if inexistant).
+	concurrent_vector<index_t> seg_edge;
 	// map segments to their ID
 	SegMap                     seg_map;
 	// mutexes for seg_map
@@ -298,9 +304,11 @@ public: /* Add **************************************************************/
 
 	/* -- segment in triangle -- */
 
-	index_t getOrAddSegment(const Segment &seg);
+	index_t getOrAddSegment(const Segment &seg, index_t e_id);
 
 	index_t segmentID(const Segment &seg) const;
+
+	index_t segmentEdgeID(index_t seg_id) const;
 
 	Segment segment(index_t seg_id) const;
 
