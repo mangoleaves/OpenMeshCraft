@@ -57,7 +57,7 @@ public: /* Types **************************************************************/
 	/// map an edge(index pair) to a unique edge index.
 	/// 1. map smaller vertex index by std::vector.
 	/// 2. map larger vertex index by flat hash map.
-	using EdgeMap        = std::vector<phmap::flat_hash_map<index_t, index_t>>;
+	using EdgeMap        = std::vector<phmap::flat_hash_map<Edge, index_t>>;
 	/// mutex for reading and writing EdgeMap.
 	using EdgeMapMutexes = std::vector<tbb::spin_mutex>;
 
@@ -131,12 +131,15 @@ public:
 	size_t num_orig_tris;
 
 	concurrent_vector<Edge> edges;
-	/// map an edge(index pair) to a unique edge index.
-	/// 1. map smaller vertex index by std::vector.
-	/// 2. map larger vertex index by flat hash map.
+	/// map an edge(unique index pair) to a unique edge index.
+	/// 1. outer map: map smaller vertex index to a flat hash map container by
+	/// std::vector with limited length to avoid collision in parallel context.
+	/// 2. inner map: map edge to its index by flat hash map.
 	EdgeMap                 edge_map;
 	/// mutex for reading and writing EdgeMap.
 	EdgeMapMutexes          edge_mutexes;
+	/// edge map size
+	const static size_t     edge_map_size = 64;
 	/// triangle edges
 	std::vector<index_t>    tri_edges;
 

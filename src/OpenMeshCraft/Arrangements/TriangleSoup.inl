@@ -149,8 +149,8 @@ void TriangleSoup<Traits>::initialize()
 	num_orig_tris = static_cast<size_t>(triangles.size() / 3);
 
 	edges.reserve(numOrigVerts());
-	edge_map.resize(numOrigVerts());
-	edge_mutexes = std::vector<tbb::spin_mutex>(numOrigVerts());
+	edge_map.resize(edge_map_size);
+	edge_mutexes = std::vector<tbb::spin_mutex>(edge_map_size);
 
 	tri_edges.resize(numOrigTris() * 3, InvalidIndex);
 
@@ -222,12 +222,14 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 {
 	Edge edge = uniquePair(v0_id, v1_id);
 
-	phmap::flat_hash_map<index_t, index_t> &em = edge_map[edge.first];
+	phmap::flat_hash_map<Edge, index_t> &em =
+	  edge_map[edge.first % edge_map_size];
 
 	// lock until finding and/or adding operation end.
-	std::lock_guard<tbb::spin_mutex> lock_edge_map(edge_mutexes[edge.first]);
+	std::lock_guard<tbb::spin_mutex> lock_edge_map(
+	  edge_mutexes[edge.first % edge_map_size]);
 
-	auto find_iter = em.find(edge.second);
+	auto find_iter = em.find(edge);
 	if (find_iter != em.end()) // edge exists, just return it.
 		return find_iter->second;
 	else // edge does not exist, add it
@@ -280,7 +282,7 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 		index_t edge_id = edges_iter - edges.begin();
 
 		// 3. build map between new edge and its index
-		auto insert_iter = em.insert({edge.second, edge_id});
+		auto insert_iter = em.insert({edge, edge_id});
 		OMC_EXPENSIVE_ASSERT(insert_iter.second, "fail to add edge.");
 		return edge_id;
 	}
@@ -327,11 +329,13 @@ index_t TriangleSoup<Traits>::triEdgeID(index_t t_id, index_t off)
 	index_t v0_id = triangles[3 * t_id + off];
 	index_t v1_id = triangles[3 * t_id + ((off + 1) % 3)];
 	Edge    edge  = uniquePair(v0_id, v1_id);
-	if (edge_map[edge.first].find(edge.second) == edge_map[edge.first].end())
+	phmap::flat_hash_map<Edge, index_t> &em =
+	  edge_map[edge.first % edge_map_size];
+	if (em.find(edge) == em.end())
 		// the edge does not exist, return invalid index.
 		return InvalidIndex;
 	// otherwise get the index of edge and return it.
-	tri_edges[3 * t_id + off] = edge_map[edge.first].at(edge.second);
+	tri_edges[3 * t_id + off] = em.at(edge);
 	return tri_edges[3 * t_id + off];
 }
 
