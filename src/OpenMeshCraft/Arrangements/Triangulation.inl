@@ -419,24 +419,18 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 	for (index_t i = 0; i < segments.size(); i++)
 		sub_segs_map[segments[i]].insert(seg_ids[i]);
 	// Store unique segments
-	SegmentsList         added_segment_list;
-	std::vector<Segment> segment_list(segments.begin(), segments.end());
-	std::shuffle(segment_list.begin(), segment_list.end(),
+	std::shuffle(segments.begin(), segments.end(),
 	             std::mt19937(std::random_device()()));
 	// store segments adjacent to a TPI point in tpi2segs
 	TPI2Segs tpi2segs;
 
 	// add segments to triangle mesh
-	while (segment_list.size() > 0)
+	while (segments.size() > 0)
 	{
-		Segment seg = segment_list.back();
-		segment_list.pop_back();
+		Segment seg = segments.back();
+		segments.pop_back();
 
-		if (added_segment_list.count(seg) == 0)
-		{
-			added_segment_list.insert(seg);
-			addConstraintSegment(subm, seg, segment_list, sub_segs_map, tpi2segs);
-		}
+		addConstraintSegment(subm, seg, segments, sub_segs_map, tpi2segs);
 	}
 }
 
