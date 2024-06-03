@@ -111,6 +111,13 @@ set(TBB_TEST OFF CACHE BOOL "")
 set(TBBMALLOC_BUILD OFF CACHE BOOL "")
 # cmake-format: on
 
+if(WIN32 AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # When compile tbb by gcc (mingw64) on Windows, compiler complains a lot of warnings.
+  # It's ok to compile tbb by MSVC on Windows or by gcc on Unix* OS.
+  set(TBB_WARNING_SUPPRESS -Wno-stringop-overflow -Wno-unused-value
+                           -Wno-array-bounds)
+endif()
+
 # always build TBB to shared lib
 
 if(NOT BUILD_SHARED_LIBS)

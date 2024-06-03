@@ -6,4 +6,5 @@
 	#pragma GCC diagnostic ignored "-Warray-bounds"
 	#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 	#pragma GCC diagnostic ignored "-Wignored-qualifiers"
+	#pragma GCC diagnostic ignored "-Wstringop-overread"
 #endif

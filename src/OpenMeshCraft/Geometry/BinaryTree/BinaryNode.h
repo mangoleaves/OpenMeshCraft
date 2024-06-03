@@ -98,7 +98,7 @@ public: /* Data access */
 	const index_t &children() const { return m_children; }
 
 	/// @brief Access children size
-	const size_t children_size() const { return is_internal() ? 2 : 0; }
+	size_t children_size() const { return is_internal() ? 2 : 0; }
 
 	index_t       &depth() { return m_depth; }
 	const index_t &depth() const { return m_depth; }

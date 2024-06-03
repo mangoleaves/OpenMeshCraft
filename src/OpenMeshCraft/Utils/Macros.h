@@ -1,9 +1,5 @@
 #pragma once
 
-/// Some our macros rely on boost's defined macors.
-#include "boost/config.hpp"
-#include "boost/predef.h"
-
 #include <cstring>
 
 // NOTE When you add new macros to this file,

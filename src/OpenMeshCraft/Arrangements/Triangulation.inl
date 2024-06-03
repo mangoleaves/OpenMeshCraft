@@ -454,8 +454,8 @@ void Triangulation<Traits>::addConstraintSegment(
 	// * it's better to start from the vert with lower valence.
 	// * it's also better to start from a TPI vertex.
 	index_t v_start = v0_id, v_stop = v1_id;
-	if (!subm.vertFlag(v0_id) && !subm.vertFlag(v1_id) ||
-	    subm.vertFlag(v0_id) && subm.vertFlag(v1_id))
+	if ((!subm.vertFlag(v0_id) && !subm.vertFlag(v1_id)) ||
+	    (subm.vertFlag(v0_id) && subm.vertFlag(v1_id)))
 	{
 		if (subm.vertValence(v1_id) < subm.vertValence(v0_id))
 			std::swap(v_start, v_stop);
@@ -1632,9 +1632,9 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 	// we traversal all stored pockets, fix indices in them, check if them are
 	// duplicate, and remove duplicates.
-	typename TriSoup::PocketsMap &old_pockets_map = ts.pocketsMapWithTPI();
-	typename TriSoup::PocketsMap  new_pockets_map;
-	std::vector<uint8_t>          new_tri_deleted(new_labels.size(), false);
+	const typename TriSoup::PocketsMap &old_pockets_map = ts.pocketsMapWithTPI();
+	typename TriSoup::PocketsMap        new_pockets_map;
+	std::vector<uint8_t>                new_tri_deleted(new_labels.size(), false);
 
 	if (old_pockets_map.empty())
 		return;
@@ -1645,16 +1645,9 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 		index_t               tris_pos = pocket.second;
 
 		// fix indices stored in old pockets
-		bool any_index_fixed = false;
 		for (index_t &vid : polygon)
-		{
-			index_t new_vid = ts.indices[vid].load();
-			if (vid != new_vid)
-			{
-				vid             = new_vid;
-				any_index_fixed = true;
-			}
-		}
+			vid = ts.indices[vid].load();
+
 		// add new pocket to new pockets map
 		auto poly_iter = new_pockets_map.insert(std::make_pair(polygon, tris_pos));
 

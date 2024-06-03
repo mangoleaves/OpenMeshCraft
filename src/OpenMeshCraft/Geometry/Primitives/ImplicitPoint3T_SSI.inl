@@ -24,6 +24,7 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
   , plane(_plane)
 {
 #ifdef OMC_CACHE_SSF
+	m_maxvar = 0;
 	#if defined(OMC_OFFSET_PRED)
 	FT bx, by, bz;
 	if (plane == 0) // YZ
@@ -50,6 +51,10 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
 		                           m_ld, m_lx, m_ly, m_lz, bx, by, bz, m_maxvar))
 			m_ld = 0;
 	}
+	else
+	{
+		OMC_EXIT("wrong plane in SSI.");
+	}
 	#elif defined(OMC_INDIRECT_PRED)
 	if (plane == 0) // YZ
 	{
@@ -74,6 +79,10 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
 		                           B().z(), P().x(), P().y(), Q().x(), Q().y(),
 		                           m_lx, m_ly, m_lz, m_ld, m_maxvar))
 			m_ld = 0;
+	}
+	else
+	{
+		OMC_EXIT("wrong plane in SSI.");
 	}
 	#endif
 
@@ -1102,8 +1111,8 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
-/// @brief This is just a function for profiling. It outputs maxvar under indirect 
-/// predicates to compare with other predicates
+/// @brief This is just a function for profiling. It outputs maxvar under
+/// indirect predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_SSI<IT, ET>::getIndirectMaxVar() const -> FT
 {

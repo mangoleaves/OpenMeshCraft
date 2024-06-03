@@ -2,9 +2,6 @@
 
 #include "test_utils.h"
 
-#if defined(OMC_SSE2) && !defined(__SSE2__)
-#define __SSE2__
-#endif
 #include "CGAL/Interval_nt.h"
 
 #include <type_traits>

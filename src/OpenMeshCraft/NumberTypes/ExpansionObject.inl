@@ -20,6 +20,11 @@ void expansionObject::Two_Sum(const double a, const double b, double &x,
 	y   = (a - (x - _bv)) + (b - _bv);
 }
 
+void expansionObject::two_Sum(const double a, const double b, double *xy)
+{
+	Two_Sum(a, b, xy[1], xy[0]);
+}
+
 void expansionObject::Two_One_Sum(const double a1, const double a0,
                                   const double b, double &x2, double &x1,
                                   double &x0)
@@ -29,11 +34,6 @@ void expansionObject::Two_One_Sum(const double a1, const double a0,
 	Two_Sum(a1, _i, x2, x1);
 }
 
-void expansionObject::two_Sum(const double a, const double b, double *xy)
-{
-	Two_Sum(a, b, xy[1], xy[0]);
-}
-
 void expansionObject::Two_Diff(const double a, const double b, double &x,
                                double &y)
 {
@@ -41,6 +41,11 @@ void expansionObject::Two_Diff(const double a, const double b, double &x,
 	x   = a - b;
 	_bv = a - x;
 	y   = (a - (x + _bv)) + (_bv - b);
+}
+
+void expansionObject::two_Diff(const double a, const double b, double *xy)
+{
+	Two_Diff(a, b, xy[1], xy[0]);
 }
 
 void expansionObject::Two_One_Diff(const double a1, const double a0,
@@ -74,11 +79,6 @@ void expansionObject::Two_Product_2Presplit(double a, double _ah, double _al,
 {
 	x = a * b;
 	y = (_al * _bl) - (((x - _ah * _bh) - (_al * _bh)) - (_ah * _bl));
-}
-
-void expansionObject::two_Diff(const double a, const double b, double *xy)
-{
-	Two_Diff(a, b, xy[1], xy[0]);
 }
 
 void expansionObject::Two_Prod(const double a, const double b, double &x,

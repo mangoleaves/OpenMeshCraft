@@ -6,6 +6,7 @@
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 
 #include <array>
+#include <atomic>
 
 namespace OMC {
 

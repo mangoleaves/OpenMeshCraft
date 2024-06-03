@@ -59,6 +59,7 @@ void PredicatesProfile::inc_filter(PredicateNames name, PntArr3 arr)
 	case PntArr3::LLT: filter_count[(size_t)name][16] += 1;break;
 	case PntArr3::LTT: filter_count[(size_t)name][17] += 1;break;
 	case PntArr3::TTT: filter_count[(size_t)name][18] += 1;break;
+	default:break;
 	}
 	// clang-format on
 }
@@ -87,6 +88,7 @@ void PredicatesProfile::inc_ss_fail(PredicateNames name, PntArr3 arr)
 	case PntArr3::LLT: ss_fail_count[(size_t)name][16] += 1;break;
 	case PntArr3::LTT: ss_fail_count[(size_t)name][17] += 1;break;
 	case PntArr3::TTT: ss_fail_count[(size_t)name][18] += 1;break;
+	default:break;
 	}
 	// clang-format on
 }
@@ -115,6 +117,7 @@ void PredicatesProfile::inc_d_fail(PredicateNames name, PntArr3 arr)
 	case PntArr3::LLT: d_fail_count[(size_t)name][16] += 1;break;
 	case PntArr3::LTT: d_fail_count[(size_t)name][17] += 1;break;
 	case PntArr3::TTT: d_fail_count[(size_t)name][18] += 1;break;
+	default:break;
 	}
 	// clang-format on
 }

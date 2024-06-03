@@ -3,6 +3,7 @@
 #include "OpenMeshCraft/Utils/Macros.h"
 
 #include <vector>
+#include <cmath>
 
 namespace OMC {
 
@@ -11,12 +12,6 @@ namespace OMC {
 // 	   E X P A N S I O N   A R I T H M E T I C
 //
 /////////////////////////////////////////////////////////////////////
-
-// The following macros are fast implementations of basic expansion arithmetic
-// due to Dekker, Knuth, Priest, Shewchuk, and others.
-
-// See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision
-// Floating Point Arithmetic"
 
 // Allocate extra-memory
 #define AllocDoubles(n) ((double *)malloc((n) * sizeof(double)))
@@ -27,20 +22,33 @@ namespace OMC {
 class expansionObject
 {
 public:
+	// Fast implementations of basic expansion arithmetic due to Dekker, Knuth,
+	// Priest, Shewchuk, and others.
+	// See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision
+	// Floating Point Arithmetic"
+
+	/* Sum routines ************************************************************/
+
 	inline void Quick_Two_Sum(const double a, const double b, double &x,
 	                          double &y);
 
 	inline void Two_Sum(const double a, const double b, double &x, double &y);
 
+	inline void two_Sum(const double a, const double b, double *xy);
+
 	inline void Two_One_Sum(const double a1, const double a0, const double b,
 	                        double &x2, double &x1, double &x0);
 
-	inline void two_Sum(const double a, const double b, double *xy);
+	/* Difference routines *****************************************************/
 
 	inline void Two_Diff(const double a, const double b, double &x, double &y);
 
+	inline void two_Diff(const double a, const double b, double *xy);
+
 	inline void Two_One_Diff(const double a1, const double a0, const double b,
 	                         double &x2, double &x1, double &x0);
+
+	/* Product routines ********************************************************/
 
 	inline void Split(double a, double &_ah, double &_al);
 
@@ -50,8 +58,6 @@ public:
 	inline void Two_Product_2Presplit(double a, double _ah, double _al, double b,
 	                                  double _bh, double _bl, double &x,
 	                                  double &y);
-
-	inline void two_Diff(const double a, const double b, double *xy);
 
 	// [x,y] = [a]*[b]		 Multiplies two expansions [a] and [b] of length one
 	inline void Two_Prod(const double a, const double b, double &x, double &y);

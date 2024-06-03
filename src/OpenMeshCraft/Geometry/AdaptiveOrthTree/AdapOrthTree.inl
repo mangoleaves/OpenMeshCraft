@@ -637,6 +637,12 @@ void AdapOrthTree<Traits>::merge_unique(Iter b1, Iter e1, Iter b2, Iter e2,
 		else if (b2 != e2) { *o = *b2; last = *b2; ++o; ++b2; }
 		else return;
 	}
+	else // b1 != e1 && b2 != e2
+	{
+		if (lp(*b1, *b2)) { *o = *b1; last = *b1; ++o; ++b1; }
+		else if (lp(*b2, *b1)) { *o = *b2; last = *b2; ++o; ++b2; }
+		else { *o = *b1; last = *b1; ++o; ++b1; ++b2; }
+	}
 	while (b1 != e1 && b2 != e2)
 	{
 		if (lp(*b1, *b2))

@@ -169,6 +169,8 @@ AdapOrthNode<Traits>::AdapOrthNode()
 	m_children_size = 0;
 	m_depth         = 0;
 	m_size          = 0;
+
+	std::fill(m_child_map.begin(), m_child_map.end(), InvalidIndex);
 }
 
 /**

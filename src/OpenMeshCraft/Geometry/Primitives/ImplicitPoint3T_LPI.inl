@@ -24,6 +24,7 @@ ImplicitPoint3T_LPI<IT, ET>::ImplicitPoint3T_LPI(const EP &_p, const EP &_q,
   , it(&_t)
 {
 #ifdef OMC_CACHE_SSF
+	m_maxvar = 0;
 	#if defined(OMC_OFFSET_PRED)
 	FT bx, by, bz;
 	if (!lambda3d_LPI_filtered(P().x(), P().y(), P().z(), Q().x(), Q().y(),

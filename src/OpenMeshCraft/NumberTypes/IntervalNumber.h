@@ -7,8 +7,7 @@
 #include "OpenMeshCraft/Utils/ExtendedTypeTraits.h"
 
 #ifdef OMC_SSE2
-	#include "emmintrin.h"
-	#include "smmintrin.h"
+	#include "immintrin.h"
 #endif
 
 #include <numeric>

@@ -839,9 +839,9 @@ int MeshBoolean_Impl<Traits>::perturbRayAndFindIntersTri(
 
 		for (index_t t_id : tris_to_test)
 		{
-			const EPoint &tv0 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id]]);
-			const EPoint &tv1 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id + 1]]);
-			const EPoint &tv2 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id + 2]]);
+			const EPoint tv0 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id]]);
+			const EPoint tv1 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id + 1]]);
+			const EPoint tv2 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id + 2]]);
 
 			if (checkIntersectionInsideTriangle3D(p_ray, tv0, tv1, tv2))
 				inters_tris.push_back(t_id);
@@ -891,9 +891,9 @@ MeshBoolean_Impl<Traits>::pruneIntersectionsAndSortAlongRay(
 		if (patch_surface_label[uint_tri_label])
 			continue; // <-- triangle of the same label of the tested patch
 
-		const EPoint &tv0 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id]]);
-		const EPoint &tv1 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id + 1]]);
-		const EPoint &tv2 = AsEP()(*arr_out_verts[arr_in_tris[3 * t_id + 2]]);
+		const EPoint tv0 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id]]);
+		const EPoint tv1 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id + 1]]);
+		const EPoint tv2 = ToEP()(*arr_out_verts[arr_in_tris[3 * t_id + 2]]);
 
 		IntersInfo ii = fast2DCheckIntersectionOnRay(ray, tv0, tv1, tv2);
 
@@ -1139,7 +1139,7 @@ void MeshBoolean_Impl<Traits>::computeFinalExplicitResult(
 	}
 
 	// loop over triangles and fix vertex indices
-	size_t               num_faces    = 0;
+	OMC_UNUSED size_t    num_faces    = 0;
 	size_t               num_vertices = 0;
 	std::vector<index_t> vertex_index(tm.numVerts(), InvalidIndex);
 

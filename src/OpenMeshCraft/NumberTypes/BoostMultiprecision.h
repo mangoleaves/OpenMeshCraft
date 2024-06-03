@@ -7,6 +7,9 @@
 
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
 
+#if defined(_WIN32) && defined(__GNUC__)
+	#define BOOST_CSTDFLOAT_NO_LIBQUADMATH_SUPPORT
+#endif
 #include "boost/multiprecision/gmp.hpp"
 #include "boost/operators.hpp"
 
@@ -79,15 +82,9 @@ public:
 class BoostMpToDouble
 {
 public:
-	double operator()(const BoostRational &x)
-	{
-		return x.convert_to<double>();
-	}
+	double operator()(const BoostRational &x) { return x.convert_to<double>(); }
 
-	double operator()(const BoostFloat &x)
-	{
-		return x.convert_to<double>();
-	}
+	double operator()(const BoostFloat &x) { return x.convert_to<double>(); }
 };
 
 template <>

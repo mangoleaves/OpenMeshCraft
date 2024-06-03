@@ -412,8 +412,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		hb.init_seg_wrt_seg();
 	}
 
-	if (eav0_wrt_tb == Sign::POSITIVE && eav1_wrt_tb == Sign::NEGATIVE ||
-	    eav0_wrt_tb == Sign::NEGATIVE && eav1_wrt_tb == Sign::POSITIVE)
+	if ((eav0_wrt_tb == Sign::POSITIVE && eav1_wrt_tb == Sign::NEGATIVE) ||
+	    (eav0_wrt_tb == Sign::NEGATIVE && eav1_wrt_tb == Sign::POSITIVE))
 	{ // ea cross the support plane of `tb`
 		OMC_ARR_PROF_TTI_INCR(11);
 
@@ -482,8 +482,8 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	}
 
 	// go on classifying intersections on `ta`
-	if (ebv0_wrt_ta == Sign::POSITIVE && ebv1_wrt_ta == Sign::NEGATIVE ||
-	    ebv0_wrt_ta == Sign::NEGATIVE && ebv1_wrt_ta == Sign::POSITIVE)
+	if ((ebv0_wrt_ta == Sign::POSITIVE && ebv1_wrt_ta == Sign::NEGATIVE) ||
+	    (ebv0_wrt_ta == Sign::NEGATIVE && ebv1_wrt_ta == Sign::POSITIVE))
 	{ // `eb` cross the support plane of `ta`
 		OMC_ARR_PROF_TTI_INCR(16);
 
@@ -2191,23 +2191,23 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 	}
 #else
 	// fix the vertex sequential of created implicit point
-	index_t min_eid, max_eid;
+	// index_t min_eid, max_eid;
 	index_t min_min_vid, min_max_vid, max_min_vid, max_max_vid;
 	if (ea_id < eb_id)
 	{
-		min_eid     = ea_id;
+		// min_eid     = ea_id;
 		min_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 		min_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
-		max_eid     = eb_id;
+		// max_eid     = eb_id;
 		max_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 		max_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 	}
 	else
 	{
-		min_eid     = eb_id;
+		// min_eid     = eb_id;
 		min_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 		min_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
-		max_eid     = ea_id;
+		// max_eid     = ea_id;
 		max_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 	}
@@ -2287,23 +2287,23 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_noncoplanar_edge(
 	// fix the vertex sequential of created implicit point
 	index_t ea_id = get_e_id(ha, ea);
 	index_t eb_id = get_e_id(hb, eb);
-	index_t min_eid, max_eid;
+	// index_t min_eid, max_eid;
 	index_t min_min_vid, min_max_vid, max_min_vid, max_max_vid;
 	if (ea_id < eb_id)
 	{
-		min_eid     = ea_id;
+		// min_eid     = ea_id;
 		min_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 		min_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
-		max_eid     = eb_id;
+		// max_eid     = eb_id;
 		max_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 		max_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 	}
 	else
 	{
-		min_eid     = eb_id;
+		// min_eid     = eb_id;
 		min_min_vid = std::min(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
 		min_max_vid = std::max(hb.v_id[eb], hb.v_id[(eb + 1) % 3]);
-		max_eid     = ea_id;
+		// max_eid     = ea_id;
 		max_min_vid = std::min(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 		max_max_vid = std::max(ha.v_id[ea], ha.v_id[(ea + 1) % 3]);
 	}

@@ -30,6 +30,7 @@ ImplicitPoint3T_TPI<IT, ET>::ImplicitPoint3T_TPI(const EP &_v1, const EP &_v2,
   , iu3(&_u3)
 {
 #ifdef OMC_CACHE_SSF
+	m_maxvar = 0;
 	#if defined(OMC_OFFSET_PRED)
 	FT bx, by, bz;
 	if (!lambda3d_TPI_filtered(
@@ -744,8 +745,8 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 
 #endif
 
-/// @brief This is just a function for profiling. It outputs maxvar under indirect
-/// predicates to compare with other predicates
+/// @brief This is just a function for profiling. It outputs maxvar under
+/// indirect predicates to compare with other predicates
 template <typename IT, typename ET>
 auto ImplicitPoint3T_TPI<IT, ET>::getIndirectMaxVar() const -> FT
 {

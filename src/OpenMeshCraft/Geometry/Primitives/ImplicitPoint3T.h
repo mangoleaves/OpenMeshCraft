@@ -4,6 +4,8 @@
 #include "GenericPoint3T.h"
 #include "GlobalCachedValues.h"
 
+#include "OpenMeshCraft/NumberTypes/ExpansionObject.h"
+
 #include <memory>
 
 namespace OMC {

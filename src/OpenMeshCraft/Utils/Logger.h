@@ -34,10 +34,10 @@ public:
 	static void fatal(const std::string& msg);
 
 	/// @brief return the current time point.
-	static OMC_NODISCARD std::chrono::steady_clock::time_point elapse_reset();
+	OMC_NODISCARD static std::chrono::steady_clock::time_point elapse_reset();
 
 	/// @brief return the eplased time between current and last time point.
-	static OMC_NODISCARD std::chrono::duration<double>
+	OMC_NODISCARD static std::chrono::duration<double>
 	elapsed(const std::chrono::steady_clock::time_point &last);
 };
 

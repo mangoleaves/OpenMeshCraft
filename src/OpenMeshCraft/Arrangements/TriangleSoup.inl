@@ -286,7 +286,7 @@ index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 		index_t edge_id = edges_iter - edges.begin();
 
 		// 3. build map between new edge and its index
-		auto insert_iter = em.insert({edge, edge_id});
+		OMC_UNUSED auto insert_iter = em.insert({edge, edge_id});
 		OMC_EXPENSIVE_ASSERT(insert_iter.second, "fail to add edge.");
 		return edge_id;
 	}
@@ -425,7 +425,7 @@ void TriangleSoup<Traits>::addVertexInEdge(index_t e_id, index_t v_id)
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 	OMC_EXPENSIVE_ASSERT(e_id < edge2pts.size(), "out of range");
 	Edge2PntsSet &points = edge2pts[e_id];
-	auto [iter, succeed] = points.insert(v_id);
+	OMC_UNUSED auto [iter, succeed] = points.insert(v_id);
 	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
 #else
 	Edge2PntsSet &points = edge2pts[e_id];
@@ -500,7 +500,7 @@ index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg, index_t e_id)
 		index_t seg_id = segs_iter - segments.begin();
 
 		// 3. build map between new segment and its index
-		auto insert_iter = sm.insert({seg, seg_id});
+		OMC_UNUSED auto insert_iter = sm.insert({seg, seg_id});
 		OMC_EXPENSIVE_ASSERT(insert_iter.second, "fail to add segment.");
 		return seg_id;
 	}
@@ -525,7 +525,7 @@ index_t TriangleSoup<Traits>::segmentID(const Segment &seg) const
 
 	auto find_iter = sm.find(seg);
 	if (find_iter != sm.end()) // segment exists, just return it.
-		return find_iter->second.first;
+		return find_iter->second;
 	else
 		return InvalidIndex;
 }
@@ -640,7 +640,7 @@ void TriangleSoup<Traits>::addVertexInSeg(index_t seg_id, index_t v_id)
 		                     "degenerate axis of segment.");
 	}
 
-	auto [iter, succeed] = points.insert(v_id);
+	OMC_UNUSED auto [iter, succeed] = points.insert(v_id);
 	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
 #else
 	if (points.empty())
