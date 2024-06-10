@@ -381,82 +381,82 @@ Segment3_Segment3_Do_Intersect<Kernel>::intersection_type_on2d(
 	// Almostly same as Segment2_Segment2_Do_Intersect.
 	// So I just copy it here and modify it to macro to test intersection on
 	// different 2d planes.
-#define On_Plane(xy, x, y)                                    \
-	Sign s00_wrt_s1 = OrientOn2D().on_##xy(s10, s11, s00);      \
-	Sign s01_wrt_s1 = OrientOn2D().on_##xy(s10, s11, s01);      \
-	Sign s10_wrt_s0 = OrientOn2D().on_##xy(s00, s01, s10);      \
-	Sign s11_wrt_s0 = OrientOn2D().on_##xy(s00, s01, s11);      \
-	if (s00_wrt_s1 != s01_wrt_s1 && s10_wrt_s0 != s11_wrt_s0)   \
-	{                                                           \
-		if (Same_On(s00, s10, x) && Same_On(s00, s10, y) ||       \
-		    Same_On(s00, s11, x) && Same_On(s00, s11, y) ||       \
-		    Same_On(s01, s10, x) && Same_On(s01, s10, y) ||       \
-		    Same_On(s01, s11, x) && Same_On(s01, s11, y))         \
-			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;     \
-                                                              \
-		return SimplexIntersectionType::INTERSECT;                \
-	}                                                           \
-	if (s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO && \
-	    s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO)   \
-	{                                                           \
-		if (Same_On(s00, s10, x) && Same_On(s00, s10, y) &&       \
-		      Same_On(s01, s11, x) && Same_On(s01, s11, y) ||     \
-		    Same_On(s00, s11, x) && Same_On(s00, s11, y) &&       \
-		      Same_On(s01, s10, x) && Same_On(s01, s10, y))       \
-			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;     \
-		Sign Xmin_s0 = LessThan3D().on_##x(s00, s01);             \
-		Sign Ymin_s0 = LessThan3D().on_##y(s00, s01);             \
-		Sign Xmin_s1 = LessThan3D().on_##x(s10, s11);             \
-		Sign Ymin_s1 = LessThan3D().on_##y(s10, s11);             \
-		if (Xmin_s1 != Sign::ZERO &&                              \
-		    (Xmin_s1 == Sign::NEGATIVE && Less_On(s10, s00, x) && \
-		       Less_On(s00, s11, x) ||                            \
-		     Xmin_s1 == Sign::POSITIVE && Less_On(s11, s00, x) && \
-		       Less_On(s00, s10, x)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Ymin_s1 != Sign::ZERO &&                              \
-		    (Ymin_s1 == Sign::NEGATIVE && Less_On(s10, s00, y) && \
-		       Less_On(s00, s11, y) ||                            \
-		     Ymin_s1 == Sign::POSITIVE && Less_On(s11, s00, y) && \
-		       Less_On(s00, s10, y)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Xmin_s1 != Sign::ZERO &&                              \
-		    (Xmin_s1 == Sign::NEGATIVE && Less_On(s10, s01, x) && \
-		       Less_On(s01, s11, x) ||                            \
-		     Xmin_s1 == Sign::POSITIVE && Less_On(s11, s01, x) && \
-		       Less_On(s01, s10, x)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Ymin_s1 != Sign::ZERO &&                              \
-		    (Ymin_s1 == Sign::NEGATIVE && Less_On(s10, s01, y) && \
-		       Less_On(s01, s11, y) ||                            \
-		     Ymin_s1 == Sign::POSITIVE && Less_On(s11, s01, y) && \
-		       Less_On(s01, s10, y)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Xmin_s0 != Sign::ZERO &&                              \
-		    (Xmin_s0 == Sign::NEGATIVE && Less_On(s00, s10, x) && \
-		       Less_On(s10, s01, x) ||                            \
-		     Xmin_s0 == Sign::POSITIVE && Less_On(s01, s10, x) && \
-		       Less_On(s10, s00, x)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Ymin_s0 != Sign::ZERO &&                              \
-		    (Ymin_s0 == Sign::NEGATIVE && Less_On(s00, s10, y) && \
-		       Less_On(s10, s01, y) ||                            \
-		     Ymin_s0 == Sign::POSITIVE && Less_On(s01, s10, y) && \
-		       Less_On(s10, s00, y)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Xmin_s0 != Sign::ZERO &&                              \
-		    (Xmin_s0 == Sign::NEGATIVE && Less_On(s00, s11, x) && \
-		       Less_On(s11, s01, x) ||                            \
-		     Xmin_s0 == Sign::POSITIVE && Less_On(s01, s11, x) && \
-		       Less_On(s11, s00, x)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-		if (Ymin_s0 != Sign::ZERO &&                              \
-		    (Ymin_s0 == Sign::NEGATIVE && Less_On(s00, s11, y) && \
-		       Less_On(s11, s01, y) ||                            \
-		     Ymin_s0 == Sign::POSITIVE && Less_On(s01, s11, y) && \
-		       Less_On(s11, s00, y)))                             \
-			return SimplexIntersectionType::OVERLAP;                \
-	}                                                           \
+#define On_Plane(xy, x, y)                                     \
+	Sign s00_wrt_s1 = OrientOn2D().on_##xy(s10, s11, s00);       \
+	Sign s01_wrt_s1 = OrientOn2D().on_##xy(s10, s11, s01);       \
+	Sign s10_wrt_s0 = OrientOn2D().on_##xy(s00, s01, s10);       \
+	Sign s11_wrt_s0 = OrientOn2D().on_##xy(s00, s01, s11);       \
+	if (s00_wrt_s1 != s01_wrt_s1 && s10_wrt_s0 != s11_wrt_s0)    \
+	{                                                            \
+		if ((Same_On(s00, s10, x) && Same_On(s00, s10, y)) ||      \
+		    (Same_On(s00, s11, x) && Same_On(s00, s11, y)) ||      \
+		    (Same_On(s01, s10, x) && Same_On(s01, s10, y)) ||      \
+		    (Same_On(s01, s11, x) && Same_On(s01, s11, y)))        \
+			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;      \
+                                                               \
+		return SimplexIntersectionType::INTERSECT;                 \
+	}                                                            \
+	if (s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO &&  \
+	    s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO)    \
+	{                                                            \
+		if ((Same_On(s00, s10, x) && Same_On(s00, s10, y) &&       \
+		     Same_On(s01, s11, x) && Same_On(s01, s11, y)) ||      \
+		    (Same_On(s00, s11, x) && Same_On(s00, s11, y) &&       \
+		     Same_On(s01, s10, x) && Same_On(s01, s10, y)))        \
+			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;      \
+		Sign Xmin_s0 = LessThan3D().on_##x(s00, s01);              \
+		Sign Ymin_s0 = LessThan3D().on_##y(s00, s01);              \
+		Sign Xmin_s1 = LessThan3D().on_##x(s10, s11);              \
+		Sign Ymin_s1 = LessThan3D().on_##y(s10, s11);              \
+		if (Xmin_s1 != Sign::ZERO &&                               \
+		    ((Xmin_s1 == Sign::NEGATIVE && Less_On(s10, s00, x) && \
+		      Less_On(s00, s11, x)) ||                             \
+		     (Xmin_s1 == Sign::POSITIVE && Less_On(s11, s00, x) && \
+		      Less_On(s00, s10, x))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Ymin_s1 != Sign::ZERO &&                               \
+		    ((Ymin_s1 == Sign::NEGATIVE && Less_On(s10, s00, y) && \
+		      Less_On(s00, s11, y)) ||                             \
+		     (Ymin_s1 == Sign::POSITIVE && Less_On(s11, s00, y) && \
+		      Less_On(s00, s10, y))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Xmin_s1 != Sign::ZERO &&                               \
+		    ((Xmin_s1 == Sign::NEGATIVE && Less_On(s10, s01, x) && \
+		      Less_On(s01, s11, x)) ||                             \
+		     (Xmin_s1 == Sign::POSITIVE && Less_On(s11, s01, x) && \
+		      Less_On(s01, s10, x))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Ymin_s1 != Sign::ZERO &&                               \
+		    ((Ymin_s1 == Sign::NEGATIVE && Less_On(s10, s01, y) && \
+		      Less_On(s01, s11, y)) ||                             \
+		     (Ymin_s1 == Sign::POSITIVE && Less_On(s11, s01, y) && \
+		      Less_On(s01, s10, y))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Xmin_s0 != Sign::ZERO &&                               \
+		    ((Xmin_s0 == Sign::NEGATIVE && Less_On(s00, s10, x) && \
+		      Less_On(s10, s01, x)) ||                             \
+		     (Xmin_s0 == Sign::POSITIVE && Less_On(s01, s10, x) && \
+		      Less_On(s10, s00, x))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Ymin_s0 != Sign::ZERO &&                               \
+		    ((Ymin_s0 == Sign::NEGATIVE && Less_On(s00, s10, y) && \
+		      Less_On(s10, s01, y)) ||                             \
+		     (Ymin_s0 == Sign::POSITIVE && Less_On(s01, s10, y) && \
+		      Less_On(s10, s00, y))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Xmin_s0 != Sign::ZERO &&                               \
+		    ((Xmin_s0 == Sign::NEGATIVE && Less_On(s00, s11, x) && \
+		      Less_On(s11, s01, x)) ||                             \
+		     (Xmin_s0 == Sign::POSITIVE && Less_On(s01, s11, x) && \
+		      Less_On(s11, s00, x))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+		if (Ymin_s0 != Sign::ZERO &&                               \
+		    ((Ymin_s0 == Sign::NEGATIVE && Less_On(s00, s11, y) && \
+		      Less_On(s11, s01, y)) ||                             \
+		     (Ymin_s0 == Sign::POSITIVE && Less_On(s01, s11, y) && \
+		      Less_On(s11, s00, y))))                              \
+			return SimplexIntersectionType::OVERLAP;                 \
+	}                                                            \
 	return SimplexIntersectionType::DO_NOT_INTERSECT;
 
 	if (on2d == 0)

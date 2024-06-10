@@ -50,7 +50,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 #ifdef OMC_ARR_TR_PARA
 	std::shuffle(tris_to_split.begin(), tris_to_split.end(),
 	             std::mt19937(std::random_device()()));
-	std::vector<FastTriMesh> subms(tbb::this_task_arena::max_concurrency());
+	std::vector<FTriMesh> subms(tbb::this_task_arena::max_concurrency());
 	tbb::parallel_for_each(
 	  tris_to_split.begin(), tris_to_split.end(),
 	  [&](size_t t_id)
@@ -62,7 +62,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 		  triangulateSingleTriangle(t_id, subms[thread_id], new_tris, new_labels);
 	  });
 #else
-	FastTriMesh subm;
+	FTriMesh subm;
 	std::for_each(tris_to_split.begin(), tris_to_split.end(),
 	              [&](size_t t_id)
 	              {
@@ -79,7 +79,7 @@ Triangulation<Traits>::Triangulation(TriSoup              &_ts,
 
 template <typename Traits>
 void Triangulation<Traits>::triangulateSingleTriangle(
-  index_t t_id, FastTriMesh &subm, std::vector<index_t> &new_tris,
+  index_t t_id, FTriMesh &subm, std::vector<index_t> &new_tris,
   std::vector<Label> &new_labels)
 {
 	GPoint::clear_global_cached_values();
@@ -178,7 +178,7 @@ void Triangulation<Traits>::sortedVertexListAlongSegment(
 
 template <typename Traits>
 void Triangulation<Traits>::splitSingleTriangleWithTree(
-  FastTriMesh &subm, const std::vector<size_t> &points)
+  FTriMesh &subm, const std::vector<size_t> &points)
 {
 	if (points.empty())
 		return;
@@ -232,7 +232,7 @@ void Triangulation<Traits>::splitSingleTriangleWithTree(
 }
 
 template <typename Traits>
-void Triangulation<Traits>::splitSingleEdge(FastTriMesh &subm, index_t v0_id,
+void Triangulation<Traits>::splitSingleEdge(FTriMesh &subm, index_t v0_id,
                                             index_t               v1_id,
                                             std::vector<index_t> &points)
 {
@@ -276,7 +276,7 @@ void Triangulation<Traits>::splitSingleEdge(FastTriMesh &subm, index_t v0_id,
 #ifndef OMC_ARR_3D_PREDS
 template <typename Traits>
 std::pair<index_t, bool>
-Triangulation<Traits>::locatePointInTree(const FastTriMesh &subm, index_t p_id,
+Triangulation<Traits>::locatePointInTree(const FTriMesh &subm, index_t p_id,
                                          const SplitTree &tree)
 {
 	return locatePointInTreeRecur(subm, subm.vert(p_id), tree, 0,
@@ -285,8 +285,8 @@ Triangulation<Traits>::locatePointInTree(const FastTriMesh &subm, index_t p_id,
 
 template <typename Traits>
 std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
-  const FastTriMesh &subm, const GPoint &p, const SplitTree &tree,
-  index_t node_id, UIPair ev)
+  const FTriMesh &subm, const GPoint &p, const SplitTree &tree, index_t node_id,
+  UIPair ev)
 {
 	const SplitTree::Node &nd = tree.getNode(node_id);
 
@@ -367,18 +367,18 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 }
 #else
 template <typename Traits>
-index_t Triangulation<Traits>::locatePointInTree(const FastTriMesh &subm,
-                                                 index_t            p_id,
-                                                 const SplitTree   &tree)
+index_t Triangulation<Traits>::locatePointInTree(const FTriMesh  &subm,
+                                                 index_t          p_id,
+                                                 const SplitTree &tree)
 {
 	return locatePointInTreeRecur(subm, subm.vert(p_id), tree, 0);
 }
 
 template <typename Traits>
-index_t Triangulation<Traits>::locatePointInTreeRecur(const FastTriMesh &subm,
-                                                      const GPoint      &p,
-                                                      const SplitTree   &tree,
-                                                      index_t node_id)
+index_t Triangulation<Traits>::locatePointInTreeRecur(const FTriMesh  &subm,
+                                                      const GPoint    &p,
+                                                      const SplitTree &tree,
+                                                      index_t          node_id)
 {
 	const SplitTree::Node &nd = tree.getNode(node_id);
 
@@ -407,8 +407,7 @@ index_t Triangulation<Traits>::locatePointInTreeRecur(const FastTriMesh &subm,
 
 template <typename Traits>
 void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
-  FastTriMesh &subm, std::vector<index_t> &seg_ids,
-  std::vector<Segment> &segments)
+  FTriMesh &subm, std::vector<index_t> &seg_ids, std::vector<Segment> &segments)
 {
 	// change segment's global index to local index
 	for (Segment &seg : segments)
@@ -436,7 +435,7 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::addConstraintSegment(
-  FastTriMesh &subm, const Segment &seg, std::vector<Segment> &segment_list,
+  FTriMesh &subm, const Segment &seg, std::vector<Segment> &segment_list,
   SubSegMap &sub_segs_map, TPI2Segs &tpi2segs)
 {
 	// get two local endpoints
@@ -504,7 +503,7 @@ void Triangulation<Traits>::addConstraintSegment(
 
 template <typename Traits>
 void Triangulation<Traits>::findIntersectingElements(
-  FastTriMesh &subm, index_t &v_start, index_t &v_stop,
+  FTriMesh &subm, index_t &v_start, index_t &v_stop,
   AuxVector64<index_t> &intersected_edges,
   AuxVector64<index_t> &intersected_tris, std::vector<Segment> &segment_list,
   SubSegMap &sub_segs_map, OMC_UNUSED TPI2Segs &tpi2segs)
@@ -1049,7 +1048,7 @@ void Triangulation<Traits>::splitSegmentInSubSegments(index_t    v_start,
 }
 
 template <typename Traits>
-index_t Triangulation<Traits>::createTPI(FastTriMesh &subm, index_t seg0_id,
+index_t Triangulation<Traits>::createTPI(FTriMesh &subm, index_t seg0_id,
                                          index_t seg1_id)
 {
 	index_t t_id = subm.meshInfo();
@@ -1234,7 +1233,7 @@ index_t Triangulation<Traits>::fixTPI(index_t seg0_id, index_t seg1_id,
 
 template <typename Traits>
 template <typename tri_iterator, typename edge_iterator>
-void Triangulation<Traits>::boundaryWalker(const FastTriMesh &subm,
+void Triangulation<Traits>::boundaryWalker(const FTriMesh &subm,
                                            index_t v_start, index_t v_stop,
                                            tri_iterator          curr_p,
                                            edge_iterator         curr_e,
@@ -1281,7 +1280,7 @@ void Triangulation<Traits>::boundaryWalker(const FastTriMesh &subm,
 }
 
 template <typename Traits>
-void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
+void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
                                          const AuxVector64<index_t> &poly,
                                          AuxVector64<index_t>       &tris)
 {
@@ -1493,7 +1492,7 @@ void Triangulation<Traits>::earcutLinear(const FastTriMesh          &subm,
 
 template <typename Traits>
 void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
-  const FastTriMesh &subm, std::vector<index_t> &new_tris,
+  const FTriMesh &subm, std::vector<index_t> &new_tris,
   std::vector<Label> &new_labels, const Label &label)
 {
 	std::vector<Pocket>  tri_pockets;
@@ -1548,7 +1547,7 @@ void Triangulation<Traits>::solvePocketsInCoplanarTriangle(
 
 template <typename Traits>
 void Triangulation<Traits>::findPocketsInTriangle(
-  const FastTriMesh &subm, std::vector<Pocket> &tri_pockets,
+  const FTriMesh &subm, std::vector<Pocket> &tri_pockets,
   std::vector<Polygon> &tri_polygons)
 {
 	std::vector<bool> visited(subm.numTriangles(), false);
@@ -1693,10 +1692,10 @@ void Triangulation<Traits>::postFixIndices(std::vector<index_t> &new_tris,
 
 #ifndef OMC_ARR_3D_PREDS
 template <typename Traits>
-bool Triangulation<Traits>::pointInsideSegmentCollinear(const FastTriMesh &subm,
-                                                        index_t ev0_id,
-                                                        index_t ev1_id,
-                                                        index_t p_id)
+bool Triangulation<Traits>::pointInsideSegmentCollinear(const FTriMesh &subm,
+                                                        index_t         ev0_id,
+                                                        index_t         ev1_id,
+                                                        index_t         p_id)
 {
 	return Segment3_Point3_DoIntersect().in_segment_collinear(
 	         subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id)) ==
@@ -1704,8 +1703,8 @@ bool Triangulation<Traits>::pointInsideSegmentCollinear(const FastTriMesh &subm,
 }
 #else
 template <typename Traits>
-bool Triangulation<Traits>::fastPointOnLine(const FastTriMesh &subm,
-                                            index_t e_id, index_t p_id)
+bool Triangulation<Traits>::fastPointOnLine(const FTriMesh &subm, index_t e_id,
+                                            index_t p_id)
 {
 	index_t ev0_id = subm.edgeVertID(e_id, 0);
 	index_t ev1_id = subm.edgeVertID(e_id, 1);
@@ -1715,7 +1714,7 @@ bool Triangulation<Traits>::fastPointOnLine(const FastTriMesh &subm,
 }
 
 template <typename Traits>
-bool Triangulation<Traits>::pointInsideSegment(const FastTriMesh &subm,
+bool Triangulation<Traits>::pointInsideSegment(const FTriMesh &subm,
                                                index_t e0_id, index_t e1_id,
                                                index_t p_id)
 {
@@ -1725,11 +1724,11 @@ bool Triangulation<Traits>::pointInsideSegment(const FastTriMesh &subm,
 }
 
 template <typename Traits>
-bool Triangulation<Traits>::segmentsIntersectInside(const FastTriMesh &subm,
-                                                    index_t            e00_id,
-                                                    index_t            e01_id,
-                                                    index_t            e10_id,
-                                                    index_t            e11_id)
+bool Triangulation<Traits>::segmentsIntersectInside(const FTriMesh &subm,
+                                                    index_t         e00_id,
+                                                    index_t         e01_id,
+                                                    index_t         e10_id,
+                                                    index_t         e11_id)
 {
 	return Segment3_Segment3_DoIntersect().cross_inner(
 	  subm.vert(e00_id), subm.vert(e01_id), subm.vert(e10_id), subm.vert(e11_id));

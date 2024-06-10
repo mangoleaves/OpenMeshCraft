@@ -7,7 +7,7 @@ if(NOT TARGET MPFR)
 
   set(MPFR_LIBRARIES ${MPFR_LIBRARIES_DIR}/libmpfr.so.6.1.0)
 
-  set(MPFR_SONAME libmpfr.so.6)
+  set(MPFR_SONAME libmpfr.so.6.1.0)
 
   message(STATUS "MPFR include dir: ${MPFR_INCLUDE_DIR}")
   message(STATUS "MPFR libraries: ${MPFR_LIBRARIES}")

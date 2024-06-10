@@ -7,7 +7,7 @@ if(NOT TARGET GMP)
 
   set(GMP_LIBRARIES ${GMP_LIBRARIES_DIR}/libgmp.so.10.4.1)
 
-  set(GMP_SONAME libgmp.so.10)
+  set(GMP_SONAME libgmp.so.10.4.1)
 
   message(STATUS "GMP include dir: ${GMP_INCLUDE_DIR}")
   message(STATUS "GMP libraries: ${GMP_LIBRARIES}")

@@ -1,15 +1,10 @@
 #pragma once
 
-#include <algorithm>
-#include <array>
+#include <cfloat>
+
 #include <deque>
-#include <format>
 #include <fstream>
-#include <iomanip>
-#include <iostream>
 #include <map>
-#include <numeric>
-#include <sstream>
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -192,7 +187,7 @@ public:
 	// Short name of the implicit point type (e.g., S, L, T)
 	std::string short_name;
 	// dimension
-	int         dim;
+	size_t      dim;
 	// error definitions
 	struct ErrorDef
 	{

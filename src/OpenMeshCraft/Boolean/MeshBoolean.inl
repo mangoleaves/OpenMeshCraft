@@ -87,12 +87,9 @@ public: /* Traits ***********************************************************/
 
 public: /* Auxiliary data structures *****************************************/
 	// tree
-	using Tree        = Arr_Tree_Intersection<Traits>;
+	using Tree     = Arr_Tree_Intersection<Traits>;
 	// fast triangle mesh
-	using FastTriMesh = FastTriMesh<Traits>;
-	// label
-	using Label       = Label;
-	using Labels      = Labels;
+	using FTriMesh = FastTriMesh<Traits>;
 
 	enum class IntersInfo
 	{
@@ -106,8 +103,6 @@ public: /* Auxiliary data structures *****************************************/
 		INT_IN_EDGE20,
 		INT_IN_TRI
 	};
-
-	using DuplTriInfo = DuplTriInfo;
 
 	struct Ray
 	{
@@ -295,7 +290,7 @@ public:
 	/* Boolean data **********************************************************/
 
 	// triangle mesh used in boolean, build by arr_out_verts, arr_out_tris
-	FastTriMesh tm;
+	FTriMesh tm;
 
 	// manifold patches in triangle mesh (tm) after arrangements
 	std::vector<phmap::flat_hash_set<index_t>> patches;
@@ -316,7 +311,7 @@ void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
 	auto start_init = OMC::Logger::elapse_reset();
 
 	// Initialize triangle mesh used in ray-casting
-	tm = FastTriMesh(arr_out_verts, arr_out_tris);
+	tm = FTriMesh(arr_out_verts, arr_out_tris);
 
 	if (verbose)
 		Logger::info(std::format("[OpenMeshCraft Boolean] Init Mesh time: {} s.",

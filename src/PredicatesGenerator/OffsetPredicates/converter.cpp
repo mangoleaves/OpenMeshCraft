@@ -1,5 +1,13 @@
 #include "converter.h"
 
+#include <cmath>
+
+#include <algorithm>
+#include <format>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
 void help_info()
 {
 	std::cout
@@ -189,7 +197,7 @@ ExplicitVariable::ExplicitVariable(std::string &n)
 
 std::string ExplicitVariable::get_type_string() const
 {
-	auto pointXD = [this](int x)
+	auto pointXD = [this](size_t x)
 	{ return std::format("GenericPoint{}T<{}, {}>", x, IT, ET); };
 
 	return pointXD(dim);
