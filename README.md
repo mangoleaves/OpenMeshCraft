@@ -8,13 +8,13 @@
 
 ## Verified environment
 
-> Last updated: 2024.04.21-17:50.
+> Last updated: 2024.06.10-23:15.
 
 |        | Host         | Compiler                         |
 |--------| ------------ | -------------------------------- |
 |&check; | Windows10    | VS 2019 (vc142), VS 2022 (vc143) |
 |&check; | Windows11    | VS 2022 (vc143)                  |
-|&cross; | Ubuntu 20.04 | GCC 11.4.0 X86_64                |
+|&check; | Ubuntu 24.04 | GCC 14.0.1 X86_64                |
 
 ## external libraries
 
@@ -32,7 +32,10 @@
 
 ### Unix
 
-> Last updated: 2024.03.04-20:25.
+> Last updated: 2024.06.10-23:16.
+
+We provide gmp and mpfr libs in the "external" directory.
+You can also install them on your computer and link to new ones.
 
 * gmp
   * Install `libgmp-dev`
@@ -40,6 +43,9 @@
 * mpfr
   * Install `libmpfr-dev`
   * Or use mpfr in external/mpfr/unix
+
+We do not provide boost, so you need to install it on your computer and link to it.
+
 * boost
   * Download [boost](https://www.boost.org/users/download/), required version >= 1.78.0
   * Unpack boost and run `./booststrap.sh --prefix=/usr/`

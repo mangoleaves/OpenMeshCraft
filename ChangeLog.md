@@ -1,5 +1,31 @@
 # ChangeLog
 
+## 1.0.1 (2024.06.10)
+
+New Features:
+
+- No
+
+Algorithm Improvements:
+
+- Add more controls for *Mesh Arrangements* to enable/disable features.
+- Add more profiling codes and tools for *Mesh Arrangements*. Parallel profiling is available.
+- Improve efficiency of *Mesh Arrangements*:
+  - Cache SSF results in implicit points.
+  - Switch expansion to exact rational numbers if expansion is too complex.
+  - Use auxiliary seprator instead of segment itself to locate the segment. It simplify orientOn2D with at most three implicit points to Orient3D with at most one implicit point.
+  - Cut ears containing TPI points first, then cut remaining ears. It avoids OrientOn2D with more than two TPI points.
+  - Update paramters of adaptive OcTree
+  - Remove useless features
+
+Bug Fix:
+
+- Fix bugs in *Mesh Arrangements*.
+
+Miscellaneous:
+
+- Support compiling on ubuntu-24.04 with gcc14.
+
 ## 1.0.0 (2024.04.21)
 
 New Features:
