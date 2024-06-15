@@ -354,7 +354,7 @@ void two_square_clip(const double &a1, const double &a0, double &x1, double &x0)
 	x1  = _mm_cvtsd_f64(_x1);
 	x0  = _mm_cvtsd_f64(_x0);
 #else
-	double ch, cl1, cl2, cl3, tl1, tl2;
+	double ch, cl1, cl2, cl3;
 	one_square(a1, ch, cl1);
 	cl2 = (a1 * a0) * 2.;
 	cl3 = cl1 + cl2;
