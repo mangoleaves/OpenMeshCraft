@@ -24,6 +24,7 @@ option(OMC_CMAKE_ENABLE_ASSERT "Enable assertion in OpenMeshCraft" ON)
 option(OMC_CMAKE_ENABLE_EXPENSIVE_ASSERT "Enable expensive assertion in OpenMeshCraft" OFF)
 option(OMC_CMAKE_ENABLE_SSE2 "Enable SSE2 instruction set in OpenMeshCraft" ON)
 option(OMC_CMAKE_ENABLE_AVX "Enable AVX instruction set in OpenMeshCraft" ON)
+option(OMC_CMAKE_ENABLE_AVX2 "Enable AVX2 instruction set in OpenMeshCraft" ON)
 option(OMC_CMAKE_ENABLE_DEBUG_INFO "Generate debug information for OpenMeshCraft" ON)
 
 option(OMC_CMAKE_LOG_TRACE "Log runtime trace messages." OFF)

@@ -11,6 +11,10 @@
 
 namespace OMC {
 
+/*****************************************************************/
+/*                        Sign                                   */
+/*****************************************************************/
+
 enum class Sign
 {
 	POSITIVE  = 1,
@@ -55,6 +59,10 @@ Signs reverse_signs(Signs signs)
 	return signs;
 }
 
+/*****************************************************************/
+/*                        Certainty                              */
+/*****************************************************************/
+
 enum class Certainty
 {
 	FALSE     = 0,
@@ -65,6 +73,11 @@ enum class Certainty
 inline bool is_certain(Certainty c) { return c != Certainty::UNCERTAIN; }
 inline bool is_uncertain(Certainty c) { return c == Certainty::UNCERTAIN; }
 inline bool get_certain(Certainty c) { return c == Certainty::TRUE; }
+
+
+/*****************************************************************/
+/*                     Numeric limits                            */
+/*****************************************************************/
 
 /**
  * @brief A wrapper of std::numeric_limits.
@@ -84,6 +97,10 @@ public:
 
 	static NT epsilon() { return std::numeric_limits<NT>::epsilon(); }
 };
+
+/*****************************************************************/
+/*                     Unary operators                           */
+/*****************************************************************/
 
 /**
  * @brief A bundle of unary operators on different number types
@@ -136,6 +153,10 @@ inline NT negate(const NT &n)
 {
 	return UnaryOperators<NT>::negate(n);
 }
+
+/*****************************************************************/
+/*                     Number type convertor                     */
+/*****************************************************************/
 
 template <typename NT>
 inline double to_double(const NT &n)

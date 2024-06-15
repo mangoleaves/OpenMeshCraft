@@ -67,6 +67,12 @@
 	#endif
 #endif
 
+#if !defined(OMC_AVX2) && defined(OMC_ENABLE_AVX2)
+	#if defined(__AVX2__)
+		#define OMC_AVX2
+	#endif
+#endif
+
 #pragma endregion Macros_about_vectorization
 
 /*********************************************************/

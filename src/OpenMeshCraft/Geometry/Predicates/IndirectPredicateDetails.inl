@@ -77,13 +77,13 @@ Sign dotProductSign2D_expansion(double px, double py, double rx, double ry,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double gx[2];
-	o.two_Diff(rx, qx, gx);
+	o.Two_Diff(rx, qx, gx);
 	double gy[2];
-	o.two_Diff(ry, qy, gy);
+	o.Two_Diff(ry, qy, gy);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dy[8];
@@ -195,13 +195,13 @@ Sign dotProductSign2D4P_expansion(double px, double py, double rx, double ry,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double gx[2];
-	o.two_Diff(rx, sx, gx);
+	o.Two_Diff(rx, sx, gx);
 	double gy[2];
-	o.two_Diff(ry, sy, gy);
+	o.Two_Diff(ry, sy, gy);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dy[8];
@@ -331,17 +331,17 @@ Sign dotProductSign3D_expansion(double px, double py, double pz, double rx,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double lz[2];
-	o.two_Diff(pz, qz, lz);
+	o.Two_Diff(pz, qz, lz);
 	double gx[2];
-	o.two_Diff(rx, qx, gx);
+	o.Two_Diff(rx, qx, gx);
 	double gy[2];
-	o.two_Diff(ry, qy, gy);
+	o.Two_Diff(ry, qy, gy);
 	double gz[2];
-	o.two_Diff(rz, qz, gz);
+	o.Two_Diff(rz, qz, gz);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dy[8];
@@ -475,17 +475,17 @@ Sign dotProductSign3D4P_expansion(double px, double py, double pz, double rx,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double lz[2];
-	o.two_Diff(pz, qz, lz);
+	o.Two_Diff(pz, qz, lz);
 	double gx[2];
-	o.two_Diff(rx, sx, gx);
+	o.Two_Diff(rx, sx, gx);
 	double gy[2];
-	o.two_Diff(ry, sy, gy);
+	o.Two_Diff(ry, sy, gy);
 	double gz[2];
-	o.two_Diff(rz, sz, gz);
+	o.Two_Diff(rz, sz, gz);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dy[8];
@@ -608,13 +608,13 @@ Sign dotProductSignOn2Dxy4P_expansion(double px, double py, double rx,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double gx[2];
-	o.two_Diff(rx, sx, gx);
+	o.Two_Diff(rx, sx, gx);
 	double gy[2];
-	o.two_Diff(ry, sy, gy);
+	o.Two_Diff(ry, sy, gy);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dy[8];
@@ -728,13 +728,13 @@ Sign dotProductSignOn2Dyz4P_expansion(double py, double pz, double ry,
 {
 	expansionObject o;
 	double          ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double lz[2];
-	o.two_Diff(pz, qz, lz);
+	o.Two_Diff(pz, qz, lz);
 	double gy[2];
-	o.two_Diff(ry, sy, gy);
+	o.Two_Diff(ry, sy, gy);
 	double gz[2];
-	o.two_Diff(rz, sz, gz);
+	o.Two_Diff(rz, sz, gz);
 	double dy[8];
 	int    dy_len = o.Gen_Product(2, ly, 2, gy, dy);
 	double dz[8];
@@ -848,13 +848,13 @@ Sign dotProductSignOn2Dzx4P_expansion(double px, double pz, double rx,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double lz[2];
-	o.two_Diff(pz, qz, lz);
+	o.Two_Diff(pz, qz, lz);
 	double gx[2];
-	o.two_Diff(rx, sx, gx);
+	o.Two_Diff(rx, sx, gx);
 	double gz[2];
-	o.two_Diff(rz, sz, gz);
+	o.Two_Diff(rz, sz, gz);
 	double dx[8];
 	int    dx_len = o.Gen_Product(2, lx, 2, gx, dx);
 	double dz[8];
@@ -1037,17 +1037,17 @@ Sign inCircle_expansion(double pax, double pay, double pbx, double pby,
 {
 	expansionObject o;
 	double          adx[2];
-	o.two_Diff(pax, pdx, adx);
+	o.Two_Diff(pax, pdx, adx);
 	double ady[2];
-	o.two_Diff(pay, pdy, ady);
+	o.Two_Diff(pay, pdy, ady);
 	double bdx[2];
-	o.two_Diff(pbx, pdx, bdx);
+	o.Two_Diff(pbx, pdx, bdx);
 	double bdy[2];
-	o.two_Diff(pby, pdy, bdy);
+	o.Two_Diff(pby, pdy, bdy);
 	double cdx[2];
-	o.two_Diff(pcx, pdx, cdx);
+	o.Two_Diff(pcx, pdx, cdx);
 	double cdy[2];
-	o.two_Diff(pcy, pdy, cdy);
+	o.Two_Diff(pcy, pdy, cdy);
 	double abdeta[8];
 	int    abdeta_len = o.Gen_Product(2, adx, 2, bdy, abdeta);
 	double abdetb[8];
@@ -1446,29 +1446,29 @@ Sign inSphere_expansion(double pax, double pay, double paz, double pbx,
 {
 	expansionObject o;
 	double          aex[2];
-	o.two_Diff(pax, pex, aex);
+	o.Two_Diff(pax, pex, aex);
 	double aey[2];
-	o.two_Diff(pay, pey, aey);
+	o.Two_Diff(pay, pey, aey);
 	double aez[2];
-	o.two_Diff(paz, pez, aez);
+	o.Two_Diff(paz, pez, aez);
 	double bex[2];
-	o.two_Diff(pbx, pex, bex);
+	o.Two_Diff(pbx, pex, bex);
 	double bey[2];
-	o.two_Diff(pby, pey, bey);
+	o.Two_Diff(pby, pey, bey);
 	double bez[2];
-	o.two_Diff(pbz, pez, bez);
+	o.Two_Diff(pbz, pez, bez);
 	double cex[2];
-	o.two_Diff(pcx, pex, cex);
+	o.Two_Diff(pcx, pex, cex);
 	double cey[2];
-	o.two_Diff(pcy, pey, cey);
+	o.Two_Diff(pcy, pey, cey);
 	double cez[2];
-	o.two_Diff(pcz, pez, cez);
+	o.Two_Diff(pcz, pez, cez);
 	double dex[2];
-	o.two_Diff(pdx, pex, dex);
+	o.Two_Diff(pdx, pex, dex);
 	double dey[2];
-	o.two_Diff(pdy, pey, dey);
+	o.Two_Diff(pdy, pey, dey);
 	double dez[2];
-	o.two_Diff(pdz, pez, dez);
+	o.Two_Diff(pdz, pez, dez);
 	double aexbey[8];
 	int    aexbey_len = o.Gen_Product(2, aex, 2, bey, aexbey);
 	double bexaey[8];
@@ -1769,9 +1769,9 @@ Sign squareDistance2D_expansion(double px, double py, double qx, double qy,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double lx2[8];
 	int    lx2_len = o.Gen_Product(2, lx, 2, lx, lx2);
 	double ly2[8];
@@ -1887,11 +1887,11 @@ Sign squareDistance3D_expansion(double px, double py, double pz, double qx,
 {
 	expansionObject o;
 	double          lx[2];
-	o.two_Diff(px, qx, lx);
+	o.Two_Diff(px, qx, lx);
 	double ly[2];
-	o.two_Diff(py, qy, ly);
+	o.Two_Diff(py, qy, ly);
 	double lz[2];
-	o.two_Diff(pz, qz, lz);
+	o.Two_Diff(pz, qz, lz);
 	double lx2[8];
 	int    lx2_len = o.Gen_Product(2, lx, 2, lx, lx2);
 	double ly2[8];
@@ -2161,9 +2161,9 @@ Sign dotProductSign2D_IEE_expansion(const GenericPoint2T<IT, ET> &p, double rx,
 		double ly_p[128], *ly = ly_p;
 		int ly_len = o.Gen_Diff_With_PreAlloc(lpy_len, lpy, qyd_len, qyd, &ly, 128);
 		double gx[2];
-		o.two_Diff(rx, qx, gx);
+		o.Two_Diff(rx, qx, gx);
 		double gy[2];
-		o.two_Diff(ry, qy, gy);
+		o.Two_Diff(ry, qy, gy);
 		double dx_p[128], *dx = dx_p;
 		int    dx_len = o.Gen_Product_With_PreAlloc(lx_len, lx, 2, gx, &dx, 128);
 		double dy_p[128], *dy = dy_p;
@@ -3078,11 +3078,11 @@ Sign dotProductSign3D_IEE_expansion(const GenericPoint3T<IT, ET> &p, double rx,
 		double lz_p[128], *lz = lz_p;
 		int lz_len = o.Gen_Diff_With_PreAlloc(lpz_len, lpz, qzd_len, qzd, &lz, 128);
 		double gx[2];
-		o.two_Diff(rx, qx, gx);
+		o.Two_Diff(rx, qx, gx);
 		double gy[2];
-		o.two_Diff(ry, qy, gy);
+		o.Two_Diff(ry, qy, gy);
 		double gz[2];
-		o.two_Diff(rz, qz, gz);
+		o.Two_Diff(rz, qz, gz);
 		double dx_p[128], *dx = dx_p;
 		int    dx_len = o.Gen_Product_With_PreAlloc(lx_len, lx, 2, gx, &dx, 128);
 		double dy_p[128], *dy = dy_p;
@@ -4022,13 +4022,13 @@ Sign inCirclexy_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
 		int    ady_len =
 		  o.Gen_Diff_With_PreAlloc(l1y_len, l1y, pdyt_len, pdyt, &ady, 64);
 		double bdx[2];
-		o.two_Diff(pbx, pdx, bdx);
+		o.Two_Diff(pbx, pdx, bdx);
 		double bdy[2];
-		o.two_Diff(pby, pdy, bdy);
+		o.Two_Diff(pby, pdy, bdy);
 		double cdx[2];
-		o.two_Diff(pcx, pdx, cdx);
+		o.Two_Diff(pcx, pdx, cdx);
 		double cdy[2];
-		o.two_Diff(pcy, pdy, cdy);
+		o.Two_Diff(pcy, pdy, cdy);
 		double abdeta_p[64], *abdeta = abdeta_p;
 		int    abdeta_len =
 		  o.Gen_Product_With_PreAlloc(adx_len, adx, 2, bdy, &abdeta, 64);
@@ -4325,9 +4325,9 @@ Sign inCirclexy_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    bdy_len =
 		  o.Gen_Diff_With_PreAlloc(l2y_len, l2y, pdy2_len, pdy2, &bdy, 32);
 		double cdx[2];
-		o.two_Diff(pcx, pdx, cdx);
+		o.Two_Diff(pcx, pdx, cdx);
 		double cdy[2];
-		o.two_Diff(pcy, pdy, cdy);
+		o.Two_Diff(pcy, pdy, cdy);
 		double abdeta_p[32], *abdeta = abdeta_p;
 		int    abdeta_len =
 		  o.Gen_Product_With_PreAlloc(adx_len, adx, bdy_len, bdy, &abdeta, 32);
@@ -5512,13 +5512,13 @@ Sign inCircle_IEEE_expansion(const GenericPoint2T<IT, ET> &p1, double pbx,
 		int    ady_len =
 		  o.Gen_Diff_With_PreAlloc(l1y_len, l1y, pdyt_len, pdyt, &ady, 64);
 		double bdx[2];
-		o.two_Diff(pbx, pdx, bdx);
+		o.Two_Diff(pbx, pdx, bdx);
 		double bdy[2];
-		o.two_Diff(pby, pdy, bdy);
+		o.Two_Diff(pby, pdy, bdy);
 		double cdx[2];
-		o.two_Diff(pcx, pdx, cdx);
+		o.Two_Diff(pcx, pdx, cdx);
 		double cdy[2];
-		o.two_Diff(pcy, pdy, cdy);
+		o.Two_Diff(pcy, pdy, cdy);
 		double abdeta_p[64], *abdeta = abdeta_p;
 		int    abdeta_len =
 		  o.Gen_Product_With_PreAlloc(adx_len, adx, 2, bdy, &abdeta, 64);
@@ -5810,9 +5810,9 @@ Sign inCircle_IIEE_expansion(const GenericPoint2T<IT, ET> &p1,
 		int    bdy_len =
 		  o.Gen_Diff_With_PreAlloc(l2y_len, l2y, pdy2_len, pdy2, &bdy, 32);
 		double cdx[2];
-		o.two_Diff(pcx, pdx, cdx);
+		o.Two_Diff(pcx, pdx, cdx);
 		double cdy[2];
-		o.two_Diff(pcy, pdy, cdy);
+		o.Two_Diff(pcy, pdy, cdy);
 		double abdeta_p[32], *abdeta = abdeta_p;
 		int    abdeta_len =
 		  o.Gen_Product_With_PreAlloc(adx_len, adx, bdy_len, bdy, &abdeta, 32);
@@ -7075,23 +7075,23 @@ Sign inSphere_IEEEE_expansion(const GenericPoint3T<IT, ET> &p1, double pbx,
 		int    aez_len =
 		  o.Gen_Diff_With_PreAlloc(l1z_len, l1z, pezd_len, pezd, &aez, 16);
 		double bex[2];
-		o.two_Diff(pbx, pex, bex);
+		o.Two_Diff(pbx, pex, bex);
 		double bey[2];
-		o.two_Diff(pby, pey, bey);
+		o.Two_Diff(pby, pey, bey);
 		double bez[2];
-		o.two_Diff(pbz, pez, bez);
+		o.Two_Diff(pbz, pez, bez);
 		double cex[2];
-		o.two_Diff(pcx, pex, cex);
+		o.Two_Diff(pcx, pex, cex);
 		double cey[2];
-		o.two_Diff(pcy, pey, cey);
+		o.Two_Diff(pcy, pey, cey);
 		double cez[2];
-		o.two_Diff(pcz, pez, cez);
+		o.Two_Diff(pcz, pez, cez);
 		double dex[2];
-		o.two_Diff(pdx, pex, dex);
+		o.Two_Diff(pdx, pex, dex);
 		double dey[2];
-		o.two_Diff(pdy, pey, dey);
+		o.Two_Diff(pdy, pey, dey);
 		double dez[2];
-		o.two_Diff(pdz, pez, dez);
+		o.Two_Diff(pdz, pez, dez);
 		double aexbey_p[16], *aexbey = aexbey_p;
 		int    aexbey_len =
 		  o.Gen_Product_With_PreAlloc(aex_len, aex, 2, bey, &aexbey, 16);
@@ -7678,17 +7678,17 @@ Sign inSphere_IIEEE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    bez_len =
 		  o.Gen_Diff_With_PreAlloc(l2z_len, l2z, pezd2_len, pezd2, &bez, 16);
 		double cex[2];
-		o.two_Diff(pcx, pex, cex);
+		o.Two_Diff(pcx, pex, cex);
 		double cey[2];
-		o.two_Diff(pcy, pey, cey);
+		o.Two_Diff(pcy, pey, cey);
 		double cez[2];
-		o.two_Diff(pcz, pez, cez);
+		o.Two_Diff(pcz, pez, cez);
 		double dex[2];
-		o.two_Diff(pdx, pex, dex);
+		o.Two_Diff(pdx, pex, dex);
 		double dey[2];
-		o.two_Diff(pdy, pey, dey);
+		o.Two_Diff(pdy, pey, dey);
 		double dez[2];
-		o.two_Diff(pdz, pez, dez);
+		o.Two_Diff(pdz, pez, dez);
 		double aexbey_p[16], *aexbey = aexbey_p;
 		int    aexbey_len =
 		  o.Gen_Product_With_PreAlloc(aex_len, aex, bey_len, bey, &aexbey, 16);
@@ -8373,11 +8373,11 @@ Sign inSphere_IIIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    cez_len =
 		  o.Gen_Diff_With_PreAlloc(l3z_len, l3z, pezd3_len, pezd3, &cez, 16);
 		double dex[2];
-		o.two_Diff(pdx, pex, dex);
+		o.Two_Diff(pdx, pex, dex);
 		double dey[2];
-		o.two_Diff(pdy, pey, dey);
+		o.Two_Diff(pdy, pey, dey);
 		double dez[2];
-		o.two_Diff(pdz, pez, dez);
+		o.Two_Diff(pdz, pez, dez);
 		double aexbey_p[16], *aexbey = aexbey_p;
 		int    aexbey_len =
 		  o.Gen_Product_With_PreAlloc(aex_len, aex, bey_len, bey, &aexbey, 16);
@@ -11782,9 +11782,9 @@ Sign orient2D_IEE_expansion(const GenericPoint2T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          t1x[2];
-		o.two_Diff(p2y, p3y, t1x);
+		o.Two_Diff(p2y, p3y, t1x);
 		double t1y[2];
-		o.two_Diff(p3x, p2x, t1y);
+		o.Two_Diff(p3x, p2x, t1y);
 		double e2_p[128], *e2 = e2_p;
 		int    e2_len = o.Gen_Product_With_PreAlloc(l1x_len, l1x, 2, t1x, &e2, 128);
 		double e3_p[128], *e3 = e3_p;
@@ -12559,20 +12559,20 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double ax,
 		int    iy_cy_len =
 		  o.Gen_Diff_With_PreAlloc(l1y_len, l1y, dcy_len, dcy, &iy_cy, 64);
 		double ax_cx[2];
-		o.two_Diff(ax, cx, ax_cx);
+		o.Two_Diff(ax, cx, ax_cx);
 		double ay_cy[2];
-		o.two_Diff(ay, cy, ay_cy);
+		o.Two_Diff(ay, cy, ay_cy);
 		double az_cz[2];
-		o.two_Diff(az, cz, az_cz);
+		o.Two_Diff(az, cz, az_cz);
 		double iz_cz_p[64], *iz_cz = iz_cz_p;
 		int    iz_cz_len =
 		  o.Gen_Diff_With_PreAlloc(l1z_len, l1z, dcz_len, dcz, &iz_cz, 64);
 		double bx_cx[2];
-		o.two_Diff(bx, cx, bx_cx);
+		o.Two_Diff(bx, cx, bx_cx);
 		double by_cy[2];
-		o.two_Diff(by, cy, by_cy);
+		o.Two_Diff(by, cy, by_cy);
 		double bz_cz[2];
-		o.two_Diff(bz, cz, bz_cz);
+		o.Two_Diff(bz, cz, bz_cz);
 		double tmc_a_p[64], *tmc_a = tmc_a_p;
 		int    tmc_a_len =
 		  o.Gen_Product_With_PreAlloc(ix_cx_len, ix_cx, 2, ay_cy, &tmc_a, 64);
@@ -12982,11 +12982,11 @@ Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    p2p4z_len =
 		  o.Gen_Diff_With_PreAlloc(l2z_len, l2z, d2p4z_len, d2p4z, &p2p4z, 32);
 		double p3p4x[2];
-		o.two_Diff(p3x, p4x, p3p4x);
+		o.Two_Diff(p3x, p4x, p3p4x);
 		double p3p4y[2];
-		o.two_Diff(p3y, p4y, p3p4y);
+		o.Two_Diff(p3y, p4y, p3p4y);
 		double p3p4z[2];
-		o.two_Diff(p3z, p4z, p3p4z);
+		o.Two_Diff(p3z, p4z, p3p4z);
 		double tmc_a_p[32], *tmc_a = tmc_a_p;
 		int    tmc_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4y_len,
 		                                               p2p4y, &tmc_a, 32);
@@ -14560,9 +14560,9 @@ Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          t1x[2];
-		o.two_Diff(p2y, p3y, t1x);
+		o.Two_Diff(p2y, p3y, t1x);
 		double t1y[2];
-		o.two_Diff(p3x, p2x, t1y);
+		o.Two_Diff(p3x, p2x, t1y);
 		double e2_p[128], *e2 = e2_p;
 		int    e2_len = o.Gen_Product_With_PreAlloc(l1x_len, l1x, 2, t1x, &e2, 128);
 		double e3_p[128], *e3 = e3_p;
@@ -15211,9 +15211,9 @@ Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
 	{
 		expansionObject o;
 		double          t1y[2];
-		o.two_Diff(p2z, p3z, t1y);
+		o.Two_Diff(p2z, p3z, t1y);
 		double t1z[2];
-		o.two_Diff(p3y, p2y, t1z);
+		o.Two_Diff(p3y, p2y, t1z);
 		double e2_p[128], *e2 = e2_p;
 		int    e2_len = o.Gen_Product_With_PreAlloc(l1y_len, l1y, 2, t1y, &e2, 128);
 		double e3_p[128], *e3 = e3_p;
@@ -15862,9 +15862,9 @@ Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          t1z[2];
-		o.two_Diff(p2x, p3x, t1z);
+		o.Two_Diff(p2x, p3x, t1z);
 		double t1x[2];
-		o.two_Diff(p3z, p2z, t1x);
+		o.Two_Diff(p3z, p2z, t1x);
 		double e2_p[128], *e2 = e2_p;
 		int    e2_len = o.Gen_Product_With_PreAlloc(l1z_len, l1z, 2, t1z, &e2, 128);
 		double e3_p[128], *e3 = e3_p;
@@ -17197,7 +17197,7 @@ Sign lessThanOnX_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx)
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1x, bx, t0);
+		o.Two_Diff(b1x, bx, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double kx_p[128], *kx = kx_p;
@@ -17415,7 +17415,7 @@ Sign lessThanOnX_II_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1x, b2x, t0);
+		o.Two_Diff(b1x, b2x, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double t2_p[128], *t2 = t2_p;
@@ -17593,7 +17593,7 @@ Sign lessThanOnY_IE_expansion(const GenericPoint3T<IT, ET> &p1, double by)
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1y, by, t0);
+		o.Two_Diff(b1y, by, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double ky_p[128], *ky = ky_p;
@@ -17811,7 +17811,7 @@ Sign lessThanOnY_II_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1y, b2y, t0);
+		o.Two_Diff(b1y, b2y, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double t2_p[128], *t2 = t2_p;
@@ -17989,7 +17989,7 @@ Sign lessThanOnZ_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bz)
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1z, bz, t0);
+		o.Two_Diff(b1z, bz, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double kz_p[128], *kz = kz_p;
@@ -18207,7 +18207,7 @@ Sign lessThanOnZ_II_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          t0[2];
-		o.two_Diff(b1z, b2z, t0);
+		o.Two_Diff(b1z, b2z, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double t2_p[128], *t2 = t2_p;
@@ -18488,11 +18488,11 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          b1p4x[2];
-		o.two_Diff(b1x, p4x, b1p4x);
+		o.Two_Diff(b1x, p4x, b1p4x);
 		double b1p4y[2];
-		o.two_Diff(b1y, p4y, b1p4y);
+		o.Two_Diff(b1y, p4y, b1p4y);
 		double b1p4z[2];
-		o.two_Diff(b1z, p4z, b1p4z);
+		o.Two_Diff(b1z, p4z, b1p4z);
 		double d1_b1p4x_p[64], *d1_b1p4x = d1_b1p4x_p;
 		int    d1_b1p4x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 64);
@@ -18512,11 +18512,11 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 		int p1z_p4z_len = o.Gen_Sum_With_PreAlloc(d1_b1p4z_len, d1_b1p4z, l1z_len,
 		                                          l1z, &p1z_p4z, 64);
 		double p2x_p4x[2];
-		o.two_Diff(p2x, p4x, p2x_p4x);
+		o.Two_Diff(p2x, p4x, p2x_p4x);
 		double p2y_p4y[2];
-		o.two_Diff(p2y, p4y, p2y_p4y);
+		o.Two_Diff(p2y, p4y, p2y_p4y);
 		double p2z_p4z[2];
-		o.two_Diff(p2z, p4z, p2z_p4z);
+		o.Two_Diff(p2z, p4z, p2z_p4z);
 		double tmp4_a_p[64], *tmp4_a = tmp4_a_p;
 		int    tmp4_a_len = o.Gen_Product_With_PreAlloc(p1x_p4x_len, p1x_p4x, 2,
 		                                                p2y_p4y, &tmp4_a, 64);
@@ -18545,11 +18545,11 @@ Sign orient3D_IEEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 		int    m12_len = o.Gen_Diff_With_PreAlloc(tmp2_a_len, tmp2_a, tmp2_b_len,
 		                                          tmp2_b, &m12, 64);
 		double p3x_p4x[2];
-		o.two_Diff(p3x, p4x, p3x_p4x);
+		o.Two_Diff(p3x, p4x, p3x_p4x);
 		double p3y_p4y[2];
-		o.two_Diff(p3y, p4y, p3y_p4y);
+		o.Two_Diff(p3y, p4y, p3y_p4y);
 		double p3z_p4z[2];
-		o.two_Diff(p3z, p4z, p3z_p4z);
+		o.Two_Diff(p3z, p4z, p3z_p4z);
 		double mt1_p[64], *mt1 = mt1_p;
 		int    mt1_len =
 		  o.Gen_Product_With_PreAlloc(m01_len, m01, 2, p3z_p4z, &mt1, 64);
@@ -18935,17 +18935,17 @@ Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1p4x[2];
-		o.two_Diff(b1x, p4x, b1p4x);
+		o.Two_Diff(b1x, p4x, b1p4x);
 		double b1p4y[2];
-		o.two_Diff(b1y, p4y, b1p4y);
+		o.Two_Diff(b1y, p4y, b1p4y);
 		double b1p4z[2];
-		o.two_Diff(b1z, p4z, b1p4z);
+		o.Two_Diff(b1z, p4z, b1p4z);
 		double b2p4x[2];
-		o.two_Diff(b2x, p4x, b2p4x);
+		o.Two_Diff(b2x, p4x, b2p4x);
 		double b2p4y[2];
-		o.two_Diff(b2y, p4y, b2p4y);
+		o.Two_Diff(b2y, p4y, b2p4y);
 		double b2p4z[2];
-		o.two_Diff(b2z, p4z, b2p4z);
+		o.Two_Diff(b2z, p4z, b2p4z);
 		double d1_b1p4x_p[32], *d1_b1p4x = d1_b1p4x_p;
 		int    d1_b1p4x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 32);
@@ -18983,11 +18983,11 @@ Sign orient3D_IIEE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    p2p4z_len =
 		  o.Gen_Sum_With_PreAlloc(l2z_len, l2z, d2_b2p4z_len, d2_b2p4z, &p2p4z, 32);
 		double p3p4x[2];
-		o.two_Diff(p3x, p4x, p3p4x);
+		o.Two_Diff(p3x, p4x, p3p4x);
 		double p3p4y[2];
-		o.two_Diff(p3y, p4y, p3p4y);
+		o.Two_Diff(p3y, p4y, p3p4y);
 		double p3p4z[2];
-		o.two_Diff(p3z, p4z, p3p4z);
+		o.Two_Diff(p3z, p4z, p3p4z);
 		double tmc_a_p[32], *tmc_a = tmc_a_p;
 		int    tmc_a_len = o.Gen_Product_With_PreAlloc(p1p4x_len, p1p4x, p2p4y_len,
 		                                               p2p4y, &tmc_a, 32);
@@ -19494,23 +19494,23 @@ Sign orient3D_IIIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1p4x[2];
-		o.two_Diff(b1x, p4x, b1p4x);
+		o.Two_Diff(b1x, p4x, b1p4x);
 		double b1p4y[2];
-		o.two_Diff(b1y, p4y, b1p4y);
+		o.Two_Diff(b1y, p4y, b1p4y);
 		double b1p4z[2];
-		o.two_Diff(b1z, p4z, b1p4z);
+		o.Two_Diff(b1z, p4z, b1p4z);
 		double b2p4x[2];
-		o.two_Diff(b2x, p4x, b2p4x);
+		o.Two_Diff(b2x, p4x, b2p4x);
 		double b2p4y[2];
-		o.two_Diff(b2y, p4y, b2p4y);
+		o.Two_Diff(b2y, p4y, b2p4y);
 		double b2p4z[2];
-		o.two_Diff(b2z, p4z, b2p4z);
+		o.Two_Diff(b2z, p4z, b2p4z);
 		double b3p4x[2];
-		o.two_Diff(b3x, p4x, b3p4x);
+		o.Two_Diff(b3x, p4x, b3p4x);
 		double b3p4y[2];
-		o.two_Diff(b3y, p4y, b3p4y);
+		o.Two_Diff(b3y, p4y, b3p4y);
 		double b3p4z[2];
-		o.two_Diff(b3z, p4z, b3p4z);
+		o.Two_Diff(b3z, p4z, b3p4z);
 		double d1_b1p4x_p[32], *d1_b1p4x = d1_b1p4x_p;
 		int    d1_b1p4x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p4x, &d1_b1p4x, 32);
@@ -20332,23 +20332,23 @@ Sign orient3D_IIII_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    d3p4z_len =
 		  o.Gen_Product_With_PreAlloc(d3_len, d3, l4z_len, l4z, &d3p4z, 16);
 		double b1b4x[2];
-		o.two_Diff(b1x, b4x, b1b4x);
+		o.Two_Diff(b1x, b4x, b1b4x);
 		double b1b4y[2];
-		o.two_Diff(b1y, b4y, b1b4y);
+		o.Two_Diff(b1y, b4y, b1b4y);
 		double b1b4z[2];
-		o.two_Diff(b1z, b4z, b1b4z);
+		o.Two_Diff(b1z, b4z, b1b4z);
 		double b2b4x[2];
-		o.two_Diff(b2x, b4x, b2b4x);
+		o.Two_Diff(b2x, b4x, b2b4x);
 		double b2b4y[2];
-		o.two_Diff(b2y, b4y, b2b4y);
+		o.Two_Diff(b2y, b4y, b2b4y);
 		double b2b4z[2];
-		o.two_Diff(b2z, b4z, b2b4z);
+		o.Two_Diff(b2z, b4z, b2b4z);
 		double b3b4x[2];
-		o.two_Diff(b3x, b4x, b3b4x);
+		o.Two_Diff(b3x, b4x, b3b4x);
 		double b3b4y[2];
-		o.two_Diff(b3y, b4y, b3b4y);
+		o.Two_Diff(b3y, b4y, b3b4y);
 		double b3b4z[2];
-		o.two_Diff(b3z, b4z, b3b4z);
+		o.Two_Diff(b3z, b4z, b3b4z);
 		double d1_b1b4x_p[16], *d1_b1b4x = d1_b1b4x_p;
 		int    d1_b1b4x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b4x, &d1_b1b4x, 16);
@@ -20815,9 +20815,9 @@ Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          b1p3x[2];
-		o.two_Diff(b1x, p3x, b1p3x);
+		o.Two_Diff(b1x, p3x, b1p3x);
 		double b1p3y[2];
-		o.two_Diff(b1y, p3y, b1p3y);
+		o.Two_Diff(b1y, p3y, b1p3y);
 		double d1_b1p3x_p[128], *d1_b1p3x = d1_b1p3x_p;
 		int    d1_b1p3x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 128);
@@ -20831,9 +20831,9 @@ Sign orientOn2Dxy_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 		int    iy_len =
 		  o.Gen_Sum_With_PreAlloc(d1_b1p3y_len, d1_b1p3y, l1y_len, l1y, &iy, 128);
 		double p2p3x[2];
-		o.two_Diff(p2x, p3x, p2p3x);
+		o.Two_Diff(p2x, p3x, p2p3x);
 		double p2p3y[2];
-		o.two_Diff(p2y, p3y, p2p3y);
+		o.Two_Diff(p2y, p3y, p2p3y);
 		double t0_p[128], *t0 = t0_p;
 		int    t0_len = o.Gen_Product_With_PreAlloc(ix_len, ix, 2, p2p3y, &t0, 128);
 		double t1_p[128], *t1 = t1_p;
@@ -21532,9 +21532,9 @@ Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
 	{
 		expansionObject o;
 		double          b1p3y[2];
-		o.two_Diff(b1y, p3y, b1p3y);
+		o.Two_Diff(b1y, p3y, b1p3y);
 		double b1p3z[2];
-		o.two_Diff(b1z, p3z, b1p3z);
+		o.Two_Diff(b1z, p3z, b1p3z);
 		double d1_b1p3y_p[128], *d1_b1p3y = d1_b1p3y_p;
 		int    d1_b1p3y_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 128);
@@ -21548,9 +21548,9 @@ Sign orientOn2Dyz_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2y,
 		int    iz_len =
 		  o.Gen_Sum_With_PreAlloc(d1_b1p3z_len, d1_b1p3z, l1z_len, l1z, &iz, 128);
 		double p2p3y[2];
-		o.two_Diff(p2y, p3y, p2p3y);
+		o.Two_Diff(p2y, p3y, p2p3y);
 		double p2p3z[2];
-		o.two_Diff(p2z, p3z, p2p3z);
+		o.Two_Diff(p2z, p3z, p2p3z);
 		double t0_p[128], *t0 = t0_p;
 		int    t0_len = o.Gen_Product_With_PreAlloc(iy_len, iy, 2, p2p3z, &t0, 128);
 		double t1_p[128], *t1 = t1_p;
@@ -22249,9 +22249,9 @@ Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 	{
 		expansionObject o;
 		double          b1p3z[2];
-		o.two_Diff(b1z, p3z, b1p3z);
+		o.Two_Diff(b1z, p3z, b1p3z);
 		double b1p3x[2];
-		o.two_Diff(b1x, p3x, b1p3x);
+		o.Two_Diff(b1x, p3x, b1p3x);
 		double d1_b1p3z_p[128], *d1_b1p3z = d1_b1p3z_p;
 		int    d1_b1p3z_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 128);
@@ -22265,9 +22265,9 @@ Sign orientOn2Dzx_IEE_expansion(const GenericPoint3T<IT, ET> &p1, double p2x,
 		int    ix_len =
 		  o.Gen_Sum_With_PreAlloc(d1_b1p3x_len, d1_b1p3x, l1x_len, l1x, &ix, 128);
 		double p2p3z[2];
-		o.two_Diff(p2z, p3z, p2p3z);
+		o.Two_Diff(p2z, p3z, p2p3z);
 		double p2p3x[2];
-		o.two_Diff(p2x, p3x, p2p3x);
+		o.Two_Diff(p2x, p3x, p2p3x);
 		double t0_p[128], *t0 = t0_p;
 		int    t0_len = o.Gen_Product_With_PreAlloc(iz_len, iz, 2, p2p3x, &t0, 128);
 		double t1_p[128], *t1 = t1_p;

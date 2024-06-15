@@ -7,8 +7,6 @@
 
 namespace OMC {
 
-// TODO will optionally enabling strict float env be more efficiency?
-
 // For MSVC:
 // Make sure adding compile option "/fp:strict"
 
@@ -47,7 +45,7 @@ public:
 	FPU_RoundingProtector()
 	{
 		OMC_EXPENSIVE_ASSERT(FPU_get_round() == FE_UPWARD,
-		                             "round mode is not protected.");
+		                     "round mode is not protected.");
 	}
 	~FPU_RoundingProtector() {}
 };
@@ -66,6 +64,5 @@ public:
 private:
 	fpu_round_t backup;
 };
-
 
 } // namespace OMC

@@ -1,9 +1,6 @@
 #pragma once
 
-#include "OpenMeshCraft/Utils/Macros.h"
-
-#include <vector>
-#include <cmath>
+#include "Multiprecision.h"
 
 namespace OMC {
 
@@ -22,123 +19,102 @@ namespace OMC {
 class expansionObject
 {
 public:
-	// Fast implementations of basic expansion arithmetic due to Dekker, Knuth,
-	// Priest, Shewchuk, and others.
-	// See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision
-	// Floating Point Arithmetic"
+	/****************************************************************************
+	 * Wrappers of basic expansion arithmetic,
+	 * due to Dekker, Knuth, Priest, Shewchuk, and others.
+	 ***************************************************************************/
 
 	/* Sum routines ************************************************************/
 
-	inline void Quick_Two_Sum(const double a, const double b, double &x,
-	                          double &y);
+	/// @brief Wrapper of two_sum.
+	inline void Two_Sum(const double a, const double b, double *x)
+	{
+		two_sum(a, b, x[1], x[0]);
+	}
 
-	inline void Two_Sum(const double a, const double b, double &x, double &y);
+	/// @brief Wrapper of two_one_sub_full.
+	inline void Two_One_Sum(const double *a, const double b, double *x)
+	{
+		two_one_sum_full(a[1], a[0], b, x[2], x[1], x[0]);
+	}
 
-	inline void two_Sum(const double a, const double b, double *xy);
-
-	inline void Two_One_Sum(const double a1, const double a0, const double b,
-	                        double &x2, double &x1, double &x0);
+	/// @brief Wrapper of two_two_sum_full.
+	inline void Two_Two_Sum(const double *a, const double *b, double *x)
+	{
+		two_two_sum_full(a[1], a[0], b[1], b[0], x[3], x[2], x[1], x[0]);
+	}
 
 	/* Difference routines *****************************************************/
 
-	inline void Two_Diff(const double a, const double b, double &x, double &y);
+	/// @brief Wrapper of two_sub.
+	inline void Two_Diff(const double a, const double b, double *x)
+	{
+		two_sub(a, b, x[1], x[0]);
+	}
 
-	inline void two_Diff(const double a, const double b, double *xy);
+	/// @brief Wrapper of two_one_sub_full.
+	inline void Two_One_Diff(const double *a, const double b, double *x)
+	{
+		two_one_sub_full(a[1], a[0], b, x[2], x[1], x[0]);
+	}
 
-	inline void Two_One_Diff(const double a1, const double a0, const double b,
-	                         double &x2, double &x1, double &x0);
+	/// @brief Wrapper of two_two_sub_full.
+	inline void Two_Two_Diff(const double *a, const double *b, double *x)
+	{
+		two_two_sub_full(a[1], a[0], b[1], b[0], x[3], x[2], x[1], x[0]);
+	}
+
+	/// @brief Calculates the second component 'y' of the expansion [x,y] =
+	/// [a]-[b] when 'x' is known
+	inline void Two_Diff_Back(const double a, const double b, double &x,
+	                          double &y)
+	{
+		double _bv;
+		_bv = a - x;
+		y   = (a - (x + _bv)) + (_bv - b);
+	}
+
+	/// @brief Wrapper of Two_Diff_Back
+	inline void Two_Diff_Back(const double a, const double b, double *x)
+	{
+		Two_Diff_Back(a, b, x[1], x[0]);
+	}
 
 	/* Product routines ********************************************************/
 
-	inline void Split(double a, double &_ah, double &_al);
-
-	inline void Two_Prod_PreSplit(double a, double b, double _bh, double _bl,
-	                              double &x, double &y);
-
-	inline void Two_Product_2Presplit(double a, double _ah, double _al, double b,
-	                                  double _bh, double _bl, double &x,
-	                                  double &y);
-
-	// [x,y] = [a]*[b]		 Multiplies two expansions [a] and [b] of length one
-	inline void Two_Prod(const double a, const double b, double &x, double &y);
-	inline void Two_Prod(const double a, const double b, double *xy)
+	/// @brief Wrapper of two_prod.
+	inline void Two_Prod(const double a, const double b, double *x)
 	{
-		Two_Prod(a, b, xy[1], xy[0]);
+		two_prod(a, b, x[1], x[0]);
 	}
 
-	// [x,y] = [a]^2		Squares an expansion of length one
-	inline void Square(const double a, double &x, double &y);
-	inline void Square(const double a, double *xy) { Square(a, xy[1], xy[0]); }
+	/// @brief Wrapper of two_square.
+	inline void Square(const double a, double *x) { one_square(a, x[1], x[0]); }
 
-	// [x2,x1,x0] = [a1,a0]-[b]		Subtracts an expansion [b] of length one from an
-	// expansion [a1,a0] of length two
-	inline void two_One_Diff(const double a1, const double a0, const double b,
-	                         double &x2, double &x1, double &x0);
-
-	inline void two_One_Diff(const double *a, const double b, double *x)
-	{
-		two_One_Diff(a[1], a[0], b, x[2], x[1], x[0]);
-	}
-
-	// [x3,x2,x1,x0] = [a1,a0]*[b]		Multiplies an expansion [a1,a0] of length
-	// two by an expansion [b] of length one
-	inline void Two_One_Prod(const double a1, const double a0, const double b,
-	                         double &x3, double &x2, double &x1, double &x0);
+	/// @brief Wrapper of two_one_prod_full.
 	inline void Two_One_Prod(const double *a, const double b, double *x)
 	{
-		Two_One_Prod(a[1], a[0], b, x[3], x[2], x[1], x[0]);
+		two_one_prod_full(a[1], a[0], b, x[3], x[2], x[1], x[0]);
 	}
 
-	// [x3,x2,x1,x0] = [a1,a0]+[b1,b0]		Calculates the sum of two expansions of
-	// length two
-	inline void Two_Two_Sum(const double a1, const double a0, const double b1,
-	                        const double b0, double &x3, double &x2, double &x1,
-	                        double &x0);
-
-	inline void Two_Two_Sum(const double *a, const double *b, double *xy)
+	// [x] = [a1,a0]^2		Squares an expansion of length 2
+	// 'x' must be allocated by the caller with 6 components.
+	inline void Two_Square(const double &a1, const double &a0, double *x)
 	{
-		Two_Two_Sum(a[1], a[0], b[1], b[0], xy[3], xy[2], xy[1], xy[0]);
-	}
-
-	// [x3,x2,x1,x0] = [a1,a0]-[b1,b0]		Calculates the difference between two
-	// expansions of length two
-	inline void Two_Two_Diff(const double a1, const double a0, const double b1,
-	                         const double b0, double &x3, double &x2, double &x1,
-	                         double &x0);
-
-	inline void Two_Two_Diff(const double *a, const double *b, double *x)
-	{
-		Two_Two_Diff(a[1], a[0], b[1], b[0], x[3], x[2], x[1], x[0]);
-	}
-
-	// Calculates the second component 'y' of the expansion [x,y] = [a]-[b] when
-	// 'x' is known
-	inline void Two_Diff_Back(const double a, const double b, double &x,
-	                          double &y);
-
-	inline void Two_Diff_Back(const double a, const double b, double *xy)
-	{
-		Two_Diff_Back(a, b, xy[1], xy[0]);
-	}
-
-	// [h] = [a1,a0]^2		Squares an expansion of length 2
-	// 'h' must be allocated by the caller with 6 components.
-	inline void Two_Square(const double &a1, const double &a0, double *x);
-
-	// [h7,h6,...,h0] = [a1,a0]*[b1,b0]		Calculates the product of two expansions
-	// of length two. 'h' must be allocated by the caller with eight components.
-	inline void Two_Two_Prod(const double a1, const double a0, const double b1,
-	                         const double b0, double *h);
-	inline void Two_Two_Prod(const double *a, const double *b, double *xy)
-	{
-		Two_Two_Prod(a[1], a[0], b[1], b[0], xy);
+		two_square_full(a1, a0, x);
 	}
 
 	// [h7,h6,...,h0] = [a1,a0]*[b1,b0]		Calculates the product of two expansions
 	// of length two. 'h' must be allocated by the caller with eight components.
-	// void Two_Two_Prod(const double a1, const double a0, const double b1, const
-	// double b0, double *h); inline void Two_Two_Prod(const double *a, const
-	// double *b, double *xy) { Two_Two_Prod(a[1], a[0], b[1], b[0], xy); }
+	inline void Two_Two_Prod(const double *a, const double *b, double *x)
+	{
+		two_two_prod_full(a[1], a[0], b[1], b[0], x);
+	}
+
+	/****************************************************************************
+	 * Unlimited length floating-point expansion arithmetic,
+	 * due to Bruno Levy, Macro Attene, and others.
+	 ***************************************************************************/
 
 	// [e] = -[e]		Inplace inversion
 	inline void Gen_Invert(const int elen, double *e)
