@@ -73,6 +73,12 @@
 	#endif
 #endif
 
+#if !defined(OMC_FMA) && defined(OMC_ENABLE_FMA)
+	#if defined(__FMA__)
+		#define OMC_FMA
+	#endif
+#endif
+
 #pragma endregion Macros_about_vectorization
 
 /*********************************************************/

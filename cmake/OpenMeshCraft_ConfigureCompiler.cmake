@@ -59,6 +59,10 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -msse2)
   endif()
 
+  if (OMC_CMAKE_ENABLE_FMA)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -mfma)
+  endif()
+
   # reserve enough stack size
   target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -Wl,-z,stacksize=8421376)
 

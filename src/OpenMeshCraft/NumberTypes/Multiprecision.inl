@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Multiprecision.h"
+#include <immintrin.h>
 
 namespace OMC {
 
@@ -131,7 +132,7 @@ void one_split(double a, double &ah, double &al)
 
 void two_prod(const double a, const double b, double &x1, double &x0)
 {
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	// I am so confused by when std::fma works across different platforms and
 	// compilers, so, it may be more straightforward to directly use FMA
 	// intrinsics from AVX2.
@@ -169,7 +170,7 @@ void two_prod_2presplit(double a, double ah, double al, double b, double bh,
 
 void one_square(const double a, double &x1, double &x0)
 {
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	__m128d _x1, _x0, _a;
 	_a  = _mm_set_sd(a);
 	_x1 = _mm_mul_sd(_a, _a);
@@ -195,7 +196,7 @@ void two_one_prod_full(const double a1, const double a0, const double b,
                        double &x3, double &x2, double &x1, double &x0)
 {
 	double _i, _j, _0, _k;
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	two_prod(a0, b, _i, x0);
 	two_prod(a1, b, _j, _0);
 #else
@@ -211,7 +212,7 @@ void two_one_prod_full(const double a1, const double a0, const double b,
 void two_one_prod_clip(const double a1, const double a0, const double b,
                        double &x1, double &x0)
 {
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	__m128d _a1, _a0, _b, _x1, _x0, _t0, _t1;
 	// store into __m128d
 	_a1 = _mm_set_sd(a1);
@@ -220,6 +221,8 @@ void two_one_prod_clip(const double a1, const double a0, const double b,
 	// expand two_prod(a1, b, _t1, _t0) here.
 	_t1 = _mm_mul_sd(_a1, _b);
 	_t0 = _mm_fmsub_sd(_a1, _b, _t1);
+	// remaining operations
+	_t0 = _mm_fmadd_sd(_a0, _b, _t0);
 	// expand fast_two_sum(_t1, _t0, _x1, _x0) here.
 	_x1 = _mm_add_sd(_t1, _t0);
 	_x0 = _mm_sub_sd(_t0, _mm_sub_sd(_x1, _t1));
@@ -240,7 +243,7 @@ void two_two_prod_full(const double &a1, const double &a0, const double &b1,
 {
 	double _0, _1, _2;
 	double _i, _j, _k, _l, _m, _n;
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	two_prod(a0, b0, _i, x[0]);
 	two_prod(a1, b0, _j, _0);
 	two_sum(_i, _0, _k, _1);
@@ -282,7 +285,7 @@ void two_two_prod_full(const double &a1, const double &a0, const double &b1,
 void two_two_prod_clip(const double &a1, const double &a0, const double &b1,
                        const double &b0, double &x1, double &x0)
 {
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	__m128d _a1, _a0, _b1, _b0, _x1, _x0, ch, cl1, cl2, cl3, tl0, tl1;
 	// store into __m128d
 	_a1 = _mm_set_sd(a1);
@@ -320,7 +323,7 @@ void two_square_full(const double &a1, const double &a0, double *x)
 	double _i, _j, _k, _l;
 	one_square(a0, _i, x[0]);
 	_0 = a0 + a0;
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	two_prod(_0, a1, _j, _1);
 	one_square(a1, _l, _3);
 #else
@@ -335,7 +338,7 @@ void two_square_full(const double &a1, const double &a0, double *x)
 
 void two_square_clip(const double &a1, const double &a0, double &x1, double &x0)
 {
-#if defined(OMC_AVX2)
+#if defined(OMC_AVX2) && defined(OMC_FMA)
 	__m128d _a1, _a0, _x1, _x0, ch, cl1, cl2, cl3, _2;
 	// store into __m128d
 	_a1 = _mm_set_sd(a1);
