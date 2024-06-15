@@ -38,6 +38,7 @@ namespace OMC {
  * 2. There are "full" and "clip" versions for some routines, where the "full"
  * one is used in expansion arithmetic and the "clip" one is used in
  * double-double arithmetic.
+ * 3. We only consider +, -, *, and square operations.
  *
  * Concepts:
  *
@@ -103,6 +104,7 @@ inline void two_one_sum_full(const double a1, const double a0, const double b,
  * @param[in] b summand
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
+ * @details It's the DWPlusFP in Boldo (2023).
  */
 inline void two_one_sum_clip(const double a1, const double a0, const double b,
                              double &x1, double &x0);
@@ -133,6 +135,7 @@ inline void two_two_sum_full(const double a1, const double a0, const double b1,
  * @param[in] b0 low component of b
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
+ * @details It's the AccurateDWPlusDW in Boldo (2023).
  */
 inline void two_two_sum_clip(const double a1, const double a0, const double b1,
                              const double b0, double &x1, double &x0);
@@ -182,6 +185,7 @@ inline void two_one_sub_full(const double a1, const double a0, const double b,
  * @param[in] b subtrahend
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
+ * @details It's the dual operation of DWPlusFP in Boldo (2023).
  */
 inline void two_one_sub_clip(const double a1, const double a0, const double b,
                              double &x1, double &x0);
@@ -211,6 +215,7 @@ inline void two_two_sub_full(const double a1, const double a0, const double b1,
  * @param[in] b0 low component of b
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
+ * @details It's the dual operation of AccurateDWPlusDW in Boldo (2023).
  */
 inline void two_two_sub_clip(const double a1, const double a0, const double b1,
                              const double b0, double &x1, double &x0);
@@ -342,8 +347,8 @@ inline void two_two_prod_full(const double &a1, const double &a0,
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
  * @details The implementation without fma is DWTimesDW1 in Joldes (2017), which
- * has a relative error of 7u^2. The implementation with fma is DWTimesDW3 in
- * Joldes (2017), which has a relative error of 5u^2. u is the unit rounding
+ * has a relative error of 5u^2. The implementation with fma is DWTimesDW3 in
+ * Joldes (2017), which has a relative error of 4u^2. u is the unit rounding
  * error.
  */
 inline void two_two_prod_clip(const double &a1, const double &a0,
@@ -368,7 +373,7 @@ inline void two_square_full(const double &a1, const double &a0, double *x);
  * @param[out] x1 high component of x
  * @param[out] x0 low component of x
  * @details The implementation with/without fma is a modification of DWTimesDW1
- * in Joldes (2017), which originally has a relative error of 7u^2. The actual
+ * in Joldes (2017), which originally has a relative error of 5u^2. The actual
  * relative error should be smaller, but I havn't try to give a formally proved
  * bound.
  */

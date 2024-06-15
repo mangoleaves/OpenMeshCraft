@@ -99,7 +99,7 @@ void two_one_sub_clip(const double a1, const double a0, const double b,
 	double _t0, _t1;
 	two_sub(a1, b, _t1, _t0);
 	_t0 = _t0 + a0;
-	two_sub(_t1, _t0, x1, x0);
+	fast_two_sum(_t1, _t0, x1, x0);
 }
 
 void two_two_sub_full(const double a1, const double a0, const double b1,
@@ -118,14 +118,14 @@ void two_two_sub_clip(const double a1, const double a0, const double b1,
 	two_sub(a1, b1, _s1, _s0);
 	two_sub(a0, b0, _t1, _t0);
 	_s0 = _s0 + _t1;
-	fast_two_sub(_s1, _s0, _w1, _w0);
+	fast_two_sum(_s1, _s0, _w1, _w0);
 	_w0 = _w0 + _t0;
-	fast_two_sub(_w1, _w0, x1, x0);
+	fast_two_sum(_w1, _w0, x1, x0);
 }
 
 void one_split(double a, double &ah, double &al)
 {
-	double _c = 1.3421772800000003e+008 * a; // constant is 2^27
+	double _c = 1.3421772800000003e+008 * a; // constant is 2^27 + ulp(2^27)
 	ah        = _c - (_c - a);
 	al        = a - ah;
 }
@@ -195,7 +195,7 @@ void one_square_presplit(const double a, const double ah, const double al,
 void two_one_prod_full(const double a1, const double a0, const double b,
                        double &x3, double &x2, double &x1, double &x0)
 {
-	double _i, _j, _0, _k;
+	double _i, _j, _k, _0;
 #if defined(OMC_AVX2) && defined(OMC_FMA)
 	two_prod(a0, b, _i, x0);
 	two_prod(a1, b, _j, _0);
@@ -286,23 +286,23 @@ void two_two_prod_clip(const double &a1, const double &a0, const double &b1,
                        const double &b0, double &x1, double &x0)
 {
 #if defined(OMC_AVX2) && defined(OMC_FMA)
-	__m128d _a1, _a0, _b1, _b0, _x1, _x0, ch, cl1, cl2, cl3, tl0, tl1;
+	__m128d _a1, _a0, _b1, _b0, _x1, _x0, t1, t0, ss;
 	// store into __m128d
 	_a1 = _mm_set_sd(a1);
 	_a0 = _mm_set_sd(a0);
 	_b1 = _mm_set_sd(b1);
 	_b0 = _mm_set_sd(b0);
-	// expand two_prod(a1, b1, ch, cl1) here.
-	ch  = _mm_mul_sd(_a1, _b1);
-	cl1 = _mm_fmsub_sd(_a1, _b1, ch);
+	// expand two_prod(a1, b1, t1, t0) here.
+	t1  = _mm_mul_sd(_a1, _b1);
+	t0  = _mm_fmsub_sd(_a1, _b1, t1);
 	// remaining operations.
-	tl0 = _mm_mul_sd(_a0, _b0);
-	tl1 = _mm_fmadd_sd(_a1, _b0, tl0);
-	cl2 = _mm_fmadd_sd(_a0, _b1, tl1);
-	cl3 = _mm_add_sd(cl1, cl2);
-	// expand fast_two_sum(ch, cl3) here.
-	_x1 = _mm_add_sd(ch, cl3);
-	_x0 = _mm_sub_sd(cl3, _mm_sub_sd(_x1, ch));
+	ss  = _mm_mul_sd(_a0, _b0);
+	ss  = _mm_fmadd_sd(_a1, _b0, ss);
+	ss  = _mm_fmadd_sd(_a0, _b1, ss);
+	t0  = _mm_add_sd(t0, ss);
+	// expand fast_two_sum(t1, t0, _x1, _x0) here.
+	_x1 = _mm_add_sd(t1, t0);
+	_x0 = _mm_sub_sd(t0, _mm_sub_sd(_x1, t1));
 	// extract from __m128d
 	x1  = _mm_cvtsd_f64(_x1);
 	x0  = _mm_cvtsd_f64(_x0);
@@ -339,20 +339,21 @@ void two_square_full(const double &a1, const double &a0, double *x)
 void two_square_clip(const double &a1, const double &a0, double &x1, double &x0)
 {
 #if defined(OMC_AVX2) && defined(OMC_FMA)
-	__m128d _a1, _a0, _x1, _x0, ch, cl1, cl2, cl3, _2;
+	__m128d _a1, _a0, _x1, _x0, t1, t0, ss;
 	// store into __m128d
 	_a1 = _mm_set_sd(a1);
 	_a0 = _mm_set_sd(a0);
-	_2  = _mm_set_sd(2.);
-	// expand one_square(a1, ch, cl1) here.
-	ch  = _mm_mul_sd(_a1, _a1);
-	cl1 = _mm_fmsub_sd(_a1, _a1, ch);
+	// expand one_square(a1, t1, t0) here.
+	t1  = _mm_mul_sd(_a1, _a1);
+	t0  = _mm_fmsub_sd(_a1, _a1, t1);
 	// remaining operations.
-	cl2 = _mm_mul_sd(_mm_mul_sd(_a0, _a1), _2);
-	cl3 = _mm_add_sd(cl1, cl2);
-	// expand fast_two_sum(ch, cl3) here.
-	_x1 = _mm_add_sd(ch, cl3);
-	_x0 = _mm_sub_sd(cl3, _mm_sub_sd(_x1, ch));
+	ss  = _mm_mul_sd(_a0, _a0);
+	ss  = _mm_fmadd_sd(_a1, _a0, ss);
+	ss  = _mm_fmadd_sd(_a1, _a0, ss);
+	t0  = _mm_add_sd(t0, ss);
+	// expand fast_two_sum(t1, t0, _x1, _x0) here.
+	_x1 = _mm_add_sd(t1, t0);
+	_x0 = _mm_sub_sd(t0, _mm_sub_sd(_x1, t1));
 	// extract from __m128d
 	x1  = _mm_cvtsd_f64(_x1);
 	x0  = _mm_cvtsd_f64(_x0);
