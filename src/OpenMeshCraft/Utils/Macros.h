@@ -74,7 +74,9 @@
 #endif
 
 #if !defined(OMC_FMA) && defined(OMC_ENABLE_FMA)
-	#if defined(__FMA__)
+	#if defined(_MSC_VER) && defined(__AVX2__)
+		#define OMC_FMA
+	#elif defined(__FMA__)	// GCC or Clang
 		#define OMC_FMA
 	#endif
 #endif
