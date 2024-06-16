@@ -1,12 +1,21 @@
 #include "converter.h"
 
-#include <cmath>
-
-#include <algorithm>
-#include <format>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
+// floating-point number type in generated code
+std::string FT      = "double";
+// interval number type (IT) in generated code
+std::string IT      = "IT";
+// exact number type (ET) in generated code
+std::string ET      = "ET";
+// boolean type in generated code
+std::string Boolean = "bool";
+// sign type in generated code
+std::string Sign    = "Sign";
+// API symbol in generated code
+std::string API     = "OpenMeshCraft_API";
+// point arrangement used by filter in generated code
+std::string PntArr  = "PntArr";
+// Exit command in generated code
+std::string Exit    = "OMC_EXIT(\"Unsopported points arrangement.\")";
 
 void help_info()
 {
@@ -86,16 +95,24 @@ void create_heading_comment(std::string &s)
 fpnumber ulp(fpnumber d)
 {
 	int exp;
-#ifdef USE_FLOATS
-	frexpf(d, &exp);
-	fpnumber u = ldexpf(0.5, exp - 23);
-#else
 	frexp(d, &exp);
 	fpnumber u = ldexp(0.5, exp - 52);
-#endif
 	// Comment this out to ignore INTEL's x387 extended precision
 	// u += (u / (1 << 11));
 	return u;
+}
+
+// If first is true, return empty string, otherwise return comma for separating
+// other symbols
+std::string sepa_comma(bool &first)
+{
+	if (first)
+	{
+		first = false;
+		return "";
+	}
+	else
+		return ",";
 }
 
 LambdaVariable::LambdaVariable(std::string &n)
@@ -136,10 +153,7 @@ std::string LambdaVariable::print_filtered() const
 	std::stringstream variables;
 	bool              first = true;
 	for (Variable *v : output_pars)
-	{
-		variables << ((first) ? ("") : (", ")) << v->name;
-		first = false;
-	}
+		variables << sepa_comma(first) << v->name;
 	return std::format("{}.getFilteredLambda({}, max_var)", point_name,
 	                   variables.str());
 }
@@ -149,10 +163,7 @@ std::string LambdaVariable::print_interval() const
 	std::stringstream variables;
 	bool              first = true;
 	for (Variable *v : output_pars)
-	{
-		variables << ((first) ? ("") : (", ")) << v->name;
-		first = false;
-	}
+		variables << sepa_comma(first) << v->name;
 	return std::format("{}.getIntervalLambda({})", point_name, variables.str());
 }
 
@@ -163,11 +174,9 @@ std::string LambdaVariable::print_expansion() const
 	for (Variable *v : output_pars)
 	{
 		if (v->is_lambda || v->is_lambda_d)
-			variables << std::format("{0} &{1}, {1}_len", (first) ? ("") : (","),
-			                         v->name);
+			variables << std::format("{0} &{1}, {1}_len", sepa_comma(first), v->name);
 		else
-			variables << std::format("{0} {1}", (first) ? ("") : (","), v->name);
-		first = false;
+			variables << std::format("{0} {1}", sepa_comma(first), v->name);
 	}
 	return std::format("{}.getExpansionLambda({})", point_name, variables.str());
 }
@@ -177,10 +186,7 @@ std::string LambdaVariable::print_exact() const
 	std::stringstream variables;
 	bool              first = true;
 	for (Variable *v : output_pars)
-	{
-		variables << ((first) ? ("") : (", ")) << v->name;
-		first = false;
-	}
+		variables << sepa_comma(first) << v->name;
 	return std::format("{}.getExactLambda({})", point_name, variables.str());
 }
 
@@ -208,14 +214,11 @@ std::string ExplicitVariable::get_vars() const
 	std::stringstream variables;
 	bool              first = true;
 	for (Variable *v : coords)
-	{
-		variables << ((first) ? ("") : (", ")) << v->name;
-		first = false;
-	}
+		variables << sepa_comma(first) << v->name;
 	return variables.str();
 }
 
-std::string ExplicitVariable::get_methods() const
+std::string ExplicitVariable::get_coords() const
 {
 	std::stringstream variables;
 	bool              first = true;
@@ -224,8 +227,7 @@ std::string ExplicitVariable::get_methods() const
 		std::string var_name = v->name;
 		size_t      pos      = var_name.find_last_of("xyz");
 		var_name = var_name.substr(0, pos) + "." + var_name.substr(pos, 1) + "()";
-		variables << ((first) ? ("") : (", ")) << var_name;
-		first = false;
+		variables << sepa_comma(first) << var_name;
 	}
 	return variables.str();
 }
@@ -433,6 +435,7 @@ void Variable::propagateError()
 		if (op == '-' && op1->error_bound == 0 && op2->error_bound == 0)
 		{
 			// Translation filter.
+			// Commented by Macro Attene:
 			// This is the same formula used in FPG. I am not sure it is correct.
 			// Why is the value bound 1 and not 2? (1 - (-1)) = 2.
 			value_bound  = 1;
@@ -586,18 +589,11 @@ std::string Predicate::createLambdaParamProtoList(const std::string &mytype)
 		const Variable &v = all_vars[i];
 		// output lambda or beta var
 		if (v.is_lambda || v.is_beta)
-		{
-			variables << std::format("{}{}& {}", (first) ? ("") : (", "), mytype,
-			                         v.name);
-			first = false;
-		}
+			variables << std::format("{}{}& {}", sepa_comma(first), mytype, v.name);
+
 		// ordinary var is just input
 		if (v.isInput() && v.is_used && v.name != "1" && v.name != "2")
-		{
-			variables << std::format("{}{} {}", (first) ? ("") : (", "), mytype,
-			                         v.name);
-			first = false;
-		}
+			variables << std::format("{}{} {}", sepa_comma(first), mytype, v.name);
 	}
 	return variables.str();
 }
@@ -616,9 +612,8 @@ std::string Predicate::createParameterProtoList(const std::string &mytype,
 	for (const LambdaVariable &l : all_lambda_vars)
 	{
 		// Example: , const GenericPoint2/3D & p...
-		variables << std::format("{}{}& {}", (first) ? ("const ") : (", const "),
+		variables << std::format("{}const {}& {}", sepa_comma(first),
 		                         l.get_type_string(), l.point_name);
-		first = false;
 	}
 	// explicit variables =====================================================
 	for (const ExplicitVariable &ev : all_explicit_vars)
@@ -627,17 +622,13 @@ std::string Predicate::createParameterProtoList(const std::string &mytype,
 		{
 			// Example: , NT px, NT py, NT pz...
 			for (const Variable *v : ev.coords)
-			{
-				variables << std::format("{}{} {}", first ? "" : ", ", mytype, v->name);
-				first = false;
-			}
+				variables << std::format("{}{} {}", sepa_comma(first), mytype, v->name);
 		}
 		else
 		{
 			// Example: , const GenericPoint2/3D & p...
-			variables << std::format("{}{}& {}", first ? "const " : ", const ",
+			variables << std::format("{}const {}& {}", sepa_comma(first),
 			                         ev.get_type_string(), ev.point_name);
-			first = false;
 		}
 	}
 	// other variables ========================================================
@@ -646,8 +637,7 @@ std::string Predicate::createParameterProtoList(const std::string &mytype,
 		if (v.isParameter())
 		{
 			// Example: , NT t...
-			variables << std::format("{}{} {}", first ? "" : ", ", mytype, v.name);
-			first = false;
+			variables << std::format("{}{} {}", sepa_comma(first), mytype, v.name);
 		}
 	}
 	return variables.str();
@@ -666,8 +656,7 @@ std::string Predicate::createExpansionProtoList()
 			if (v.isInput() && v.name != "1" && v.name != "2" && v.is_used &&
 			    !v.is_part_of_implicit)
 			{
-				variables << std::format("{}double {}", (first) ? ("") : (","), v.name);
-				first = false;
+				variables << std::format("{}double {}", sepa_comma(first), v.name);
 			}
 		}
 		// output lambda and beta variables
@@ -676,16 +665,13 @@ std::string Predicate::createExpansionProtoList()
 			if (v.is_lambda)
 			{
 				// example: , double** p, int& p_len ...
-				variables << std::format("{}double** {}, int& {}_len",
-				                         (first) ? ("") : (","), v.name, v.name);
-				first = false;
+				variables << std::format("{0}double** {1}, int& {1}_len",
+				                         sepa_comma(first), v.name);
 			}
 			if (v.is_beta)
 			{
 				// example: , double& px
-				variables << std::format("{}double& {}", (first) ? ("") : (","),
-				                         v.name);
-				first = false;
+				variables << std::format("{}double& {}", sepa_comma(first), v.name);
 			}
 		}
 		return variables.str();
@@ -702,23 +688,20 @@ std::string Predicate::createParameterValueList(bool separate_explicit)
 	std::stringstream values;
 	for (const LambdaVariable &l : all_lambda_vars)
 	{
-		values << ((first) ? "" : ", ") << l.point_name;
-		first = false;
+		values << sepa_comma(first) << l.point_name;
 	}
 	for (const ExplicitVariable &v : all_explicit_vars)
 	{
 		if (separate_explicit)
-			values << ((first) ? "" : ", ") << v.get_vars();
+			values << sepa_comma(first) << v.get_vars();
 		else
-			values << ((first) ? "" : ", ") << v.get_methods();
-		first = false;
+			values << sepa_comma(first) << v.get_coords();
 	}
 	for (const Variable &v : all_vars)
 	{
 		if (v.isParameter())
 		{
-			values << ((first) ? "" : ", ") << v.name;
-			first = false;
+			values << sepa_comma(first) << v.name;
 		}
 	}
 	return values.str();
@@ -734,7 +717,7 @@ void Predicate::produceMultiStageCode(const std::string &func_name,
 	bool worth_a_semistatic_filter = true;
 	// ((*(all_vars.end() - 1)).error_degree <= MAX_WORTH_DEGREE);
 
-	std::string comm          = (worth_a_semistatic_filter) ? ("") : ("//");
+	std::string comment       = (worth_a_semistatic_filter) ? ("") : ("//");
 	std::string inline_ph     = "";
 	std::string template_decl = std::format(
 	  "template <typename {}, typename {} {}>", IT, ET,
@@ -757,10 +740,10 @@ void Predicate::produceMultiStageCode(const std::string &func_name,
 	{
 		file << "if constexpr (WithSSFilter) {\n";
 		file << std::format(
-		  "{}ret = {}{}({});\n", comm, filtered_funcname,
+		  "{}ret = {}{}({});\n", comment, filtered_funcname,
 		  all_lambda_vars.empty() ? "" : std::format("<{},{}>", IT, ET),
 		  variables + (is_indirect ? std::string(", arr") : std::string("")));
-		file << comm << "if (is_sign_reliable(ret)) return ret;\n";
+		file << comment << "if (is_sign_reliable(ret)) return ret;\n";
 		file << "}\n";
 	}
 
@@ -922,10 +905,7 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 		first = true;
 		for (const Variable &v : all_vars)
 			if (v.isInput() && v.is_part_of_implicit)
-			{
-				file << ((first) ? (" ") : (", ")) << v.name;
-				first = false;
-			}
+				file << sepa_comma(first) << v.name;
 		file << ", max_var = 0;\n";
 		// -- get variables	and check validity
 		file << "if (\n";
@@ -992,6 +972,8 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 	// -- clear and propagate to find all max var
 	for (Variable &v_ : all_vars)
 		v_.clearError();
+	// NOTE do not remove propagateError below here, it is used to evaluate other
+	// properties of variables except error.
 	// for (Variable &v_ : all_vars)
 	// 	v_.propagateError();
 	outvar->propagateError();
@@ -1020,7 +1002,7 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 	// -- evaluate error
 
 	if (is_indirect)
-	{ // TODO change this block.
+	{
 		std::vector<std::vector<size_t>> arrangements;
 		std::vector<std::string>         arrangements_str;
 		producePointArrangement(arrangements, arrangements_str);
@@ -1037,7 +1019,6 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 			// -- clear error
 			outvar->clearError();
 			// -- set new error to lambda variables
-			// TODO add error definition to beta variables
 			for (size_t j = 0; j < lambda_vars_size; j++)
 			{
 				ErrorDefinition &ed = all_error_defs[arr[j]];
@@ -1111,10 +1092,7 @@ void Predicate::produceIntervalCode(const std::string &funcname,
 		bool first = true;
 		for (const Variable &v : all_vars)
 			if (v.isInput() && v.is_part_of_implicit)
-			{
-				file << ((first) ? (" ") : (", ")) << v.name;
-				first = false;
-			}
+				file << sepa_comma(first) << v.name;
 		file << ";\n";
 		// -- get variables	and check validity
 		file << "if (\n";
@@ -1189,6 +1167,7 @@ void Predicate::produceIntervalCode(const std::string &funcname,
 	file << "}\n\n";
 }
 
+// TODO: use alloca to allocate memory on stack, avoiding memory on heap.
 void Predicate::produceExpansionCode(const std::string &funcname,
                                      std::ofstream     &file)
 {
@@ -1226,11 +1205,11 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 	}
 	else
 	{
-		for (const Variable &_v : all_vars)
+		for (const Variable &v : all_vars)
 		{
-			if (_v.isInput() && _v.is_part_of_implicit)
+			if (v.isInput() && v.is_part_of_implicit)
 			{
-				if (_v.is_lambda || _v.is_lambda_d)
+				if (v.is_lambda || v.is_lambda_d)
 					fixed_stacksize += 16; // two pointers
 				else                     //_v.is_beta
 					fixed_stacksize += 8;  // one reference
@@ -1341,7 +1320,7 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		first = true;
 		for (const LambdaVariable &l : all_lambda_vars)
 		{
-			for (Variable *_v : l.output_pars)
+			for (const Variable *_v : l.output_pars)
 			{
 				if (_v->is_lambda_d)
 				{
@@ -1355,17 +1334,17 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 	}
 
 	// seek the first variable that is not input.
-	size_t i;
-	for (i = 2; i < all_vars.size(); i++)
-		if (!all_vars[i].isInput())
+	size_t first_op;
+	for (first_op = 2; first_op < all_vars.size(); first_op++)
+		if (!all_vars[first_op].isInput())
 			break;
 
 	// Function body - operations ==============================================
 
 	file << "expansionObject o;\n";
 
-	Variable *v        = nullptr;
-	size_t    first_op = i;
+	Variable *v = nullptr;
+	size_t    i;
 
 	for (i = 2; i < all_vars.size(); i++)
 	{
@@ -1856,9 +1835,9 @@ void Predicate::printErrorBounds()
 	{
 		Variable &v = all_vars[i];
 		std::cout << v.name << " " << v.error_degree << " " << v.size << " ";
-		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10)
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
 		          << v.error_bound << " ";
-		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10)
+		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
 		          << v.value_bound << "\n";
 	}
 	std::cout << "NAME ERR_DEGREE EXP_SIZE ERR_BOUND VAL_BOUND\n";

@@ -1,28 +1,22 @@
 #pragma once
 
+#include <cfloat>
+#include <cmath>
+#include <cstdint>
+
 #include <algorithm>
-#include <array>
 #include <deque>
 #include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <numeric>
 #include <sstream>
-#include <stdint.h>
 #include <string>
 #include <vector>
 
-// #define USE_FLOATS
-
-#ifdef USE_FLOATS
-typedef float   fpnumber;
-constexpr float FPN_EPSILON = FLT_EPSILON;
-#else
 typedef double   fpnumber;
 constexpr double FPN_EPSILON = DBL_EPSILON;
-#endif
 
 // In bytes, includes all: input parameters, doubles, ints, ...
 #define MAX_STACK_SIZE 16384
@@ -34,6 +28,23 @@ constexpr double FPN_EPSILON = DBL_EPSILON;
 
 // If defined, exact functions check for underflows and try to fix
 #define UNDERFLOW_GUARDING
+
+// floating-point number type in generated code
+extern std::string FT;
+// interval number type (IT) in generated code
+extern std::string IT;
+// exact number type (ET) in generated code
+extern std::string ET;
+// boolean type in generated code
+extern std::string Boolean;
+// sign type in generated code
+extern std::string Sign;
+// API symbol in generated code
+extern std::string API;
+// point arrangement used by filter in generated code
+extern std::string PntArr;
+// Exit command in generated code
+extern std::string Exit;
 
 /// @brief print help information and exit.
 void help_info();
@@ -55,14 +66,24 @@ class Variable
 public:
 	// Properties ###############################################################
 
-	std::string name;         // Variable name
-	bool is_part_of_explicit; // TRUE if this var is the part of an explicit point
-	bool is_lambda_out; // TRUE if this var is the output of a lambda calculation
-	bool is_used;       // TRUE if this var is the operand of another var
+	std::string name; // Variable name
+
+	// TRUE if this var is the part of an explicit point
+	// example: this var is part of explicitPoint(p:px,py,pz)
+	bool is_part_of_explicit;
+
+	// TRUE if this var is the part of an implicit point
+	// example: this var is part of implicitPoint(p:lx,ly,lz,ld)
+	bool is_part_of_implicit;
+
+	bool is_lambda;   // TRUE if name starts with "lambda"
+	bool is_lambda_d; // TRUE if name starts with "lambda_d"
+
+	bool is_used; // TRUE if this var is the operand of another var
 
 	// Operands and operator ####################################################
 
-	Variable *op1, *op2; // Operands (indexes in all_vars. -1 if input val)
+	Variable *op1, *op2; // Operands (pointers to all_vars. nullptr if input val)
 	char      op;        // Operation (=, +, -, *)
 
 	// Error ####################################################################
@@ -78,10 +99,11 @@ public:
 	std::string actual_length; // Variable length (expansion actual length)
 
 public:
+	// Auxiliary type distinguisher
 	struct ExplicitT
 	{
 	};
-	struct LambdaT
+	struct ImplicitT
 	{
 	};
 
@@ -92,8 +114,8 @@ public: /* Constructors ******************************************************/
 	// Plain explicit declaration
 	Variable(std::string &s, ExplicitT);
 
-	// Plain lambda declaration
-	Variable(std::string &s, LambdaT);
+	// Plain implicit declaration
+	Variable(std::string &s, ImplicitT);
 
 	// Plain assignment
 	Variable(std::string &s, Variable *o1);
@@ -114,11 +136,14 @@ public: /* Checks ************************************************************/
 
 	bool isParameter() const
 	{
-		return isInput() && name != "1" && name != "2" && !is_lambda_out &&
+		return isInput() && name != "1" && name != "2" && !is_part_of_implicit &&
 		       !is_part_of_explicit;
 	}
 };
 
+/**
+ * @brief LambdaVariable comes from declaration of implicit point.
+ */
 class LambdaVariable
 {
 public:
@@ -131,19 +156,20 @@ public:
 	// dimension of the point
 	int                     dim;
 
-	std::string IT = "IT", ET = "ET";
-
 public:
 	LambdaVariable(std::string &n);
 
-	std::string get_type_string();
+	std::string get_type_string() const;
 
-	std::string print_filtered();
-	std::string print_interval();
-	std::string print_expansion();
-	std::string print_exact();
+	std::string print_filtered() const;
+	std::string print_interval() const;
+	std::string print_expansion() const;
+	std::string print_exact() const;
 };
 
+/**
+ * @brief ExplicitVariable comes from declaration of explicit point.
+ */
 class ExplicitVariable
 {
 public:
@@ -156,15 +182,13 @@ public:
 	// dimension of the point
 	int                     dim;
 
-	std::string IT = "IT", ET = "ET";
-
 public:
 	ExplicitVariable(std::string &n);
 
-	std::string get_type_string();
+	std::string get_type_string() const;
 
-	std::string get_vars();
-	std::string get_methods();
+	std::string get_vars() const;
+	std::string get_coords() const;
 };
 
 class ErrorDefinition
@@ -175,7 +199,7 @@ public:
 	// Short name of the implicit point type (e.g., S, L, T)
 	std::string short_name;
 	// dimension
-	int         dim;
+	size_t      dim;
 	// error definitions
 	struct ErrorDef
 	{
@@ -219,15 +243,6 @@ public:
 	bool is_indirect; // True if function is an indirect predicate
 	bool is_lambda;   // True if function defines a lambda
 
-	std::string FT      = "double";
-	std::string IT      = "IT";
-	std::string ET      = "ET";
-	std::string Boolean = "bool";
-	std::string Sign    = "Sign";
-	std::string API     = "OpenMeshCraft_API";
-	std::string PntArr  = "PntArr";
-	std::string Exit    = "OMC_EXIT(\"Unsopported points arrangement.\")";
-
 public:
 	Predicate(bool _append, bool _output_filtered, bool _output_interval,
 	          bool _output_exact, bool _output_expansion);
@@ -245,7 +260,7 @@ protected: /* File and parse **************************************************/
 
 	void parseExplicitVar(std::string &line);
 
-	void parseLambdaVar(std::string &line);
+	void parseImplicitVar(std::string &line);
 
 	void parseErrorDefinition(std::string &line);
 

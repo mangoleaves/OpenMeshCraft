@@ -1,23 +1,22 @@
 #pragma once
 
 #include <cfloat>
+#include <cmath>
+#include <cstdint>
 
+#include <algorithm>
 #include <deque>
+#include <format>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <map>
-#include <stdint.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
-// #define USE_FLOATS
-
-#ifdef USE_FLOATS
-typedef float   fpnumber;
-constexpr float FPN_EPSILON = FLT_EPSILON;
-#else
 typedef double   fpnumber;
 constexpr double FPN_EPSILON = DBL_EPSILON;
-#endif
 
 // In bytes, includes all: input parameters, doubles, ints, ...
 #define MAX_STACK_SIZE 16384
@@ -29,6 +28,23 @@ constexpr double FPN_EPSILON = DBL_EPSILON;
 
 // If defined, exact functions check for underflows and try to fix
 #define UNDERFLOW_GUARDING
+
+// floating-point number type in generated code
+extern std::string FT;
+// interval number type (IT) in generated code
+extern std::string IT;
+// exact number type (ET) in generated code
+extern std::string ET;
+// boolean type in generated code
+extern std::string Boolean;
+// sign type in generated code
+extern std::string Sign;
+// API symbol in generated code
+extern std::string API;
+// point arrangement used by filter in generated code
+extern std::string PntArr;
+// Exit command in generated code
+extern std::string Exit;
 
 /// @brief print help information and exit.
 void help_info();
@@ -68,7 +84,7 @@ public:
 
 	// Operands and operator ####################################################
 
-	Variable *op1, *op2; // Operands (indexes in all_vars. -1 if input val)
+	Variable *op1, *op2; // Operands (pointers to all_vars. nullptr if input val)
 	char      op;        // Operation (=, +, -, *)
 
 	// Error ####################################################################
@@ -84,6 +100,7 @@ public:
 	std::string actual_length; // Variable length (expansion actual length)
 
 public:
+	// Auxiliary type distinguisher
 	struct ExplicitT
 	{
 	};
@@ -98,7 +115,7 @@ public: /* Constructors ******************************************************/
 	// Plain explicit declaration
 	Variable(std::string &s, ExplicitT);
 
-	// Plain lambda declaration
+	// Plain implicit declaration
 	Variable(std::string &s, ImplicitT);
 
 	// Plain assignment
@@ -140,8 +157,6 @@ public:
 	// dimension of the point
 	int                     dim;
 
-	std::string IT = "IT", ET = "ET";
-
 public:
 	LambdaVariable(std::string &n);
 
@@ -168,15 +183,13 @@ public:
 	// dimension of the point
 	int                     dim;
 
-	std::string IT = "IT", ET = "ET";
-
 public:
 	ExplicitVariable(std::string &n);
 
 	std::string get_type_string() const;
 
 	std::string get_vars() const;
-	std::string get_methods() const;
+	std::string get_coords() const;
 };
 
 class ErrorDefinition
@@ -230,15 +243,6 @@ public:
 
 	bool is_indirect; // True if function is an indirect predicate
 	bool is_lambda;   // True if function defines a lambda
-
-	std::string FT      = "double";
-	std::string IT      = "IT";
-	std::string ET      = "ET";
-	std::string Boolean = "bool";
-	std::string Sign    = "Sign";
-	std::string API     = "OpenMeshCraft_API";
-	std::string PntArr  = "PntArr";
-	std::string Exit    = "OMC_EXIT(\"Unsopported points arrangement.\")";
 
 public:
 	Predicate(bool _append, bool _output_filtered, bool _output_interval,
