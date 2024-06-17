@@ -236,10 +236,10 @@ void ErrorDefinition::parseOneErrorDef(ErrorDef &e, std::string &allvarstuff)
 {
 	std::vector<std::string> tokens;
 	tokenize(allvarstuff, tokens, ';');
-	e.error_degree = atoi(tokens[1].c_str());
-	e.size         = atoi(tokens[2].c_str());
-	e.error_bound  = atof(tokens[3].c_str());
-	e.value_bound  = atof(tokens[4].c_str());
+	e.error_degree   = atoi(tokens[1].c_str());
+	e.size           = atoi(tokens[2].c_str());
+	e.fp_error_bound = atof(tokens[3].c_str());
+	e.fp_value_bound = atof(tokens[4].c_str());
 }
 
 // Plain declaration
@@ -343,31 +343,31 @@ void Variable::clearError()
 		error_evaluated = true;
 		size            = 1;
 		error_degree    = 1;
-		value_bound     = 1;
-		error_bound     = 0;
+		fp_value_bound  = 1;
+		fp_error_bound  = 0;
 	}
 	else if (is_part_of_implicit)
 	{
 		error_evaluated = true;
 		if (is_lambda)
 		{
-			size         = MAX_STATIC_SIZE;
-			error_degree = 1;
-			value_bound  = 1;
-			error_bound  = 1;
+			size           = MAX_STATIC_SIZE;
+			error_degree   = 1;
+			fp_value_bound = 1;
+			fp_error_bound = 1;
 		}
 		else if (is_beta)
 		{
-			size         = 1;
-			error_degree = 1;
-			value_bound  = 1;
-			error_bound  = 0;
+			size           = 1;
+			error_degree   = 1;
+			fp_value_bound = 1;
+			fp_error_bound = 0;
 		}
 		else
 			error("neither lambda nor beta", 0);
-		// default values (error_degree, value_bound, error_bound) for lambda/beta
-		// is not right, just for some calculation (e.g., find max_var, evaluate
-		// size in expansion).
+		// default values (error_degree, fp_value_bound, fp_error_bound) for
+		// lambda/beta is not right, just for some calculation (e.g., find max_var,
+		// evaluate size in expansion).
 	}
 	else if (op1 == nullptr)
 	{
@@ -375,10 +375,10 @@ void Variable::clearError()
 		error_evaluated = true;
 		size            = 1;
 		error_degree    = 1;
-		value_bound     = 1;
-		error_bound     = 0;
+		fp_value_bound  = 1;
+		fp_error_bound  = 0;
 		if (name == "2")
-			value_bound = 2;
+			fp_value_bound = 2;
 	}
 	else
 	{
@@ -386,8 +386,8 @@ void Variable::clearError()
 		error_evaluated = false;
 		size            = 1;
 		error_degree    = 1;
-		value_bound     = 1;
-		error_bound     = 0;
+		fp_value_bound  = 1;
+		fp_error_bound  = 0;
 	}
 
 	if (op1 != nullptr)
@@ -399,10 +399,10 @@ void Variable::clearError()
 void Variable::setError(int _error_degree, int _size, fpnumber _error_bound,
                         fpnumber _value_bound)
 {
-	error_degree = _error_degree;
-	size         = _size;
-	error_bound  = _error_bound;
-	value_bound  = _value_bound;
+	error_degree   = _error_degree;
+	size           = _size;
+	fp_error_bound = _error_bound;
+	fp_value_bound = _value_bound;
 
 	error_evaluated = true;
 }
@@ -422,39 +422,39 @@ void Variable::propagateError()
 	if (op == '=')
 	{
 		// plain assignment, copy evaluated error
-		size         = op1->size;
-		value_bound  = op1->value_bound;
-		error_bound  = op1->error_bound;
-		error_degree = op1->error_degree;
-		if (op1->error_bound == 0)
+		size           = op1->size;
+		fp_value_bound = op1->fp_value_bound;
+		fp_error_bound = op1->fp_error_bound;
+		error_degree   = op1->error_degree;
+		if (op1->fp_error_bound == 0)
 			op1->is_a_max = true;
 	}
 	else if (op == '+' || op == '-')
 	{
 		size = op1->size + op2->size;
-		if (op == '-' && op1->error_bound == 0 && op2->error_bound == 0)
+		if (op == '-' && op1->fp_error_bound == 0 && op2->fp_error_bound == 0)
 		{
 			// Translation filter.
 			// Commented by Macro Attene:
 			// This is the same formula used in FPG. I am not sure it is correct.
 			// Why is the value bound 1 and not 2? (1 - (-1)) = 2.
-			value_bound  = 1;
-			error_bound  = value_bound * (0.5 * FPN_EPSILON);
-			error_degree = 1;
-			is_a_max     = true;
+			fp_value_bound = 1;
+			fp_error_bound = fp_value_bound * (0.5 * FPN_EPSILON);
+			error_degree   = 1;
+			is_a_max       = true;
 		}
 		else
 		{
 			// Regular sum or subtraction
-			value_bound = op1->value_bound + op2->value_bound;
-			fpnumber u  = 0.5 * ulp(value_bound);
-			value_bound += u;
-			error_bound  = op1->error_bound + op2->error_bound + u;
-			error_degree = std::max(op1->error_degree, op2->error_degree);
+			fp_value_bound = op1->fp_value_bound + op2->fp_value_bound;
+			fpnumber u     = 0.5 * ulp(fp_value_bound);
+			fp_value_bound += u;
+			fp_error_bound = op1->fp_error_bound + op2->fp_error_bound + u;
+			error_degree   = std::max(op1->error_degree, op2->error_degree);
 
-			if (op1->error_bound == 0)
+			if (op1->fp_error_bound == 0)
 				op1->is_a_max = true;
-			if (op2->error_bound == 0)
+			if (op2->fp_error_bound == 0)
 				op2->is_a_max = true;
 		}
 	}
@@ -462,32 +462,32 @@ void Variable::propagateError()
 	{
 		if (op1->name == std::string("2"))
 		{
-			size         = op2->size;
-			value_bound  = op1->value_bound * op2->value_bound;
-			error_bound  = op2->error_bound;
-			error_degree = op2->error_degree;
+			size           = op2->size;
+			fp_value_bound = op1->fp_value_bound * op2->fp_value_bound;
+			fp_error_bound = op2->fp_error_bound;
+			error_degree   = op2->error_degree;
 		}
 		else
 		{
-			size        = 2 * op1->size * op2->size;
-			value_bound = op1->value_bound * op2->value_bound;
-			fpnumber u  = 0.5 * ulp(value_bound);
-			value_bound += u;
+			size           = 2 * op1->size * op2->size;
+			fp_value_bound = op1->fp_value_bound * op2->fp_value_bound;
+			fpnumber u     = 0.5 * ulp(fp_value_bound);
+			fp_value_bound += u;
 			// The formula herebelow is slightly tighter than FPG's.
 			// Original as in FPG is commented below.
-			error_bound = op1->error_bound * op2->error_bound +
-			              op1->error_bound * (op2->value_bound - op2->error_bound) +
-			              op2->error_bound * (op1->value_bound - op1->error_bound) +
-			              u;
-			// error_bound = op1->error_bound * op2->error_bound +
-			//               op1->error_bound * op2->value_bound +
-			//               op2->error_bound *op1->value_bound + u;
+			fp_error_bound =
+			  op1->fp_error_bound * op2->fp_error_bound +
+			  op1->fp_error_bound * (op2->fp_value_bound - op2->fp_error_bound) +
+			  op2->fp_error_bound * (op1->fp_value_bound - op1->fp_error_bound) + u;
+			// fp_error_bound = op1->fp_error_bound * op2->fp_error_bound +
+			//               op1->fp_error_bound * op2->fp_value_bound +
+			//               op2->fp_error_bound *op1->fp_value_bound + u;
 			error_degree = op1->error_degree + op2->error_degree;
 		}
 
-		if (op1->error_bound == 0)
+		if (op1->fp_error_bound == 0)
 			op1->is_a_max = true;
-		if (op2->error_bound == 0)
+		if (op2->fp_error_bound == 0)
 			op2->is_a_max = true;
 	}
 	else
@@ -1028,15 +1028,15 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 				for (size_t k = 0; k < ed.dim * 2 + 1; k++)
 				{
 					lv.output_pars[k]->setError(ed.pars[k].error_degree, ed.pars[k].size,
-					                            ed.pars[k].error_bound,
-					                            ed.pars[k].value_bound);
+					                            ed.pars[k].fp_error_bound,
+					                            ed.pars[k].fp_value_bound);
 				}
 			}
 			// -- propagate error
 			outvar->propagateError();
 
 			file << std::format("case {}::{}:{{\n", PntArr, arr_str);
-			produceSemiStaticFilter(outvar->error_bound, outvar->error_degree,
+			produceSemiStaticFilter(outvar->fp_error_bound, outvar->error_degree,
 			                        eps_name, file);
 			file << "}\nbreak;\n";
 		}
@@ -1047,8 +1047,8 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 		outvar->clearError();
 		outvar->propagateError();
 		file << std::format("double {} = max_var;\n", eps_name);
-		produceSemiStaticFilter(outvar->error_bound, outvar->error_degree, eps_name,
-		                        file);
+		produceSemiStaticFilter(outvar->fp_error_bound, outvar->error_degree,
+		                        eps_name, file);
 	}
 
 	// Function body - compare with filter and return ==========================
@@ -1836,9 +1836,9 @@ void Predicate::printErrorBounds()
 		Variable &v = all_vars[i];
 		std::cout << v.name << " " << v.error_degree << " " << v.size << " ";
 		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
-		          << v.error_bound << " ";
+		          << v.fp_error_bound << " ";
 		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
-		          << v.value_bound << "\n";
+		          << v.fp_value_bound << "\n";
 	}
 	std::cout << "NAME ERR_DEGREE EXP_SIZE ERR_BOUND VAL_BOUND\n";
 }
@@ -2036,10 +2036,10 @@ void Predicate::parseErrorDefinition(std::string &line)
 	for (size_t i = 0; i < ed.dim; i++)
 	{
 		ed.pars.emplace_back();
-		ed.pars.back().error_degree = 1;
-		ed.pars.back().size         = 1;
-		ed.pars.back().error_bound  = 0;
-		ed.pars.back().value_bound  = 1;
+		ed.pars.back().error_degree   = 1;
+		ed.pars.back().size           = 1;
+		ed.pars.back().fp_error_bound = 0;
+		ed.pars.back().fp_value_bound = 1;
 	}
 
 	if (ed.dim == 2)

@@ -91,10 +91,10 @@ public:
 	bool error_evaluated; // TRUE if error is evaluated in error propagation
 	bool is_a_max;        // TRUE if magnitude is relevant for error bound
 
-	int      size;         // Variable size (expansion max length)
-	int      error_degree; // Forward error analysis: degree
-	fpnumber error_bound;  // Forward error analysis: bound on error
-	fpnumber value_bound;  // Forward error analysis: bound on magnitude
+	int      size;           // Variable size (expansion max length)
+	int      error_degree;   // Forward error analysis: degree
+	fpnumber fp_error_bound; // Forward error analysis: bound on error
+	fpnumber fp_value_bound; // Forward error analysis: bound on magnitude
 
 	std::string actual_length; // Variable length (expansion actual length)
 
@@ -203,10 +203,10 @@ public:
 	// error definitions
 	struct ErrorDef
 	{
-		int      size;         // Variable size (expansion max length)
-		int      error_degree; // Forward error analysis: degree
-		fpnumber value_bound;  // Forward error analysis: bound on magnitude
-		fpnumber error_bound;  // Forward error analysis: bound on error
+		int      size;           // Variable size (expansion max length)
+		int      error_degree;   // Forward error analysis: degree
+		fpnumber fp_value_bound; // Forward error analysis: bound on magnitude
+		fpnumber fp_error_bound; // Forward error analysis: bound on error
 	};
 	std::vector<ErrorDef> pars; // [x,y,z,d] in 3D, or [x,y,d] in 2D
 
