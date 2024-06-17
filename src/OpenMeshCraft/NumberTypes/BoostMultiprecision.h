@@ -8,6 +8,12 @@
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
 
 #if defined(_WIN32) && defined(__GNUC__)
+  // When I compile on windows with gcc14, I get errors about duplicate
+  // definitions from STL and Boost. Adding below macro succeeds to bypass the
+  // problem. But the macro should probably be removed if no such error occurs
+  // in the future.
+  // In addtion, such problem does not occur when compiling on windows with MSVC
+  // or on linux-OS with gcc. Strange, right?
 	#define BOOST_CSTDFLOAT_NO_LIBQUADMATH_SUPPORT
 #endif
 #include "boost/multiprecision/gmp.hpp"

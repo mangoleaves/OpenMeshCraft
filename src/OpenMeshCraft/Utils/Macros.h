@@ -67,6 +67,20 @@
 	#endif
 #endif
 
+#if !defined(OMC_AVX2) && defined(OMC_ENABLE_AVX2)
+	#if defined(__AVX2__)
+		#define OMC_AVX2
+	#endif
+#endif
+
+#if !defined(OMC_FMA) && defined(OMC_ENABLE_FMA)
+	#if defined(_MSC_VER) && defined(__AVX2__)
+		#define OMC_FMA
+	#elif defined(__FMA__)	// GCC or Clang
+		#define OMC_FMA
+	#endif
+#endif
+
 #pragma endregion Macros_about_vectorization
 
 /*********************************************************/

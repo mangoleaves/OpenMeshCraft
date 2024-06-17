@@ -1444,10 +1444,10 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		else if (s1 == 1 && s2 == 1)
 		{
 			if (v->op == '+')
-				file << "o.two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
+				file << "o.Two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";
 			else if (v->op == '-')
-				file << "o.two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
+				file << "o.Two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";
 			else if (v->op == '*' && v->op1 != v->op2)
 				file << "o.Two_Prod(" << o1 << ", " << o2 << ", " << rlb << v->name
@@ -1473,8 +1473,8 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 				     << ");\n";
 		}
 		// 2,2 +-*^
-		else if (s1 == 2 && s2 == 2 && v->op != '*') // Add Two_Square
-		{ // TODO why not Two_Two_Prod? why add Two_Square?
+		else if (s1 == 2 && s2 == 2 && v->op != '*')
+		{ // Two_Two_Prod creates length of 8 expansion, which is too long.
 			if (v->op == '+')
 				file << "o.Two_Two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";

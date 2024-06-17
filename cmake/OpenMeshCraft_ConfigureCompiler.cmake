@@ -1,5 +1,20 @@
 # Compiler-specific options
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # -fno-unsafe-math-optimizations
+  # ############################################################################
+  # Allow optimizations for floating-point arithmetic that (a) assume that
+  # arguments and results are valid and (b) may violate IEEE or ANSI standards.
+  # When used at link time, it may include libraries or startup files that
+  # change the default FPU control word or other similar optimizations.
+  # This option is not turned on by any -O option besides -Ofast since it can
+  # result in incorrect output for programs that depend on an exact implementation
+  # of IEEE or ISO rules/specifications for math functions. It may, however,
+  # yield faster code for programs that do not require the guarantees of these
+  # specifications. Enables -fno-signed-zeros, -fno-trapping-math, -fassociative-math
+  # and -freciprocal-math.
+  # The default is -fno-unsafe-math-optimizations.
+  target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -fno-unsafe-math-optimizations)
+
   # -frounding-math
   # ############################################################################
   # "Disable transformations and optimizations that assume default floating
@@ -36,7 +51,17 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
            -Werror)
 
   # handle vectorization
-  target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -mavx -msse2)
+  if (OMC_CMAKE_ENABLE_AVX2)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -mavx2)
+  elseif(OMC_CMAKE_ENABLE_AVX)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -mavx)
+  elseif(OMC_CMAKE_ENABLE_SSE2)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -msse2)
+  endif()
+
+  if (OMC_CMAKE_ENABLE_FMA)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -mfma)
+  endif()
 
   # reserve enough stack size
   target_compile_options(${OMC_CONFIG_TARGET} PUBLIC -Wl,-z,stacksize=8421376)
@@ -65,7 +90,13 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /W4 /WX)
 
   # handle vectorization
-  target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /arch:AVX)
+  if (OMC_CMAKE_ENABLE_AVX2)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /arch:AVX2)
+  elseif(OMC_CMAKE_ENABLE_AVX)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /arch:AVX)
+  elseif(OMC_CMAKE_ENABLE_SSE2)
+    target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /arch:SSE2)
+  endif()
 
   # enable big obj file
   target_compile_options(${OMC_CONFIG_TARGET} PUBLIC /bigobj)

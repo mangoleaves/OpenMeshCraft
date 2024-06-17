@@ -1340,10 +1340,10 @@ void Predicate::produceExpansionCode(const std::string &funcname,
 		else if (s1 == 1 && s2 == 1)
 		{
 			if (v->op == '+')
-				file << "o.two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
+				file << "o.Two_Sum(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";
 			else if (v->op == '-')
-				file << "o.two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
+				file << "o.Two_Diff(" << o1 << ", " << o2 << ", " << rlb << v->name
 				     << ");\n";
 			else if (v->op == '*' && v->op1 != v->op2)
 				file << "o.Two_Prod(" << o1 << ", " << o2 << ", " << rlb << v->name

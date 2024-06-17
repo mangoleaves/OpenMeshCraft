@@ -16,10 +16,11 @@
 
 namespace OMC {
 
-
 /**
  * @brief
- *
+ * @tparam HasApprox Set to true to enable an approximate floating-point number.
+ * @tparam Protected True if rounding mode of interval number is protected
+ * outside LazyNumber.
  * @tparam ThreadSafe When ThreadSafe is true, we guarantee that writing /
  * updating is thread-safe. Otherwise we don't guarantee thread-safe and have
  * higher efficiency. So, disable ThreadSafe when there is definitely no data
@@ -261,9 +262,7 @@ public:
 
 	virtual ~LazyConstant() noexcept {}
 
-	virtual void update_exact() const
-	{ /*do nothing*/
-	}
+	virtual void update_exact() const { /*do nothing*/ }
 };
 
 template <template <typename> class UnaryOp, typename HasApprox,
@@ -367,6 +366,7 @@ private:
 
 /**
  * @brief Lazy evaluated exact number type.
+ * @tparam HasApprox Set to true to enable an approximate floating-point number.
  * @tparam Protected Protect the round mode when doing interval number
  * computation.
  * @tparam ThreadSafe Guarantee evaluating the number is thread-safe, otherwise
@@ -402,9 +402,9 @@ public:
 public: /* Constructors ******************************************************/
 	LazyNumber() = default;
 
-	template <typename T, typename = std::enable_if_t<
-	                        (std::is_arithmetic_v<T> ||
-	                         std::is_enum_v<T>)&&!std::is_same_v<T, ET>>>
+	template <typename T, typename = std::enable_if_t<(std::is_arithmetic_v<T> ||
+	                                                   std::is_enum_v<T>) &&
+	                                                  !std::is_same_v<T, ET>>>
 	LazyNumber(T _n)
 	  : expr(std::make_shared<LazyConst<T>>(_n))
 	{
@@ -703,6 +703,5 @@ inline double to_double(const LazyNumber<HasApprox, Protected, ThreadSafe> &n)
 {
 	return OMC::to_double(n.exact());
 }
-
 
 } // namespace OMC

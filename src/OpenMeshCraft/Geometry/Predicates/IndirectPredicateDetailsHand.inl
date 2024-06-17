@@ -729,17 +729,17 @@ inline int maxComponentInTriangleNormal_expansion(double ov1x, double ov1y,
 {
 	expansionObject o;
 	double          v3x[2];
-	o.two_Diff(ov3x, ov2x, v3x);
+	o.Two_Diff(ov3x, ov2x, v3x);
 	double v3y[2];
-	o.two_Diff(ov3y, ov2y, v3y);
+	o.Two_Diff(ov3y, ov2y, v3y);
 	double v3z[2];
-	o.two_Diff(ov3z, ov2z, v3z);
+	o.Two_Diff(ov3z, ov2z, v3z);
 	double v2x[2];
-	o.two_Diff(ov2x, ov1x, v2x);
+	o.Two_Diff(ov2x, ov1x, v2x);
 	double v2y[2];
-	o.two_Diff(ov2y, ov1y, v2y);
+	o.Two_Diff(ov2y, ov1y, v2y);
 	double v2z[2];
-	o.two_Diff(ov2z, ov1z, v2z);
+	o.Two_Diff(ov2z, ov1z, v2z);
 	double nvx1[8];
 	o.Two_Two_Prod(v2y, v3z, nvx1);
 	double nvx2[8];
@@ -1470,7 +1470,7 @@ int longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
 		expansionObject o;
 		// x
 		double          t0[2];
-		o.two_Diff(b1x, bx, t0);
+		o.Two_Diff(b1x, bx, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double k_p[128], *k = k_p;
@@ -1481,7 +1481,7 @@ int longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
 		if (t1_p != t1)
 			FreeDoubles(t1);
 		// y
-		o.two_Diff(b1y, by, t0);
+		o.Two_Diff(b1y, by, t0);
 		t1      = t1_p;
 		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		k       = k_p;
@@ -1492,7 +1492,7 @@ int longestAxis_IE_expansion(const GenericPoint3T<IT, ET> &p1, double bx,
 		if (t1_p != t1)
 			FreeDoubles(t1);
 		// z
-		o.two_Diff(b1z, bz, t0);
+		o.Two_Diff(b1z, bz, t0);
 		t1      = t1_p;
 		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		k       = k_p;
@@ -1788,7 +1788,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		expansionObject o;
 		// x
 		double          t0[2];
-		o.two_Diff(b1x, b2x, t0);
+		o.Two_Diff(b1x, b2x, t0);
 		double t1_p[128], *t1 = t1_p;
 		int    t1_len = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		double t2_p[128], *t2 = t2_p;
@@ -1817,7 +1817,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		if (t1_p != t1)
 			FreeDoubles(t1);
 		// y
-		o.two_Diff(b1y, b2y, t0);
+		o.Two_Diff(b1y, b2y, t0);
 		t1      = t1_p;
 		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		t2      = t2_p;
@@ -1844,7 +1844,7 @@ int longestAxis_II_expansion(const GenericPoint3T<IT, ET> &p1,
 		if (t1_p != t1)
 			FreeDoubles(t1);
 		// z
-		o.two_Diff(b1z, b2z, t0);
+		o.Two_Diff(b1z, b2z, t0);
 		t1      = t1_p;
 		t1_len  = o.Gen_Product_With_PreAlloc(2, t0, d1_len, d1, &t1, 128);
 		t2      = t2_p;
@@ -2879,13 +2879,13 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1p3x[2];
-		o.two_Diff(b1x, p3x, b1p3x);
+		o.Two_Diff(b1x, p3x, b1p3x);
 		double b1p3y[2];
-		o.two_Diff(b1y, p3y, b1p3y);
+		o.Two_Diff(b1y, p3y, b1p3y);
 		double b2p3x[2];
-		o.two_Diff(b2x, p3x, b2p3x);
+		o.Two_Diff(b2x, p3x, b2p3x);
 		double b2p3y[2];
-		o.two_Diff(b2y, p3y, b2p3y);
+		o.Two_Diff(b2y, p3y, b2p3y);
 		double d1_b1p3x_p[64], *d1_b1p3x = d1_b1p3x_p;
 		int    d1_b1p3x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3x, &d1_b1p3x, 64);
@@ -3032,13 +3032,13 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1b3x[2];
-		o.two_Diff(b1x, b3x, b1b3x);
+		o.Two_Diff(b1x, b3x, b1b3x);
 		double b1b3y[2];
-		o.two_Diff(b1y, b3y, b1b3y);
+		o.Two_Diff(b1y, b3y, b1b3y);
 		double b2b3x[2];
-		o.two_Diff(b2x, b3x, b2b3x);
+		o.Two_Diff(b2x, b3x, b2b3x);
 		double b2b3y[2];
-		o.two_Diff(b2y, b3y, b2b3y);
+		o.Two_Diff(b2y, b3y, b2b3y);
 		double d1_b1b3x_p[32], *d1_b1b3x = d1_b1b3x_p;
 		int    d1_b1b3x_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3x, &d1_b1b3x, 32);
@@ -3277,13 +3277,13 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1p3y[2];
-		o.two_Diff(b1y, p3y, b1p3y);
+		o.Two_Diff(b1y, p3y, b1p3y);
 		double b1p3z[2];
-		o.two_Diff(b1z, p3z, b1p3z);
+		o.Two_Diff(b1z, p3z, b1p3z);
 		double b2p3y[2];
-		o.two_Diff(b2y, p3y, b2p3y);
+		o.Two_Diff(b2y, p3y, b2p3y);
 		double b2p3z[2];
-		o.two_Diff(b2z, p3z, b2p3z);
+		o.Two_Diff(b2z, p3z, b2p3z);
 		double d1_b1p3y_p[64], *d1_b1p3y = d1_b1p3y_p;
 		int    d1_b1p3y_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3y, &d1_b1p3y, 64);
@@ -3429,13 +3429,13 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1b3y[2];
-		o.two_Diff(b1y, b3y, b1b3y);
+		o.Two_Diff(b1y, b3y, b1b3y);
 		double b1b3z[2];
-		o.two_Diff(b1z, b3z, b1b3z);
+		o.Two_Diff(b1z, b3z, b1b3z);
 		double b2b3y[2];
-		o.two_Diff(b2y, b3y, b2b3y);
+		o.Two_Diff(b2y, b3y, b2b3y);
 		double b2b3z[2];
-		o.two_Diff(b2z, b3z, b2b3z);
+		o.Two_Diff(b2z, b3z, b2b3z);
 		double d1_b1b3y_p[32], *d1_b1b3y = d1_b1b3y_p;
 		int    d1_b1b3y_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3y, &d1_b1b3y, 32);
@@ -3674,13 +3674,13 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1p3z[2];
-		o.two_Diff(b1z, p3z, b1p3z);
+		o.Two_Diff(b1z, p3z, b1p3z);
 		double b1p3x[2];
-		o.two_Diff(b1x, p3x, b1p3x);
+		o.Two_Diff(b1x, p3x, b1p3x);
 		double b2p3z[2];
-		o.two_Diff(b2z, p3z, b2p3z);
+		o.Two_Diff(b2z, p3z, b2p3z);
 		double b2p3x[2];
-		o.two_Diff(b2x, p3x, b2p3x);
+		o.Two_Diff(b2x, p3x, b2p3x);
 		double d1_b1p3z_p[64], *d1_b1p3z = d1_b1p3z_p;
 		int    d1_b1p3z_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1p3z, &d1_b1p3z, 64);
@@ -3827,13 +3827,13 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 	{
 		expansionObject o;
 		double          b1b3z[2];
-		o.two_Diff(b1z, b3z, b1b3z);
+		o.Two_Diff(b1z, b3z, b1b3z);
 		double b1b3x[2];
-		o.two_Diff(b1x, b3x, b1b3x);
+		o.Two_Diff(b1x, b3x, b1b3x);
 		double b2b3z[2];
-		o.two_Diff(b2z, b3z, b2b3z);
+		o.Two_Diff(b2z, b3z, b2b3z);
 		double b2b3x[2];
-		o.two_Diff(b2x, b3x, b2b3x);
+		o.Two_Diff(b2x, b3x, b2b3x);
 		double d1_b1b3z_p[32], *d1_b1b3z = d1_b1b3z_p;
 		int    d1_b1b3z_len =
 		  o.Gen_Product_With_PreAlloc(d1_len, d1, 2, b1b3z, &d1_b1b3z, 32);

@@ -45,6 +45,24 @@ else()
   target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_DISABLE_AVX)
 endif()
 
+# enable AVX2 vectorization set
+if(OMC_CMAKE_ENABLE_AVX2)
+  message(STATUS "[OpenMeshCraft] Enable AVX2")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_ENABLE_AVX2)
+else()
+  message(STATUS "[OpenMeshCraft] Disable AVX2")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_DISABLE_AVX2)
+endif()
+
+# enable AVX2 vectorization set
+if(OMC_CMAKE_ENABLE_FMA)
+  message(STATUS "[OpenMeshCraft] Enable FMA")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_ENABLE_FMA)
+else()
+  message(STATUS "[OpenMeshCraft] Disable FMA")
+  target_compile_definitions(${OMC_CONFIG_TARGET} PUBLIC OMC_DISABLE_FMA)
+endif()
+
 # enable log message at some level
 if(OMC_CMAKE_LOG_TRACE)
   message(STATUS "[OpenMeshCraft] Log runtime trace message.")
