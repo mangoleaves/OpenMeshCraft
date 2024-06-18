@@ -1317,7 +1317,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 	{
 		// NOTE: the polygon may contain danging edges, prev!=next
 		// avoids to even do the ear test for them
-		if (prev[curr] == next[curr])
+		if (poly[prev[curr]] == poly[next[curr]])
 			continue;
 
 		if (subm.vert(poly[curr]).is_TPI())
@@ -1415,7 +1415,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 	{
 		// NOTE: the polygon may contain danging edges, prev!=next
 		// avoids to even do the ear test for them
-		if (prev[curr] == next[curr] || is_ear[curr])
+		if (poly[prev[curr]] == poly[next[curr]] || is_ear[curr])
 			continue;
 
 		const GPoint &p0 = subm.vert(poly[prev[curr]]);
