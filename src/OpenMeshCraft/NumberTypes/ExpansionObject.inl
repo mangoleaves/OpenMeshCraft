@@ -171,25 +171,6 @@ int expansionObject::Gen_Product(const int alen, const double *a,
 		return Sub_product(blen, b, alen, a, h);
 }
 
-double expansionObject::To_Double(const int elen, const double *e)
-{
-	double Q = e[0];
-	for (int e_i = 1; e_i < elen; e_i++)
-		Q += e[e_i];
-	return Q;
-}
-
-int expansionObject::Gen_Product_With_Alloc(const int alen, const double *a,
-                                            const int blen, const double *b,
-                                            double **h)
-{
-	int h_len = alen * blen * 2;
-	if (h_len < 8)
-		h_len = 8;
-	*h = AllocDoubles(h_len);
-	return Gen_Product(alen, a, blen, b, *h);
-}
-
 int expansionObject::Double_With_PreAlloc(const int elen, const double *e,
                                           double **h, const int hlen)
 {
@@ -242,6 +223,59 @@ int expansionObject::Gen_Product_With_PreAlloc(const int alen, const double *a,
 		*h = AllocDoubles(newlen);
 	}
 	return Gen_Product(alen, a, blen, b, *h);
+}
+
+double expansionObject::To_Double(const int elen, const double *e)
+{
+	double Q = e[0];
+	for (int e_i = 1; e_i < elen; e_i++)
+		Q += e[e_i];
+	return Q;
+}
+
+void expansionObject::Compress(int &elen, double *e)
+{
+	double *h = e;
+
+	int    m = elen;
+	double Qnew, q;
+
+	int    bottom = m - 1;
+	double Q      = e[bottom];
+
+	for (int i = m - 2; i >= 0; --i)
+	{
+		fast_two_sum(Q, e[i], Qnew, q);
+		Q = Qnew;
+		if (q != 0.0)
+		{
+			h[bottom] = Q;
+			--bottom;
+			Q = q;
+		}
+	}
+	h[bottom] = Q;
+
+	int top = 0;
+	for (int i = bottom + 1; i < m; ++i)
+	{
+		fast_two_sum(h[i], Q, Qnew, q);
+		Q = Qnew;
+		if (q != 0.0)
+		{
+			h[top] = q;
+			++top;
+		}
+	}
+	h[top] = Q;
+	OMC_PRED_PROFILE_SAVE_COMPRS(elen, top + 1);
+	elen = top + 1;
+}
+
+void expansionObject::CompressIf(int &elen, double *e)
+{
+	if (elen > compress_thres)
+		Compress(elen, e);
 }
 
 } // namespace OMC

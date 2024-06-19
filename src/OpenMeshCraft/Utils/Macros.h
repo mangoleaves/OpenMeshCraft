@@ -133,3 +133,5 @@
 #define OMC_OFFSET_PRED
 
 #define OMC_CACHE_SSF
+
+// #define OMC_COMPRESS_EXPANSION

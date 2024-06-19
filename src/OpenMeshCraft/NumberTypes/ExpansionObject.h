@@ -129,29 +129,11 @@ public:
 	inline int Gen_Sum(const int elen, const double *e, const int flen,
 	                   const double *f, double *h);
 
-	// Same as above, but 'h' is allocated internally. The caller must still call
-	// 'free' to release the memory.
-	inline int Gen_Sum_With_Alloc(const int elen, const double *e, const int flen,
-	                              const double *f, double **h)
-	{
-		*h = AllocDoubles(elen + flen);
-		return Gen_Sum(elen, e, flen, f, *h);
-	}
-
 	// [h] = [e] + [f]		Subtracts two expansions and returns number of
 	// components of result 'h' must be allocated by the caller with at least
 	// elen+flen components.
 	inline int Gen_Diff(const int elen, const double *e, const int flen,
 	                    const double *f, double *h);
-
-	// Same as above, but 'h' is allocated internally. The caller must still call
-	// 'free' to release the memory.
-	inline int Gen_Diff_With_Alloc(const int elen, const double *e,
-	                               const int flen, const double *f, double **h)
-	{
-		*h = AllocDoubles(elen + flen);
-		return Gen_Diff(elen, e, flen, f, *h);
-	}
 
 	// [h] = [e] * b		Multiplies an expansion by a scalar
 	// 'h' must be allocated by the caller with at least elen*2 components.
@@ -186,12 +168,6 @@ public:
 	inline int Gen_Product(const int alen, const double *a, const int blen,
 	                       const double *b, double *h);
 
-	// Same as above, but 'h' is allocated internally. The caller must still call
-	// 'free' to release the memory.
-	inline int Gen_Product_With_Alloc(const int alen, const double *a,
-	                                  const int blen, const double *b,
-	                                  double **h);
-
 	// Assume that *h is pre-allocated with hlen doubles.
 	// If more elements are required, *h is re-allocated internally.
 	// In any case, the function returns the size of the resulting expansion.
@@ -220,6 +196,25 @@ public:
 
 	// Approximates the expansion to a double
 	inline double To_Double(const int elen, const double *e);
+
+	/// @brief Compress an expansion
+	/// @details
+	/// Theory reference:
+	///   [Shewchuk 97] (https://people.eecs.berkeley.edu/~jrs/papers/robustr.pdf)
+	///   Section 2.8: other operations Compression
+	/// Implementation reference:
+	///   Geogram, multi_precision.h/cpp, compress_expansion.
+	/// Note from geogram:
+	/// - when converting the algorithms in Shewchuk's article into code, indices
+	///   in the article go from 1 to m, and in the code they go from 0 to m-1 !!!
+	/// - there is a bug in the original article, line 14 of the algorigthm should
+	///   be h_top <= q (small q and not capital Q).
+	inline void Compress(int &elen, double *e);
+
+	static constexpr int compress_thres = 0;
+
+	/// @brief Compress an expansion if its length is larger than the threshold
+	inline void CompressIf(int &elen, double *e);
 };
 
 } // namespace OMC

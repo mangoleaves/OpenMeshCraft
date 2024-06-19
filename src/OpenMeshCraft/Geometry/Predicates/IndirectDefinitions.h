@@ -415,10 +415,11 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 // #define OMC_PRED_PROFILE_FILTER
 // #define OMC_PRED_PROFILE_IPOINT
 // #define OMC_PRED_PROFILE_LENGTH
+// #define OMC_PRED_PROFILE_COMPRS
 
 enum class PredicateNames : size_t
 {
-	// below use filter,ss_fail,d_fail count
+	// below use filter,ss_fail,d_fail,real_zero count
 	_lessThanOnX_IE = 0,
 	_lessThanOnX_II,
 	_lessThanOnY_IE,
@@ -447,6 +448,9 @@ enum class PredicateNames : size_t
 	_tpi_expansion,
 	// below use total, branch count
 	_orientOn2D_III,
+	// below use total, branch count
+	_expan_reducable_len,
+	_expan_reduced_len,
 	CNT
 };
 
@@ -519,6 +523,23 @@ struct PredicatesProfile
 		#define OMC_PRED_PROFILE_INC_LEN(name, branch)
 	#endif
 
+	#ifdef OMC_PRED_PROFILE_COMPRS
+		#define OMC_PRED_PROFILE_SAVE_COMPRS(orig_len, new_len)                    \
+			if ((new_len) < (orig_len))                                              \
+			{                                                                        \
+				OMC::PredicatesProfile::inc_total(                                     \
+				  PredicateNames::_expan_reducable_len, 1);                            \
+				OMC::PredicatesProfile::inc_total(PredicateNames::_expan_reduced_len,  \
+				                                  1);                                  \
+				OMC::PredicatesProfile::inc_branch(                                    \
+				  PredicateNames::_expan_reducable_len, orig_len);                     \
+				OMC::PredicatesProfile::inc_branch(PredicateNames::_expan_reduced_len, \
+				                                   (orig_len) - (new_len));            \
+			}
+	#else
+		#define OMC_PRED_PROFILE_SAVE_COMPRS(orig_len, new_len)
+	#endif
+
 #else
 
 	#define OMC_PRED_PROFILE_INIT
@@ -534,6 +555,7 @@ struct PredicatesProfile
 	#define OMC_PRED_PROFILE_INC_LEN_TOTAL(name, count)
 	#define OMC_PRED_PROFILE_INC_LEN(name, branch)
 
+	#define OMC_PRED_PROFILE_SAVE_COMPRS(orig_len, new_len)
 #endif
 
 } // namespace OMC

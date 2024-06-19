@@ -697,9 +697,15 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 			  cv.expansion_lambda_y_len, &cv.expansion_lambda_z,
 			  cv.expansion_lambda_z_len, cv.ssfilter_beta_x, cv.ssfilter_beta_y,
 			  cv.ssfilter_beta_z);
+			expansionObject o;
+	#ifdef OMC_COMPRESS_EXPANSION
+			o.CompressIf(cv.expansion_lambda_x_len, cv.expansion_lambda_x);
+			o.CompressIf(cv.expansion_lambda_y_len, cv.expansion_lambda_y);
+			o.CompressIf(cv.expansion_lambda_z_len, cv.expansion_lambda_z);
+			o.CompressIf(cv.expansion_d_len, cv.expansion_denominator);
+	#endif
 			if (cv.expansion_denominator[cv.expansion_d_len - 1] < 0)
 			{
-				expansionObject o;
 				o.Gen_Invert(cv.expansion_lambda_x_len, cv.expansion_lambda_x);
 				o.Gen_Invert(cv.expansion_lambda_y_len, cv.expansion_lambda_y);
 				o.Gen_Invert(cv.expansion_lambda_z_len, cv.expansion_lambda_z);
@@ -731,9 +737,15 @@ void ImplicitPoint3T_TPI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 		  W2().z(), W3().x(), W3().y(), W3().z(), U1().x(), U1().y(), U1().z(),
 		  U2().x(), U2().y(), U2().z(), U3().x(), U3().y(), U3().z(), d, d_len, lx,
 		  lx_len, ly, ly_len, lz, lz_len, bx, by, bz);
+		expansionObject o;
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(lx_len, *lx);
+		o.CompressIf(ly_len, *ly);
+		o.CompressIf(lz_len, *lz);
+		o.CompressIf(d_len, *d);
+	#endif
 		if ((*d)[d_len - 1] < 0)
 		{
-			expansionObject o;
 			o.Gen_Invert(lx_len, *lx);
 			o.Gen_Invert(ly_len, *ly);
 			o.Gen_Invert(lz_len, *lz);
