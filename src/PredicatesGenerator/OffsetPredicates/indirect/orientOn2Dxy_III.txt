@@ -18,6 +18,7 @@ errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;25
 // transform to
 //    | d3 * (d1 * (b1 - b3) + l1) - l3 * d1 |
 //    | d3 * (d2 * (b2 - b3) + l2) - l3 * d2 |
+// NOTE it is better to put simple implicit point on position of p3.
 
 // -- b1 - p3
 b1b3x = b1x - b3x

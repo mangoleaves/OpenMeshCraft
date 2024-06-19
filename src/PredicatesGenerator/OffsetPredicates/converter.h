@@ -92,10 +92,11 @@ public:
 	bool error_evaluated; // TRUE if error is evaluated in error propagation
 	bool is_a_max;        // TRUE if magnitude is relevant for error bound
 
-	int      size;           // Variable size (expansion max length)
-	int      error_degree;   // Forward error analysis: degree
-	fpnumber fp_error_bound; // Forward error analysis: bound on error
-	fpnumber fp_value_bound; // Forward error analysis: bound on magnitude
+	int      size;         // Variable size (expansion max length)
+	int      error_degree; // Forward error analysis: degree
+	// fp: floating-point double
+	fpnumber fp_error_bound; // Forward error analysis: FP bound on error
+	fpnumber fp_value_bound; // Forward error analysis: FP bound on magnitude
 
 	std::string actual_length; // Variable length (expansion actual length)
 
@@ -127,8 +128,8 @@ public: /* Constructors ******************************************************/
 public: /* Error definitions *************************************************/
 	void clearError();
 
-	void setError(int _error_degree, int _size, fpnumber _error_bound,
-	              fpnumber _value_bound);
+	void setError(int _error_degree, int _size, fpnumber _fp_error_bound,
+	              fpnumber _fp_value_bound);
 
 	void propagateError();
 
@@ -204,10 +205,11 @@ public:
 	// error definitions
 	struct ErrorDef
 	{
-		int      size;           // Variable size (expansion max length)
-		int      error_degree;   // Forward error analysis: degree
-		fpnumber fp_value_bound; // Forward error analysis: bound on magnitude
-		fpnumber fp_error_bound; // Forward error analysis: bound on error
+		int      size;         // Variable size (expansion max length)
+		int      error_degree; // Forward error analysis: degree
+		// fp: floating-point double
+		fpnumber fp_value_bound; // Forward error analysis: FP bound on magnitude
+		fpnumber fp_error_bound; // Forward error analysis: FP bound on error
 	};
 	std::vector<ErrorDef> pars; // [x,y,z,d] in 3D, or [x,y,d] in 2D
 

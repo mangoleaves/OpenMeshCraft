@@ -13,6 +13,7 @@ namespace OMC {
 std::atomic_size_t PredicatesProfile::filter_count[(size_t)PredicateNames::CNT][ARR_CNT];
 std::atomic_size_t PredicatesProfile::ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 std::atomic_size_t PredicatesProfile::d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+std::atomic_size_t PredicatesProfile::real_zero_count[(size_t)PredicateNames::CNT][ARR_CNT];
 std::atomic_size_t PredicatesProfile::total_count[(size_t)PredicateNames::CNT];
 std::atomic_size_t PredicatesProfile::branch_count[(size_t)PredicateNames::CNT][BRANCH_CNT];
 // clang-format on
@@ -24,9 +25,10 @@ void PredicatesProfile::initialize()
 		total_count[i] = 0;
 		for (size_t j = 0; j < ARR_CNT; j++)
 		{
-			filter_count[i][j]  = 0;
-			ss_fail_count[i][j] = 0;
-			d_fail_count[i][j]  = 0;
+			filter_count[i][j]    = 0;
+			ss_fail_count[i][j]   = 0;
+			d_fail_count[i][j]    = 0;
+			real_zero_count[i][j] = 0;
 		}
 		for (size_t j = 0; j < BRANCH_CNT; j++)
 		{
@@ -122,6 +124,35 @@ void PredicatesProfile::inc_d_fail(PredicateNames name, PntArr3 arr)
 	// clang-format on
 }
 
+void PredicatesProfile::inc_real_zero(PredicateNames name, PntArr3 arr)
+{
+	// clang-format off
+	switch (arr)
+	{
+	case PntArr3::S:   real_zero_count[(size_t)name][0] += 1;break;
+	case PntArr3::L:   real_zero_count[(size_t)name][1] += 1;break;
+	case PntArr3::T:   real_zero_count[(size_t)name][2] += 1;break;
+	case PntArr3::SS:  real_zero_count[(size_t)name][3] += 1;break;
+	case PntArr3::SL:  real_zero_count[(size_t)name][4] += 1;break;
+	case PntArr3::ST:  real_zero_count[(size_t)name][5] += 1;break;
+	case PntArr3::LL:  real_zero_count[(size_t)name][6] += 1;break;
+	case PntArr3::LT:  real_zero_count[(size_t)name][7] += 1;break;
+	case PntArr3::TT:  real_zero_count[(size_t)name][8] += 1;break;
+	case PntArr3::SSS: real_zero_count[(size_t)name][9] += 1;break;
+	case PntArr3::SSL: real_zero_count[(size_t)name][10] += 1;break;
+	case PntArr3::SST: real_zero_count[(size_t)name][11] += 1;break;
+	case PntArr3::SLL: real_zero_count[(size_t)name][12] += 1;break;
+	case PntArr3::SLT: real_zero_count[(size_t)name][13] += 1;break;
+	case PntArr3::STT: real_zero_count[(size_t)name][14] += 1;break;
+	case PntArr3::LLL: real_zero_count[(size_t)name][15] += 1;break;
+	case PntArr3::LLT: real_zero_count[(size_t)name][16] += 1;break;
+	case PntArr3::LTT: real_zero_count[(size_t)name][17] += 1;break;
+	case PntArr3::TTT: real_zero_count[(size_t)name][18] += 1;break;
+	default:break;
+	}
+	// clang-format on
+}
+
 void PredicatesProfile::inc_total(PredicateNames name, size_t count)
 {
 	total_count[(size_t)name] += count;
@@ -202,9 +233,12 @@ void PredicatesProfile::print()
 				                   ss_succeed;
 				double e_succeed =
 				  (double)d_fail_count[i][j].load() / (double)filter_count[i][j].load();
-				std::cout << std::format(
-				  "  {}: {:.2f}% {:.2f}% {:.2f}% {}\n", arr_names[j], ss_succeed * 100.,
-				  d_succeed * 100., e_succeed * 100., filter_count[i][j].load());
+				double real_zero = (double)real_zero_count[i][j].load() /
+				                   (double)filter_count[i][j].load();
+				std::cout << std::format("  {}: {:.2f}% {:.2f}% {:.2f}% {:.2f}% {}\n",
+				                         arr_names[j], ss_succeed * 100.,
+				                         d_succeed * 100., e_succeed * 100.,
+				                         real_zero * 100., filter_count[i][j].load());
 			}
 		}
 	}

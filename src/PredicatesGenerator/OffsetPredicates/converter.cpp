@@ -396,13 +396,13 @@ void Variable::clearError()
 		op2->clearError();
 }
 
-void Variable::setError(int _error_degree, int _size, fpnumber _error_bound,
-                        fpnumber _value_bound)
+void Variable::setError(int _error_degree, int _size, fpnumber _fp_error_bound,
+                        fpnumber _fp_value_bound)
 {
 	error_degree   = _error_degree;
 	size           = _size;
-	fp_error_bound = _error_bound;
-	fp_value_bound = _value_bound;
+	fp_error_bound = _fp_error_bound;
+	fp_value_bound = _fp_value_bound;
 
 	error_evaluated = true;
 }
@@ -451,7 +451,6 @@ void Variable::propagateError()
 			fp_value_bound += u;
 			fp_error_bound = op1->fp_error_bound + op2->fp_error_bound + u;
 			error_degree   = std::max(op1->error_degree, op2->error_degree);
-
 			if (op1->fp_error_bound == 0)
 				op1->is_a_max = true;
 			if (op2->fp_error_bound == 0)
@@ -1039,6 +1038,11 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 			produceSemiStaticFilter(outvar->fp_error_bound, outvar->error_degree,
 			                        eps_name, file);
 			file << "}\nbreak;\n";
+
+			// TEST
+			std::cout << std::format("case {}::{} : FPeps {}  DWeps {}  degree {}\n",
+			                         PntArr, arr_str, outvar->fp_error_bound,
+			                         outvar->error_degree);
 		}
 		file << std::format("default:{};}}\n", Exit);
 	}
@@ -1840,7 +1844,7 @@ void Predicate::printErrorBounds()
 		std::cout << std::setprecision(std::numeric_limits<fpnumber>::digits10 + 1)
 		          << v.fp_value_bound << "\n";
 	}
-	std::cout << "NAME ERR_DEGREE EXP_SIZE ERR_BOUND VAL_BOUND\n";
+	std::cout << "NAME ERR_DEGREE EXP_SIZE FP_ERR_BOUND FP_VAL_BOUND\n";
 }
 
 void Predicate::openHeader(std::ofstream &header)

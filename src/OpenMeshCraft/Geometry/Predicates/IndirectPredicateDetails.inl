@@ -17252,7 +17252,9 @@ Sign lessThanOnX_IE(const GenericPoint3T<IT, ET> &p1, double bx, PntArr3 arr)
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_IE, arr);
-	return lessThanOnX_IE_expansion<IT, ET>(p1, bx);
+	ret = lessThanOnX_IE_expansion<IT, ET>(p1, bx);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnX_IE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -17497,7 +17499,9 @@ Sign lessThanOnX_II(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnX_II, arr);
-	return lessThanOnX_II_expansion<IT, ET>(p1, p2);
+	ret = lessThanOnX_II_expansion<IT, ET>(p1, p2);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnX_II, arr);
+	return ret;
 }
 
 template <typename IT, typename ET>
@@ -17648,7 +17652,9 @@ Sign lessThanOnY_IE(const GenericPoint3T<IT, ET> &p1, double by, PntArr3 arr)
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_IE, arr);
-	return lessThanOnY_IE_expansion<IT, ET>(p1, by);
+	ret = lessThanOnY_IE_expansion<IT, ET>(p1, by);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnY_IE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -17893,7 +17899,9 @@ Sign lessThanOnY_II(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnY_II, arr);
-	return lessThanOnY_II_expansion<IT, ET>(p1, p2);
+	ret = lessThanOnY_II_expansion<IT, ET>(p1, p2);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnY_II, arr);
+	return ret;
 }
 
 template <typename IT, typename ET>
@@ -18044,7 +18052,9 @@ Sign lessThanOnZ_IE(const GenericPoint3T<IT, ET> &p1, double bz, PntArr3 arr)
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_IE, arr);
-	return lessThanOnZ_IE_expansion<IT, ET>(p1, bz);
+	ret = lessThanOnZ_IE_expansion<IT, ET>(p1, bz);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnZ_IE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -18289,7 +18299,9 @@ Sign lessThanOnZ_II(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_lessThanOnZ_II, arr);
-	return lessThanOnZ_II_expansion<IT, ET>(p1, p2);
+	ret = lessThanOnZ_II_expansion<IT, ET>(p1, p2);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_lessThanOnZ_II, arr);
+	return ret;
 }
 
 template <typename IT, typename ET>
@@ -18656,8 +18668,10 @@ Sign orient3D_IEEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orient3D_IEEE, arr);
-	return orient3D_IEEE_expansion<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
-	                                       p4y, p4z);
+	ret = orient3D_IEEE_expansion<IT, ET>(p1, p2x, p2y, p2z, p3x, p3y, p3z, p4x,
+	                                      p4y, p4z);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orient3D_IEEE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -20901,7 +20915,9 @@ Sign orientOn2Dxy_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2y,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IEE, arr);
-	return orientOn2Dxy_IEE_expansion<IT, ET>(p1, p2x, p2y, p3x, p3y);
+	ret = orientOn2Dxy_IEE_expansion<IT, ET>(p1, p2x, p2y, p3x, p3y);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dxy_IEE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -21095,7 +21111,9 @@ Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
-	return orientOn2Dxy_IIE_expansion<IT, ET>(p1, p2, p3x, p3y);
+	ret = orientOn2Dxy_IIE_expansion<IT, ET>(p1, p2, p3x, p3y);
+	OMC_PRED_PROFILE_INC_REALZERO(ret , PredicateNames::_orientOn2Dxy_IIE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -21404,7 +21422,9 @@ Sign orientOn2Dxy_III(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_III, arr);
-	return orientOn2Dxy_III_expansion<IT, ET>(p1, p2, p3);
+	ret = orientOn2Dxy_III_expansion<IT, ET>(p1, p2, p3);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dxy_III, arr);
+	return ret;
 }
 
 template <typename IT, typename ET>
@@ -21618,7 +21638,9 @@ Sign orientOn2Dyz_IEE(const GenericPoint3T<IT, ET> &p1, double p2y, double p2z,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IEE, arr);
-	return orientOn2Dyz_IEE_expansion<IT, ET>(p1, p2y, p2z, p3y, p3z);
+	ret = orientOn2Dyz_IEE_expansion<IT, ET>(p1, p2y, p2z, p3y, p3z);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dyz_IEE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -21812,7 +21834,9 @@ Sign orientOn2Dyz_IIE(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_IIE, arr);
-	return orientOn2Dyz_IIE_expansion<IT, ET>(p1, p2, p3y, p3z);
+	ret = orientOn2Dyz_IIE_expansion<IT, ET>(p1, p2, p3y, p3z);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dyz_IIE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -22121,7 +22145,9 @@ Sign orientOn2Dyz_III(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dyz_III, arr);
-	return orientOn2Dyz_III_expansion<IT, ET>(p1, p2, p3);
+	ret = orientOn2Dyz_III_expansion<IT, ET>(p1, p2, p3);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dyz_III, arr);
+	return ret;
 }
 
 template <typename IT, typename ET>
@@ -22335,7 +22361,9 @@ Sign orientOn2Dzx_IEE(const GenericPoint3T<IT, ET> &p1, double p2x, double p2z,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IEE, arr);
-	return orientOn2Dzx_IEE_expansion<IT, ET>(p1, p2x, p2z, p3x, p3z);
+	ret = orientOn2Dzx_IEE_expansion<IT, ET>(p1, p2x, p2z, p3x, p3z);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dzx_IEE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -22529,7 +22557,9 @@ Sign orientOn2Dzx_IIE(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_IIE, arr);
-	return orientOn2Dzx_IIE_expansion<IT, ET>(p1, p2, p3x, p3z);
+	ret = orientOn2Dzx_IIE_expansion<IT, ET>(p1, p2, p3x, p3z);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dzx_IIE, arr);
+	return ret;
 }
 
 template <typename IT, typename ET, bool WithSSFilter>
@@ -22838,7 +22868,9 @@ Sign orientOn2Dzx_III(const GenericPoint3T<IT, ET> &p1,
 	if (is_sign_reliable(ret))
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dzx_III, arr);
-	return orientOn2Dzx_III_expansion<IT, ET>(p1, p2, p3);
+	ret = orientOn2Dzx_III_expansion<IT, ET>(p1, p2, p3);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dzx_III, arr);
+	return ret;
 }
 
 #endif

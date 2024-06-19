@@ -452,23 +452,26 @@ enum class PredicateNames : size_t
 
 struct PredicatesProfile
 {
-	static constexpr size_t ARR_CNT = 32;
+	static constexpr size_t ARR_CNT    = 32;
+	static constexpr size_t MAG_CNT    = 100;
+	static constexpr size_t BRANCH_CNT = 256;
 
+	// clang-format off
 	static std::atomic_size_t filter_count[(size_t)PredicateNames::CNT][ARR_CNT];
 	static std::atomic_size_t ss_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
 	static std::atomic_size_t d_fail_count[(size_t)PredicateNames::CNT][ARR_CNT];
+	static std::atomic_size_t real_zero_count[(size_t)PredicateNames::CNT][ARR_CNT];
 
 	static std::atomic_size_t total_count[(size_t)PredicateNames::CNT];
 
-	static constexpr size_t BRANCH_CNT = 256;
-
-	static std::atomic_size_t branch_count[(size_t)PredicateNames::CNT]
-	                                      [BRANCH_CNT];
+	static std::atomic_size_t branch_count[(size_t)PredicateNames::CNT][BRANCH_CNT];
+	// clang-format on
 
 	static void initialize();
 	static void inc_filter(PredicateNames name, PntArr3 arr);
 	static void inc_ss_fail(PredicateNames name, PntArr3 arr);
 	static void inc_d_fail(PredicateNames name, PntArr3 arr);
+	static void inc_real_zero(PredicateNames name, PntArr3 arr);
 
 	static void inc_total(PredicateNames name, size_t count);
 
@@ -487,10 +490,16 @@ struct PredicatesProfile
 			OMC::PredicatesProfile::inc_ss_fail(pred, arr)
 		#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr) \
 			OMC::PredicatesProfile::inc_d_fail(pred, arr)
+		#define OMC_PRED_PROFILE_INC_REALZERO(ret, pred, arr) \
+			if (ret == Sign::ZERO)                              \
+			{                                                   \
+				OMC::PredicatesProfile::inc_real_zero(pred, arr); \
+			}
 	#else
 		#define OMC_PRED_PROFILE_INC_FILTER(pred, arr)
 		#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
 		#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
+		#define OMC_PRED_PROFILE_INC_REALZERO(ret, pred, arr)
 	#endif
 
 	#ifdef OMC_PRED_PROFILE_IPOINT
@@ -518,6 +527,7 @@ struct PredicatesProfile
 	#define OMC_PRED_PROFILE_INC_FILTER(pred, arr)
 	#define OMC_PRED_PROFILE_INC_SSFAIL(pred, arr)
 	#define OMC_PRED_PROFILE_INC_DFAIL(pred, arr)
+	#define OMC_PRED_PROFILE_INC_REALZERO(ret, pred, arr)
 
 	#define OMC_PRED_PROFILE_INC_IP_TOTAL(name)
 

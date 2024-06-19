@@ -18,6 +18,7 @@ errorDefinition(TPI,T,3:lx;7;256;3.073097332162437e-13;144.0000000000005;ly;7;25
 //   | d4 * (d1 * (b1 - b4) + l1) - d1 * l4 |
 //   | d4 * (d2 * (b2 - b4) + l2) - d2 * l4 |
 //   | d4 * (d3 * (b3 - b4) + l3) - d3 * l4 |
+// NOTE it is better to put simple implicit point on position of p4.
 
 // -- d1 * l4
 d1p4x = d1 * l4x

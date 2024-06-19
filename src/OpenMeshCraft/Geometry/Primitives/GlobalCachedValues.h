@@ -173,23 +173,19 @@ public:
 
 public:
 	// floating-point filter
-	// NaN demoninator is used to check if it is cached.
 	#ifdef OMC_CACHE_SSF
 	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
 	  ssfilter_denominator, ssfilter_beta_x, ssfilter_beta_y, ssfilter_beta_z,
 	  ssfilter_max_val;
 	#endif
 	// dynamic filter (interval number)
-	// NaN demoninator is used to check if it is cached.
 	IT dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator,
 	  dfilter_beta_x, dfilter_beta_y, dfilter_beta_z;
 	// exact number
-	// exact cached is used to check if it is cached.
 	ET *exact_lambda_x = nullptr, *exact_lambda_y = nullptr,
 	   *exact_lambda_z = nullptr, *exact_denominator = nullptr,
 	   *exact_beta_x = nullptr, *exact_beta_y = nullptr, *exact_beta_z = nullptr;
 	// expansion number
-	// nullptr denominator is used to check if it is cached.
 	FT *expansion_lambda_x = nullptr, *expansion_lambda_y = nullptr,
 	   *expansion_lambda_z = nullptr, *expansion_denominator = nullptr;
 	int expansion_lambda_x_len = 0, expansion_lambda_y_len = 0,
