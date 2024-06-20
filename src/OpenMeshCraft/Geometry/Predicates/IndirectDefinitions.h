@@ -17,11 +17,11 @@ namespace OMC {
 #define I2 1 // Implicit
 #define S2 2 // SSI
 
-#define E3 0  // Explicit
-#define I3 1  // Implicit
-#define S3 2  // SSI
-#define L3 3  // LPI
-#define T3 4  // TPI
+#define E3 0 // Explicit
+#define I3 1 // Implicit
+#define S3 2 // SSI
+#define L3 3 // LPI
+#define T3 4 // TPI
 
 #define BEP 4 // bits for each point
 // clang-format off
@@ -337,7 +337,8 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 {
 	// sort points
 	sort_types<5>(pos, types, swap_cnt);
-	return static_cast<PntArr3>(Map5(types[0], types[1], types[2], types[3], types[4]));
+	return static_cast<PntArr3>(
+	  Map5(types[0], types[1], types[2], types[3], types[4]));
 }
 
 #undef E2
@@ -361,6 +362,7 @@ inline PntArr3 sort_pnts_arr3(std::array<uint32_t, 5> &types,
 // #define OMC_PRED_PROFILE_IPOINT
 // #define OMC_PRED_PROFILE_LENGTH
 // #define OMC_PRED_PROFILE_COMPRS
+// #define OMC_PRED_PROFILE_MALLOC
 
 enum class PredicateNames : size_t
 {
@@ -396,6 +398,8 @@ enum class PredicateNames : size_t
 	// below use total, branch count
 	_expan_reducable_len,
 	_expan_reduced_len,
+	// below use total, branch count
+	_malloc,
 	CNT
 };
 
@@ -485,6 +489,14 @@ struct PredicatesProfile
 		#define OMC_PRED_PROFILE_SAVE_COMPRS(orig_len, new_len)
 	#endif
 
+	#ifdef OMC_PRED_PROFILE_MALLOC
+		#define OMC_PRED_PROFILE_INC_MALLOC(len)                         \
+			OMC::PredicatesProfile::inc_total(PredicateNames::_malloc, 1); \
+			OMC::PredicatesProfile::inc_branch(PredicateNames::_malloc, len);
+	#else
+		#define OMC_PRED_PROFILE_INC_MALLOC(len)
+	#endif
+
 #else
 
 	#define OMC_PRED_PROFILE_INIT
@@ -501,6 +513,8 @@ struct PredicatesProfile
 	#define OMC_PRED_PROFILE_INC_LEN(name, branch)
 
 	#define OMC_PRED_PROFILE_SAVE_COMPRS(orig_len, new_len)
+
+	#define OMC_PRED_PROFILE_INC_MALLOC(len)
 #endif
 
 } // namespace OMC

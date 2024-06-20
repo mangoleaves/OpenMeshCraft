@@ -160,6 +160,7 @@ void PredicatesProfile::inc_total(PredicateNames name, size_t count)
 
 void PredicatesProfile::inc_branch(PredicateNames name, size_t branch)
 {
+	branch = std::min(branch, BRANCH_CNT - 1);
 	branch_count[(size_t)name][branch] += 1;
 }
 
@@ -194,7 +195,8 @@ void PredicatesProfile::print()
 		"TPI_expansion",
 		"orientOn2D_III",
 		"expan_redecable_len",
-		"expan_redeced_len"
+		"expan_redeced_len",
+		"malloc"
   };
 
 	std::vector<std::string> arr_names = {
@@ -282,6 +284,31 @@ void PredicatesProfile::print()
 	#ifdef OMC_PRED_PROFILE_COMPRS
 	for (size_t i = (size_t)PredicateNames::_expan_reducable_len;
 	     i <= (size_t)PredicateNames::_expan_reduced_len; i++)
+	{
+		std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
+		int last_branch_flag = 0;
+		// find the last non-zero branch flag
+		for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
+		{
+			if (branch_count[i][j] != 0)
+			{
+				last_branch_flag = j;
+				break;
+			}
+		}
+
+		for (int j = 0; j <= last_branch_flag; j++)
+		{
+			double reach_raio = (double)branch_count[i][j] / (double)total_count[i];
+			std::cout << std::format("  branch {} : {:.2f}%, {}\n", j,
+			                         reach_raio * 100., branch_count[i][j].load());
+		}
+	}
+	#endif
+
+	#ifdef OMC_PRED_PROFILE_MALLOC
+	for (size_t i = (size_t)PredicateNames::_malloc;
+	     i <= (size_t)PredicateNames::_malloc; i++)
 	{
 		std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
 		int last_branch_flag = 0;

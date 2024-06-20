@@ -178,7 +178,10 @@ int expansionObject::Double_With_PreAlloc(const int elen, const double *e,
 {
 	int newlen = elen;
 	if (hlen < newlen)
+	{
 		*h = AllocDoubles(newlen);
+		OMC_PRED_PROFILE_INC_MALLOC(newlen);
+	}
 	Double(elen, e, *h);
 	return newlen;
 }
@@ -189,7 +192,10 @@ int expansionObject::Gen_Scale_With_PreAlloc(const int elen, const double *e,
 {
 	int newlen = elen * 2;
 	if (hlen < newlen)
+	{
 		*h = AllocDoubles(newlen);
+		OMC_PRED_PROFILE_INC_MALLOC(newlen);
+	}
 	return Gen_Scale(elen, e, b, *h);
 }
 
@@ -199,7 +205,10 @@ int expansionObject::Gen_Sum_With_PreAlloc(const int elen, const double *e,
 {
 	int newlen = elen + flen;
 	if (hlen < newlen)
+	{
 		*h = AllocDoubles(newlen);
+		OMC_PRED_PROFILE_INC_MALLOC(newlen);
+	}
 	return Gen_Sum(elen, e, flen, f, *h);
 }
 
@@ -209,7 +218,10 @@ int expansionObject::Gen_Diff_With_PreAlloc(const int elen, const double *e,
 {
 	int newlen = elen + flen;
 	if (hlen < newlen)
+	{
 		*h = AllocDoubles(newlen);
+		OMC_PRED_PROFILE_INC_MALLOC(newlen);
+	}
 	return Gen_Diff(elen, e, flen, f, *h);
 }
 
