@@ -1059,7 +1059,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.2204460492503147e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -1068,7 +1068,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 7.906088977938107e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -1087,7 +1087,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.922887626377606e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -1609,7 +1609,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6431300764452333e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -1618,7 +1618,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.084585960075558e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -1637,7 +1637,7 @@ int longestAxis_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.20746164403263e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;

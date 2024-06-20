@@ -100,12 +100,11 @@ public:
 	using IPoint2T_SSI = ImplicitPoint2T_SSI<IT, ET>;
 
 	using GPoint3      = GenericPoint3T<IT, ET>;
-	// Point3 and SSI/LPI/TPI/LNC inherit from GP3
+	// Point3 and SSI/LPI/TPI inherit from GP3
 	using EPoint3      = ExplicitPoint3T<IT, ET>;
 	using IPoint3T_SSI = ImplicitPoint3T_SSI<IT, ET>;
 	using IPoint3T_LPI = ImplicitPoint3T_LPI<IT, ET>;
 	using IPoint3T_TPI = ImplicitPoint3T_TPI<IT, ET>;
-	using IPoint3T_LNC = ImplicitPoint3T_LNC<IT, ET>;
 
 	static_assert(std::is_trivially_copyable<GPoint2>::value);
 	static_assert(std::is_trivially_copyable<GPoint3>::value);
@@ -122,7 +121,6 @@ public:
 	using CreateSSI3 = CreateImplicitSSI3_Im<IT, ET>;
 	using CreateLPI  = CreateImplicitLPI_Im<IT, ET>;
 	using CreateTPI  = CreateImplicitTPI_Im<IT, ET>;
-	using CreateLNC  = CreateImplicitLNC_Im<IT, ET>;
 	/// @}
 
 	/// @name Primitive types

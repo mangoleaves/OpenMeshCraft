@@ -245,62 +245,6 @@ private:
 	static GCV global_cached_values;
 };
 
-#if defined(OMC_INDIRECT_PRED)
-/// @brief Implicit point defined as a linear combination of two points.
-/// start with p and end with q: (1-t)p + tq  or  p + t(q-p).
-template <typename IT_, typename ET_>
-class ImplicitPoint3T_LNC : public GenericPoint3T<IT_, ET_>
-{
-public: /* Types *************************************************************/
-	using FT = double;
-	using IT = IT_;
-	using ET = ET_;
-
-	using EP = ExplicitPoint3T<IT, ET>;
-	using IP = ImplicitPoint3T_LNC<IT, ET>;
-	using GP = GenericPoint3T<IT, ET>;
-
-	using PointType = typename GP::PointType;
-
-	using GCV = GlobalCachedValues<IT, ET, OnePointCachedValues3<IT, ET>>;
-
-public: /* functions about types *********************************************/
-	// Calculates an explicit approximation of the implicit point.
-	void get_Explicit(EP &e) const;
-	EP   to_Explicit() const;
-
-public: /* Constructors ******************************************************/
-	ImplicitPoint3T_LNC() noexcept;
-	ImplicitPoint3T_LNC(const EP &_p, const EP &_q, const double _t) noexcept;
-
-	~ImplicitPoint3T_LNC() noexcept;
-
-	ImplicitPoint3T_LNC(const ImplicitPoint3T_LNC &rhs) noexcept;
-	ImplicitPoint3T_LNC(ImplicitPoint3T_LNC &&rhs) noexcept;
-
-	IP &operator=(const IP &rhs);
-	IP &operator=(IP &&rhs);
-
-	const EP     &P() const { return *ip; }
-	const EP     &Q() const { return *iq; }
-	const double &T() const { return t; }
-
-	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &mv) const;
-	bool getIntervalLambda(IT &lx, IT &ly, IT &lz, IT &d) const;
-	void getExactLambda(ET &lx, ET &ly, ET &lz, ET &d) const;
-	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
-	                        int &lz_len, FT **d, int &d_len) const;
-
-	static GCV &gcv() { return global_cached_values; }
-
-private:
-	const EP *ip, *iq; // The two points
-	double    t;       // The parameter (0 = ip, 1 = iq)
-
-	static GCV global_cached_values;
-};
-#endif
-
 // static member variables
 template <typename IT_, typename ET_>
 typename ImplicitPoint3T_SSI<IT_, ET_>::GCV
@@ -316,13 +260,6 @@ template <typename IT_, typename ET_>
 typename ImplicitPoint3T_TPI<IT_, ET_>::GCV
   ImplicitPoint3T_TPI<IT_, ET_>::global_cached_values =
     ImplicitPoint3T_TPI<IT_, ET_>::GCV();
-
-#if defined(OMC_INDIRECT_PRED)
-template <typename IT_, typename ET_>
-typename ImplicitPoint3T_LNC<IT_, ET_>::GCV
-  ImplicitPoint3T_LNC<IT_, ET_>::global_cached_values =
-    ImplicitPoint3T_LNC<IT_, ET_>::GCV();
-#endif
 
 inline void normalizeLambda3D(double *lx, int &lxl, double *ly, int &lyl,
                               double *lz, int &lzl, double *d, int &dl)
@@ -363,5 +300,4 @@ inline void normalizeLambda3D(double *lx, int &lxl, double *ly, int &lyl,
 	#include "ImplicitPoint3T_SSI.inl"
 	#include "ImplicitPoint3T_LPI.inl"
 	#include "ImplicitPoint3T_TPI.inl"
-	#include "ImplicitPoint3T_LNC.inl"
 #endif

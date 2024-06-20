@@ -26,13 +26,12 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
 #ifdef OMC_CACHE_SSF
 	m_maxvar = 0;
 	#if defined(OMC_OFFSET_PRED)
-	FT bx, by, bz;
 	if (plane == 0) // YZ
 	{
 		// first yz, then x
 		if (!lambda3d_SSI_filtered(A().y(), A().z(), A().x(), B().y(), B().z(),
 		                           B().x(), P().y(), P().z(), Q().y(), Q().z(),
-		                           m_ld, m_ly, m_lz, m_lx, by, bz, bx, m_maxvar))
+		                           m_ld, m_ly, m_lz, m_lx, m_maxvar))
 			m_ld = 0;
 	}
 	else if (plane == 1) // ZX
@@ -40,7 +39,7 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
 		// first zx, then y
 		if (!lambda3d_SSI_filtered(A().z(), A().x(), A().y(), B().z(), B().x(),
 		                           B().y(), P().z(), P().x(), Q().z(), Q().x(),
-		                           m_ld, m_lz, m_lx, m_ly, bz, bx, by, m_maxvar))
+		                           m_ld, m_lz, m_lx, m_ly, m_maxvar))
 			m_ld = 0;
 	}
 	else if (plane == 2) // XY
@@ -48,7 +47,7 @@ ImplicitPoint3T_SSI<IT, ET>::ImplicitPoint3T_SSI(const EP &_a, const EP &_b,
 		// first xy, then z
 		if (!lambda3d_SSI_filtered(A().x(), A().y(), A().z(), B().x(), B().y(),
 		                           B().z(), P().x(), P().y(), Q().x(), Q().y(),
-		                           m_ld, m_lx, m_ly, m_lz, bx, by, bz, m_maxvar))
+		                           m_ld, m_lx, m_ly, m_lz, m_maxvar))
 			m_ld = 0;
 	}
 	else
@@ -681,34 +680,31 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			if (plane == 0) // YZ
 			{
 				// first yz, then x
-				if (!lambda3d_SSI_filtered(
-				      A().y(), A().z(), A().x(), B().y(), B().z(), B().x(), P().y(),
-				      P().z(), Q().y(), Q().z(), cv.ssfilter_denominator,
-				      cv.ssfilter_lambda_y, cv.ssfilter_lambda_z, cv.ssfilter_lambda_x,
-				      cv.ssfilter_beta_y, cv.ssfilter_beta_z, cv.ssfilter_beta_x,
-				      cv.ssfilter_max_val))
+				if (!lambda3d_SSI_filtered(A().y(), A().z(), A().x(), B().y(), B().z(),
+				                           B().x(), P().y(), P().z(), Q().y(), Q().z(),
+				                           cv.ssfilter_denominator,
+				                           cv.ssfilter_lambda_y, cv.ssfilter_lambda_z,
+				                           cv.ssfilter_lambda_x, cv.ssfilter_max_val))
 					cv.ssfilter_denominator = 0;
 			}
 			else if (plane == 1) // ZX
 			{
 				// first zx, then y
-				if (!lambda3d_SSI_filtered(
-				      A().z(), A().x(), A().y(), B().z(), B().x(), B().y(), P().z(),
-				      P().x(), Q().z(), Q().x(), cv.ssfilter_denominator,
-				      cv.ssfilter_lambda_z, cv.ssfilter_lambda_x, cv.ssfilter_lambda_y,
-				      cv.ssfilter_beta_z, cv.ssfilter_beta_x, cv.ssfilter_beta_y,
-				      cv.ssfilter_max_val))
+				if (!lambda3d_SSI_filtered(A().z(), A().x(), A().y(), B().z(), B().x(),
+				                           B().y(), P().z(), P().x(), Q().z(), Q().x(),
+				                           cv.ssfilter_denominator,
+				                           cv.ssfilter_lambda_z, cv.ssfilter_lambda_x,
+				                           cv.ssfilter_lambda_y, cv.ssfilter_max_val))
 					cv.ssfilter_denominator = 0;
 			}
 			else if (plane == 2) // XY
 			{
 				// first xy, then z
-				if (!lambda3d_SSI_filtered(
-				      A().x(), A().y(), A().z(), B().x(), B().y(), B().z(), P().x(),
-				      P().y(), Q().x(), Q().y(), cv.ssfilter_denominator,
-				      cv.ssfilter_lambda_x, cv.ssfilter_lambda_y, cv.ssfilter_lambda_z,
-				      cv.ssfilter_beta_x, cv.ssfilter_beta_y, cv.ssfilter_beta_z,
-				      cv.ssfilter_max_val))
+				if (!lambda3d_SSI_filtered(A().x(), A().y(), A().z(), B().x(), B().y(),
+				                           B().z(), P().x(), P().y(), Q().x(), Q().y(),
+				                           cv.ssfilter_denominator,
+				                           cv.ssfilter_lambda_x, cv.ssfilter_lambda_y,
+				                           cv.ssfilter_lambda_z, cv.ssfilter_max_val))
 					cv.ssfilter_denominator = 0;
 			}
 			else
@@ -728,9 +724,9 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 		ly = cv.ssfilter_lambda_y;
 		lz = cv.ssfilter_lambda_z;
 		d  = cv.ssfilter_denominator;
-		bx = cv.ssfilter_beta_x;
-		by = cv.ssfilter_beta_y;
-		bz = cv.ssfilter_beta_z;
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 		if (cv.ssfilter_denominator != 0 && cv.ssfilter_max_val > mv)
 			mv = cv.ssfilter_max_val;
 		return (d != 0);
@@ -744,7 +740,7 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			// first yz, then x
 			if (!lambda3d_SSI_filtered(A().y(), A().z(), A().x(), B().y(), B().z(),
 			                           B().x(), P().y(), P().z(), Q().y(), Q().z(), d,
-			                           ly, lz, lx, by, bz, bx, mv_))
+			                           ly, lz, lx, mv_))
 				d = 0;
 		}
 		else if (plane == 1) // ZX
@@ -752,7 +748,7 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			// first zx, then y
 			if (!lambda3d_SSI_filtered(A().z(), A().x(), A().y(), B().z(), B().x(),
 			                           B().y(), P().z(), P().x(), Q().z(), Q().x(), d,
-			                           lz, lx, ly, bz, bx, by, mv_))
+			                           lz, lx, ly, mv_))
 				d = 0;
 		}
 		else if (plane == 2) // XY
@@ -760,7 +756,7 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			// first xy, then z
 			if (!lambda3d_SSI_filtered(A().x(), A().y(), A().z(), B().x(), B().y(),
 			                           B().z(), P().x(), P().y(), Q().x(), Q().y(), d,
-			                           lx, ly, lz, bx, by, bz, mv_))
+			                           lx, ly, lz, mv_))
 				d = 0;
 		}
 		else
@@ -775,6 +771,9 @@ bool ImplicitPoint3T_SSI<IT, ET>::getFilteredLambda(FT &lx, FT &ly, FT &lz,
 			lz = -lz;
 			d  = -d;
 		}
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 		if (d != 0 && mv_ > mv)
 			mv = mv_;
 		return d != 0;
@@ -808,29 +807,26 @@ bool ImplicitPoint3T_SSI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 			if (plane == 0) // YZ
 			{
 				// first yz, then x
-				lambda3d_SSI_interval<IT>(
-				  A().y(), A().z(), A().x(), B().y(), B().z(), B().x(), P().y(),
-				  P().z(), Q().y(), Q().z(), cv.dfilter_denominator,
-				  cv.dfilter_lambda_y, cv.dfilter_lambda_z, cv.dfilter_lambda_x,
-				  cv.dfilter_beta_y, cv.dfilter_beta_z, cv.dfilter_beta_x);
+				lambda3d_SSI_interval<IT>(A().y(), A().z(), A().x(), B().y(), B().z(),
+				                          B().x(), P().y(), P().z(), Q().y(), Q().z(),
+				                          cv.dfilter_denominator, cv.dfilter_lambda_y,
+				                          cv.dfilter_lambda_z, cv.dfilter_lambda_x);
 			}
 			else if (plane == 1) // ZX
 			{
 				// first zx, then y
-				lambda3d_SSI_interval<IT>(
-				  A().z(), A().x(), A().y(), B().z(), B().x(), B().y(), P().z(),
-				  P().x(), Q().z(), Q().x(), cv.dfilter_denominator,
-				  cv.dfilter_lambda_z, cv.dfilter_lambda_x, cv.dfilter_lambda_y,
-				  cv.dfilter_beta_z, cv.dfilter_beta_x, cv.dfilter_beta_y);
+				lambda3d_SSI_interval<IT>(A().z(), A().x(), A().y(), B().z(), B().x(),
+				                          B().y(), P().z(), P().x(), Q().z(), Q().x(),
+				                          cv.dfilter_denominator, cv.dfilter_lambda_z,
+				                          cv.dfilter_lambda_x, cv.dfilter_lambda_y);
 			}
 			else if (plane == 2) // XY
 			{
 				// first xy, then z
-				lambda3d_SSI_interval<IT>(
-				  A().x(), A().y(), A().z(), B().x(), B().y(), B().z(), P().x(),
-				  P().y(), Q().x(), Q().y(), cv.dfilter_denominator,
-				  cv.dfilter_lambda_x, cv.dfilter_lambda_y, cv.dfilter_lambda_z,
-				  cv.dfilter_beta_x, cv.dfilter_beta_y, cv.dfilter_beta_z);
+				lambda3d_SSI_interval<IT>(A().x(), A().y(), A().z(), B().x(), B().y(),
+				                          B().z(), P().x(), P().y(), Q().x(), Q().y(),
+				                          cv.dfilter_denominator, cv.dfilter_lambda_x,
+				                          cv.dfilter_lambda_y, cv.dfilter_lambda_z);
 			}
 			else
 			{
@@ -849,9 +845,9 @@ bool ImplicitPoint3T_SSI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 		lz = cv.dfilter_lambda_z;
 		d  = cv.dfilter_denominator;
 		// beta xyz must be "double" floating point number
-		bx = cv.dfilter_beta_x;
-		by = cv.dfilter_beta_y;
-		bz = cv.dfilter_beta_z;
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 		return (d.is_sign_reliable());
 	}
 	else
@@ -861,21 +857,21 @@ bool ImplicitPoint3T_SSI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 			// first yz, then x
 			lambda3d_SSI_interval<IT>(A().y(), A().z(), A().x(), B().y(), B().z(),
 			                          B().x(), P().y(), P().z(), Q().y(), Q().z(), d,
-			                          ly, lz, lx, by, bz, bx);
+			                          ly, lz, lx);
 		}
 		else if (plane == 1) // ZX
 		{
 			// first zx, then y
 			lambda3d_SSI_interval<IT>(A().z(), A().x(), A().y(), B().z(), B().x(),
 			                          B().y(), P().z(), P().x(), Q().z(), Q().x(), d,
-			                          lz, lx, ly, bz, bx, by);
+			                          lz, lx, ly);
 		}
 		else if (plane == 2) // XY
 		{
 			// first xy, then z
 			lambda3d_SSI_interval<IT>(A().x(), A().y(), A().z(), B().x(), B().y(),
 			                          B().z(), P().x(), P().y(), Q().x(), Q().y(), d,
-			                          lx, ly, lz, bx, by, bz);
+			                          lx, ly, lz);
 		}
 		else
 		{
@@ -888,6 +884,9 @@ bool ImplicitPoint3T_SSI<IT, ET>::getIntervalLambda(IT &lx, IT &ly, IT &lz,
 			lz.invert();
 			d.invert();
 		}
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 		return d.is_sign_reliable();
 	}
 }
@@ -911,8 +910,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 				  ET(A().y()), ET(A().z()), ET(A().x()), ET(B().y()), ET(B().z()),
 				  ET(B().x()), ET(P().y()), ET(P().z()), ET(Q().y()), ET(Q().z()),
 				  *cv.exact_denominator, *cv.exact_lambda_y, *cv.exact_lambda_z,
-				  *cv.exact_lambda_x, *cv.exact_beta_y, *cv.exact_beta_z,
-				  *cv.exact_beta_x);
+				  *cv.exact_lambda_x);
 			}
 			else if (plane == 1) // zx
 			{
@@ -921,8 +919,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 				  ET(A().z()), ET(A().x()), ET(A().y()), ET(B().z()), ET(B().x()),
 				  ET(B().y()), ET(P().z()), ET(P().x()), ET(Q().z()), ET(Q().x()),
 				  *cv.exact_denominator, *cv.exact_lambda_z, *cv.exact_lambda_x,
-				  *cv.exact_lambda_y, *cv.exact_beta_z, *cv.exact_beta_x,
-				  *cv.exact_beta_y);
+				  *cv.exact_lambda_y);
 			}
 			else if (plane == 2) // xy
 			{
@@ -931,8 +928,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 				  ET(A().x()), ET(A().y()), ET(A().z()), ET(B().x()), ET(B().y()),
 				  ET(B().z()), ET(P().x()), ET(P().y()), ET(Q().x()), ET(Q().y()),
 				  *cv.exact_denominator, *cv.exact_lambda_x, *cv.exact_lambda_y,
-				  *cv.exact_lambda_z, *cv.exact_beta_x, *cv.exact_beta_y,
-				  *cv.exact_beta_z);
+				  *cv.exact_lambda_z);
 			}
 			else
 			{
@@ -952,9 +948,9 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 		lz = *cv.exact_lambda_z;
 		d  = *cv.exact_denominator;
 		// beta xyz must be "double" floating point number
-		bx = *cv.exact_beta_x;
-		by = *cv.exact_beta_y;
-		bz = *cv.exact_beta_z;
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 	}
 	else
 	{
@@ -963,24 +959,21 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 			// first yz, then x
 			lambda3d_SSI_exact<ET>(ET(A().y()), ET(A().z()), ET(A().x()), ET(B().y()),
 			                       ET(B().z()), ET(B().x()), ET(P().y()), ET(P().z()),
-			                       ET(Q().y()), ET(Q().z()), d, ly, lz, lx, by, bz,
-			                       bx);
+			                       ET(Q().y()), ET(Q().z()), d, ly, lz, lx);
 		}
 		else if (plane == 1) // zx
 		{
 			// first zx, then y
 			lambda3d_SSI_exact<ET>(ET(A().z()), ET(A().x()), ET(A().y()), ET(B().z()),
 			                       ET(B().x()), ET(B().y()), ET(P().z()), ET(P().x()),
-			                       ET(Q().z()), ET(Q().x()), d, lz, lx, ly, bz, bx,
-			                       by);
+			                       ET(Q().z()), ET(Q().x()), d, lz, lx, ly);
 		}
 		else if (plane == 2) // xy
 		{
 			// first xy, then z
 			lambda3d_SSI_exact<ET>(ET(A().x()), ET(A().y()), ET(A().z()), ET(B().x()),
 			                       ET(B().y()), ET(B().z()), ET(P().x()), ET(P().y()),
-			                       ET(Q().x()), ET(Q().y()), d, lx, ly, lz, bx, by,
-			                       bz);
+			                       ET(Q().x()), ET(Q().y()), d, lx, ly, lz);
 		}
 		else
 		{
@@ -993,6 +986,9 @@ void ImplicitPoint3T_SSI<IT, ET>::getExactLambda(ET &lx, ET &ly, ET &lz, ET &d,
 			lz = -lz;
 			d  = -d;
 		}
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 	}
 }
 
@@ -1019,8 +1015,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 				  P().z(), Q().y(), Q().z(), &cv.expansion_denominator,
 				  cv.expansion_d_len, &cv.expansion_lambda_y, cv.expansion_lambda_y_len,
 				  &cv.expansion_lambda_z, cv.expansion_lambda_z_len,
-				  &cv.expansion_lambda_x, cv.expansion_lambda_x_len, cv.ssfilter_beta_y,
-				  cv.ssfilter_beta_z, cv.ssfilter_beta_x);
+				  &cv.expansion_lambda_x, cv.expansion_lambda_x_len);
 			}
 			else if (plane == 1) // ZX
 			{
@@ -1030,8 +1025,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 				  P().x(), Q().z(), Q().x(), &cv.expansion_denominator,
 				  cv.expansion_d_len, &cv.expansion_lambda_z, cv.expansion_lambda_z_len,
 				  &cv.expansion_lambda_x, cv.expansion_lambda_x_len,
-				  &cv.expansion_lambda_y, cv.expansion_lambda_y_len, cv.ssfilter_beta_z,
-				  cv.ssfilter_beta_x, cv.ssfilter_beta_y);
+				  &cv.expansion_lambda_y, cv.expansion_lambda_y_len);
 			}
 			else if (plane == 2) // XY
 			{
@@ -1041,8 +1035,7 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 				  P().y(), Q().x(), Q().y(), &cv.expansion_denominator,
 				  cv.expansion_d_len, &cv.expansion_lambda_x, cv.expansion_lambda_x_len,
 				  &cv.expansion_lambda_y, cv.expansion_lambda_y_len,
-				  &cv.expansion_lambda_z, cv.expansion_lambda_z_len, cv.ssfilter_beta_x,
-				  cv.ssfilter_beta_y, cv.ssfilter_beta_z);
+				  &cv.expansion_lambda_z, cv.expansion_lambda_z_len);
 			}
 			expansionObject o;
 	#ifdef OMC_COMPRESS_EXPANSION
@@ -1083,9 +1076,9 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 		lz_len = cv.expansion_lambda_z_len;
 		d_len  = cv.expansion_d_len;
 		// beta xyz must be "double" floating point number
-		bx     = cv.ssfilter_beta_x;
-		by     = cv.ssfilter_beta_y;
-		bz     = cv.ssfilter_beta_z;
+		bx     = A().x();
+		by     = A().y();
+		bz     = A().z();
 	}
 	else
 	{
@@ -1094,24 +1087,21 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 			// first yz, then x
 			lambda3d_SSI_expansion(A().y(), A().z(), A().x(), B().y(), B().z(),
 			                       B().x(), P().y(), P().z(), Q().y(), Q().z(), d,
-			                       d_len, ly, ly_len, lz, lz_len, lx, lx_len, by, bz,
-			                       bx);
+			                       d_len, ly, ly_len, lz, lz_len, lx, lx_len);
 		}
 		else if (plane == 1) // ZX
 		{
 			// first zx, then y
 			lambda3d_SSI_expansion(A().z(), A().x(), A().y(), B().z(), B().x(),
 			                       B().y(), P().z(), P().x(), Q().z(), Q().x(), d,
-			                       d_len, lz, lz_len, lx, lx_len, ly, ly_len, bz, bx,
-			                       by);
+			                       d_len, lz, lz_len, lx, lx_len, ly, ly_len);
 		}
 		else if (plane == 2) // XY
 		{
 			// first xy, then z
 			lambda3d_SSI_expansion(A().x(), A().y(), A().z(), B().x(), B().y(),
 			                       B().z(), P().x(), P().y(), Q().x(), Q().y(), d,
-			                       d_len, lx, lx_len, ly, ly_len, lz, lz_len, bx, by,
-			                       bz);
+			                       d_len, lx, lx_len, ly, ly_len, lz, lz_len);
 		}
 		expansionObject o;
 	#ifdef OMC_COMPRESS_EXPANSION
@@ -1128,6 +1118,9 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 			o.Gen_Invert(d_len, *d);
 		}
 		normalizeLambda3D(*lx, lx_len, *ly, ly_len, *lz, lz_len, *d, d_len);
+		bx = A().x();
+		by = A().y();
+		bz = A().z();
 	}
 }
 

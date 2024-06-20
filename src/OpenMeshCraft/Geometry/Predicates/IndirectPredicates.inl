@@ -467,18 +467,18 @@ Sign OrientOn2D_Indirect<FT, IT, ET>::on_xy(const PointT &a, const PointT &b,
 			// clang-format off
 			if (a.is_Explicit())
 			{
-				if (b.point_type() <= c.point_type()) return orientOn2Dxy_IIE<SSF>(b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
-				else return reverse_sign(orientOn2Dxy_IIE<SSF>( c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
+				if (b.point_type() >= c.point_type()) return orientOn2Dxy_IIE<SSF>(b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
+				else return reverse_sign(orientOn2Dxy_IIE<SSF>(c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
 			}
 			if (b.is_Explicit())
 			{
-				if (a.point_type() <= c.point_type()) return reverse_sign(orientOn2Dxy_IIE<SSF>( a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
-				else return orientOn2Dxy_IIE<SSF>( c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
+				if (a.point_type() >= c.point_type()) return reverse_sign(orientOn2Dxy_IIE<SSF>(a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
+				else return orientOn2Dxy_IIE<SSF>(c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
 			}
 			if (c.is_Explicit())
 			{
-				if (a.point_type() <= b.point_type()) return orientOn2Dxy_IIE<SSF>( a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
-				else return reverse_sign(orientOn2Dxy_IIE<SSF>( b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
+				if (a.point_type() >= b.point_type()) return orientOn2Dxy_IIE<SSF>(a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
+				else return reverse_sign(orientOn2Dxy_IIE<SSF>(b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
 			}
 			// clang-format on
 		}
@@ -540,18 +540,18 @@ Sign OrientOn2D_Indirect<FT, IT, ET>::on_yz(const PointT &a, const PointT &b,
 			// clang-format off
 			if (a.is_Explicit())
 			{
-				if (b.point_type() <= c.point_type()) return orientOn2Dyz_IIE<SSF>( b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
-				else return reverse_sign(orientOn2Dyz_IIE<SSF>( c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
+				if (b.point_type() >= c.point_type()) return orientOn2Dyz_IIE<SSF>(b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
+				else return reverse_sign(orientOn2Dyz_IIE<SSF>(c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
 			}
 			if (b.is_Explicit())
 			{
-				if (a.point_type() <= c.point_type()) return reverse_sign(orientOn2Dyz_IIE<SSF>( a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
-				else return orientOn2Dyz_IIE<SSF>( c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
+				if (a.point_type() >= c.point_type()) return reverse_sign(orientOn2Dyz_IIE<SSF>(a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
+				else return orientOn2Dyz_IIE<SSF>(c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
 			}
 			if (c.is_Explicit())
 			{
-				if (a.point_type() <= b.point_type()) return orientOn2Dyz_IIE<SSF>( a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
-				else return reverse_sign(orientOn2Dyz_IIE<SSF>( b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
+				if (a.point_type() >= b.point_type()) return orientOn2Dyz_IIE<SSF>(a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
+				else return reverse_sign(orientOn2Dyz_IIE<SSF>(b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
 			}
 			// clang-format on
 		}
@@ -613,18 +613,18 @@ Sign OrientOn2D_Indirect<FT, IT, ET>::on_zx(const PointT &a, const PointT &b,
 			// clang-format off
 			if (a.is_Explicit())
 			{
-				if (b.point_type() <= c.point_type()) return orientOn2Dzx_IIE<SSF>( b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
-				else return reverse_sign(orientOn2Dzx_IIE<SSF>( c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
+				if (b.point_type() >= c.point_type()) return orientOn2Dzx_IIE<SSF>(b, c, a, get_pnts_arr3<false>(PntType(b), PntType(c)));
+				else return reverse_sign(orientOn2Dzx_IIE<SSF>(c, b, a, get_pnts_arr3<false>(PntType(c), PntType(b))));
 			}
 			if (b.is_Explicit())
 			{
-				if (a.point_type() <= c.point_type()) return reverse_sign(orientOn2Dzx_IIE<SSF>( a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
-				else return orientOn2Dzx_IIE<SSF>( c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
+				if (a.point_type() >= c.point_type()) return reverse_sign(orientOn2Dzx_IIE<SSF>(a, c, b, get_pnts_arr3<false>(PntType(a), PntType(c))));
+				else return orientOn2Dzx_IIE<SSF>(c, a, b, get_pnts_arr3<false>(PntType(c), PntType(a)));
 			}
 			if (c.is_Explicit())
 			{
-				if (a.point_type() <= b.point_type()) return orientOn2Dzx_IIE<SSF>( a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
-				else return reverse_sign(orientOn2Dzx_IIE<SSF>( b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
+				if (a.point_type() >= b.point_type()) return orientOn2Dzx_IIE<SSF>(a, b, c, get_pnts_arr3<false>(PntType(a), PntType(b)));
+				else return reverse_sign(orientOn2Dzx_IIE<SSF>(b, a, c, get_pnts_arr3<false>(PntType(b), PntType(a))));
 			}
 			// clang-format on
 		}
@@ -753,19 +753,19 @@ Sign LessThan3D_Indirect<FT, IT, ET>::on_x(const PointT &a, const PointT &b)
 		if (a.is_SSI() && b.is_SSI())
 			return lessThanOnX_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return lessThanOnX_II<SSF>(a, b, PntArr3::SL);
+			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::LS));
 		if (a.is_SSI() && b.is_TPI())
-			return lessThanOnX_II<SSF>(a, b, PntArr3::ST);
+			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::TS));
 		if (a.is_LPI() && b.is_SSI())
-			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::SL));
+			return lessThanOnX_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return lessThanOnX_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return lessThanOnX_II<SSF>(a, b, PntArr3::LT);
+			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::TL));
 		if (a.is_TPI() && b.is_SSI())
-			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::ST));
+			return lessThanOnX_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return reverse_sign(lessThanOnX_II<SSF>(b, a, PntArr3::LT));
+			return lessThanOnX_II<SSF>(a, b, PntArr3::TL);
 		// if (a.is_TPI() && b.is_TPI())
 		return lessThanOnX_II<SSF>(a, b, PntArr3::TT);
 	}
@@ -804,19 +804,19 @@ Sign LessThan3D_Indirect<FT, IT, ET>::on_y(const PointT &a, const PointT &b)
 		if (a.is_SSI() && b.is_SSI())
 			return lessThanOnY_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return lessThanOnY_II<SSF>(a, b, PntArr3::SL);
+			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::LS));
 		if (a.is_SSI() && b.is_TPI())
-			return lessThanOnY_II<SSF>(a, b, PntArr3::ST);
+			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::TS));
 		if (a.is_LPI() && b.is_SSI())
-			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::SL));
+			return lessThanOnY_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return lessThanOnY_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return lessThanOnY_II<SSF>(a, b, PntArr3::LT);
+			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::TL));
 		if (a.is_TPI() && b.is_SSI())
-			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::ST));
+			return lessThanOnY_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return reverse_sign(lessThanOnY_II<SSF>(b, a, PntArr3::LT));
+			return lessThanOnY_II<SSF>(a, b, PntArr3::TL);
 		// if (a.is_TPI() && b.is_TPI())
 		return lessThanOnY_II<SSF>(a, b, PntArr3::TT);
 	}
@@ -855,19 +855,19 @@ Sign LessThan3D_Indirect<FT, IT, ET>::on_z(const PointT &a, const PointT &b)
 		if (a.is_SSI() && b.is_SSI())
 			return lessThanOnZ_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return lessThanOnZ_II<SSF>(a, b, PntArr3::SL);
+			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::LS));
 		if (a.is_SSI() && b.is_TPI())
-			return lessThanOnZ_II<SSF>(a, b, PntArr3::ST);
+			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::TS));
 		if (a.is_LPI() && b.is_SSI())
-			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::SL));
+			return lessThanOnZ_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return lessThanOnZ_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return lessThanOnZ_II<SSF>(a, b, PntArr3::LT);
+			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::TL));
 		if (a.is_TPI() && b.is_SSI())
-			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::ST));
+			return lessThanOnZ_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return reverse_sign(lessThanOnZ_II<SSF>(b, a, PntArr3::LT));
+			return lessThanOnZ_II<SSF>(a, b, PntArr3::TL);
 		// if (a.is_TPI() && b.is_TPI())
 		return lessThanOnZ_II<SSF>(a, b, PntArr3::TT);
 	}
@@ -919,19 +919,19 @@ std::array<Sign, 3> LessThan3D_Indirect<FT, IT, ET>::on_all(const PointT &a,
 		if (a.is_SSI() && b.is_SSI())
 			return lessThanOnAll_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return lessThanOnAll_II<SSF>(a, b, PntArr3::SL);
+			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::LS));
 		if (a.is_SSI() && b.is_TPI())
-			return lessThanOnAll_II<SSF>(a, b, PntArr3::ST);
+			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::TS));
 		if (a.is_LPI() && b.is_SSI())
-			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::SL));
+			return lessThanOnAll_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return lessThanOnAll_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return lessThanOnAll_II<SSF>(a, b, PntArr3::LT);
+			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::TL));
 		if (a.is_TPI() && b.is_SSI())
-			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::ST));
+			return lessThanOnAll_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return reverse_signs(lessThanOnAll_II<SSF>(b, a, PntArr3::LT));
+			return lessThanOnAll_II<SSF>(a, b, PntArr3::TL);
 		if (a.is_TPI() && b.is_TPI())
 			return lessThanOnAll_II<SSF>(a, b, PntArr3::TT);
 	}
@@ -1063,19 +1063,19 @@ Sign LessThan3D_Indirect<FT, IT, ET>::operator()(const PointT &a,
 		if (a.is_SSI() && b.is_SSI())
 			return lessThan_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return lessThan_II<SSF>(a, b, PntArr3::SL);
+			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::LS));
 		if (a.is_SSI() && b.is_TPI())
-			return lessThan_II<SSF>(a, b, PntArr3::ST);
+			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::TS));
 		if (a.is_LPI() && b.is_SSI())
-			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::SL));
+			return lessThan_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return lessThan_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return lessThan_II<SSF>(a, b, PntArr3::LT);
+			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::TL));
 		if (a.is_TPI() && b.is_SSI())
-			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::ST));
+			return lessThan_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return reverse_sign(lessThan_II<SSF>(b, a, PntArr3::LT));
+			return lessThan_II<SSF>(a, b, PntArr3::TL);
 		// if (a.is_TPI() && b.is_TPI())
 		return lessThan_II<SSF>(a, b, PntArr3::TT);
 	}
@@ -1203,19 +1203,19 @@ int LongestAxis_Indirect<FT, IT, ET>::operator()(const PointT &a,
 		if (a.is_SSI() && b.is_SSI())
 			return longestAxis_II<SSF>(a, b, PntArr3::SS);
 		if (a.is_SSI() && b.is_LPI())
-			return longestAxis_II<SSF>(a, b, PntArr3::SL);
+			return longestAxis_II<SSF>(b, a, PntArr3::LS);
 		if (a.is_SSI() && b.is_TPI())
-			return longestAxis_II<SSF>(a, b, PntArr3::ST);
+			return longestAxis_II<SSF>(b, a, PntArr3::TS);
 		if (a.is_LPI() && b.is_SSI())
-			return longestAxis_II<SSF>(b, a, PntArr3::SL);
+			return longestAxis_II<SSF>(a, b, PntArr3::LS);
 		if (a.is_LPI() && b.is_LPI())
 			return longestAxis_II<SSF>(a, b, PntArr3::LL);
 		if (a.is_LPI() && b.is_TPI())
-			return longestAxis_II<SSF>(a, b, PntArr3::LT);
+			return longestAxis_II<SSF>(b, a, PntArr3::TL);
 		if (a.is_TPI() && b.is_SSI())
-			return longestAxis_II<SSF>(b, a, PntArr3::ST);
+			return longestAxis_II<SSF>(a, b, PntArr3::TS);
 		if (a.is_TPI() && b.is_LPI())
-			return longestAxis_II<SSF>(b, a, PntArr3::LT);
+			return longestAxis_II<SSF>(a, b, PntArr3::TL);
 		// if (a.is_TPI() && b.is_TPI())
 		return longestAxis_II<SSF>(a, b, PntArr3::TT);
 	}

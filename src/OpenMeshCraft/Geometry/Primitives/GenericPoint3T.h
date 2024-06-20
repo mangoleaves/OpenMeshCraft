@@ -20,9 +20,6 @@ class ImplicitPoint3T_LPI;
 template <typename IT, typename ET>
 class ImplicitPoint3T_TPI;
 
-template <typename IT, typename ET>
-class ImplicitPoint3T_LNC;
-
 /// @brief the generic point of 3D exact implicit and explicit points
 template <typename IT, typename ET>
 class GenericPoint3T : public Primitive3<double>
@@ -35,7 +32,6 @@ public: /* types *************************************************************/
 	using IP_SSI = ImplicitPoint3T_SSI<IT, ET>;
 	using IP_LPI = ImplicitPoint3T_LPI<IT, ET>;
 	using IP_TPI = ImplicitPoint3T_TPI<IT, ET>;
-	using IP_LNC = ImplicitPoint3T_LNC<IT, ET>;
 
 public: /* functions about types **********************************************/
 	enum class PointType : uint32_t
@@ -45,7 +41,6 @@ public: /* functions about types **********************************************/
 		SSI      = 2,
 		LPI      = 3,
 		TPI      = 4,
-		LNC      = 5
 	};
 
 	PointType m_point_type;
@@ -58,9 +53,8 @@ public: /* functions about types **********************************************/
 	bool is_SSI() const { return point_type() == PointType::SSI; }
 	bool is_LPI() const { return point_type() == PointType::LPI; }
 	bool is_TPI() const { return point_type() == PointType::TPI; }
-	bool is_LNC() const { return point_type() == PointType::LNC; }
 
-	bool has_ssf() const { return !is_LNC(); }
+	bool has_ssf() const { return true; }
 
 	/// @brief Convert to explicit point, won't check type again.
 	EP &EXP()
@@ -114,19 +108,6 @@ public: /* functions about types **********************************************/
 		return *static_cast<const IP_TPI *>(this);
 	}
 
-	/// @brief Convert to LNC point, won't check type again.
-	IP_LNC &LNC()
-	{
-		OMC_EXPENSIVE_ASSERT(is_LNC(), "point type mismatch.");
-		return *static_cast<IP_LNC *>(this);
-	}
-	/// @brief Convert to LNC point, won't check type again.
-	const IP_LNC &LNC() const
-	{
-		OMC_EXPENSIVE_ASSERT(is_LNC(), "point type mismatch.");
-		return *static_cast<const IP_LNC *>(this);
-	}
-
 	/// @brief approximate this generic point by an explicit point
 	void get_Explicit(EP &e) const
 	{
@@ -138,10 +119,6 @@ public: /* functions about types **********************************************/
 			LPI().get_Explicit(e);
 		else if (point_type() == PointType::TPI)
 			TPI().get_Explicit(e);
-#if defined(OMC_INDIRECT_PRED)
-		else if (point_type() == PointType::LNC)
-			LNC().get_Explicit(e);
-#endif
 	}
 
 	/// @brief approximate this generic point by an explicit point
@@ -188,10 +165,8 @@ public: /* get lambda values from implicit points ****************************/
 			return SSI().getFilteredLambda(lx, ly, lz, d, mv);
 		else if (point_type() == PointType::LPI)
 			return LPI().getFilteredLambda(lx, ly, lz, d, mv);
-		else if (point_type() == PointType::TPI)
+		else // if (point_type() == PointType::TPI)
 			return TPI().getFilteredLambda(lx, ly, lz, d, mv);
-		else /*if (point_type() == PointType::LNC)*/
-			return LNC().getFilteredLambda(lx, ly, lz, d, mv);
 	}
 
 	template <typename _IT = IT,
@@ -204,10 +179,8 @@ public: /* get lambda values from implicit points ****************************/
 			return SSI().getIntervalLambda(lx, ly, lz, d);
 		else if (point_type() == PointType::LPI)
 			return LPI().getIntervalLambda(lx, ly, lz, d);
-		else if (point_type() == PointType::TPI)
+		else // if (point_type() == PointType::TPI)
 			return TPI().getIntervalLambda(lx, ly, lz, d);
-		else /*if (point_type() == PointType::LNC)*/
-			return LNC().getIntervalLambda(lx, ly, lz, d);
 	}
 
 	template <typename _ET = ET,
@@ -220,10 +193,8 @@ public: /* get lambda values from implicit points ****************************/
 			SSI().getExactLambda(lx, ly, lz, d);
 		else if (point_type() == PointType::LPI)
 			LPI().getExactLambda(lx, ly, lz, d);
-		else if (point_type() == PointType::TPI)
+		else // if (point_type() == PointType::TPI)
 			TPI().getExactLambda(lx, ly, lz, d);
-		else /*if (point_type() == PointType::LNC)*/
-			LNC().getExactLambda(lx, ly, lz, d);
 	}
 
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
@@ -235,10 +206,8 @@ public: /* get lambda values from implicit points ****************************/
 			SSI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
 		else if (point_type() == PointType::LPI)
 			LPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
-		else if (point_type() == PointType::TPI)
+		else // if (point_type() == PointType::TPI)
 			TPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
-		else /*if (point_type() == PointType::LNC)*/
-			LNC().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len);
 	}
 #elif defined(OMC_OFFSET_PRED)
 	bool getFilteredLambda(FT &lx, FT &ly, FT &lz, FT &d, FT &bx, FT &by, FT &bz,
@@ -252,8 +221,6 @@ public: /* get lambda values from implicit points ****************************/
 			return LPI().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
 		else /*if (point_type() == PointType::TPI)*/
 			return TPI().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
-		// else /*if (point_type() == PointType::LNC)*/
-		//	return LNC().getFilteredLambda(lx, ly, lz, d, bx, by, bz, mv);
 	}
 
 	template <typename _IT = IT,
@@ -269,8 +236,6 @@ public: /* get lambda values from implicit points ****************************/
 			return LPI().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
 		else /*if (point_type() == PointType::TPI)*/
 			return TPI().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
-		// else /*if (point_type() == PointType::LNC)*/
-		//	return LNC().getIntervalLambda(lx, ly, lz, d, bx, by, bz);
 	}
 
 	template <typename _ET = ET,
@@ -286,8 +251,6 @@ public: /* get lambda values from implicit points ****************************/
 			LPI().getExactLambda(lx, ly, lz, d, bx, by, bz);
 		else if (point_type() == PointType::TPI)
 			TPI().getExactLambda(lx, ly, lz, d, bx, by, bz);
-		// else /*if (point_type() == PointType::LNC)*/
-		//	LNC().getExactLambda(lx, ly, lz, d, bx, by, bz);
 	}
 
 	void getExpansionLambda(FT **lx, int &lx_len, FT **ly, int &ly_len, FT **lz,
@@ -303,8 +266,6 @@ public: /* get lambda values from implicit points ****************************/
 			LPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
 		else if (point_type() == PointType::TPI)
 			TPI().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
-		// else /*if (point_type() == PointType::LNC)*/
-		//	LNC().getExpansionLambda(lx, lx_len, ly, ly_len, lz, lz_len, d, d_len, bx, by, bz);
 		// clang-format on
 	}
 #endif
@@ -458,9 +419,6 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().enable();
 		IP_LPI::gcv().enable();
 		IP_TPI::gcv().enable();
-#if defined(OMC_INDIRECT_PRED)
-		IP_LNC::gcv().enable();
-#endif
 		if (s != 0)
 			resize_global_cached_values(s);
 	}
@@ -470,9 +428,6 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().disable();
 		IP_LPI::gcv().disable();
 		IP_TPI::gcv().disable();
-#if defined(OMC_INDIRECT_PRED)
-		IP_LNC::gcv().disable();
-#endif
 	}
 
 	static void clear_global_cached_values()
@@ -480,9 +435,6 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().clear_cached_values();
 		IP_LPI::gcv().clear_cached_values();
 		IP_TPI::gcv().clear_cached_values();
-#if defined(OMC_INDIRECT_PRED)
-		IP_LNC::gcv().clear_cached_values();
-#endif
 	}
 
 	static void resize_global_cached_values(size_t s)
@@ -490,9 +442,6 @@ public: /* Global cache lambda values ****************************************/
 		IP_SSI::gcv().resize(s);
 		IP_LPI::gcv().resize(s);
 		IP_TPI::gcv().resize(s);
-#if defined(OMC_INDIRECT_PRED)
-		IP_LNC::gcv().resize(s);
-#endif
 	}
 
 	static bool global_cached_values_enabled()

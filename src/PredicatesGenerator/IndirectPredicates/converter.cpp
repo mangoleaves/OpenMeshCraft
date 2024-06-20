@@ -792,39 +792,39 @@ void Predicate::producePointArrangement(
 	size_t error_defs_size  = all_error_defs.size();
 	// assume that error defs are sorted by type_id, e.g., {S(2), L(3), T(4)}
 
-	// arrangement (e.g., SSS, SSL, SST, SLL, SLT, STT, LLL, LLT, LTT, TTT)
-	//                    222  223  224  233  234  244  333  334  344  444
-	// [highest bit ... lowest bit]
+	// arrangement (e.g., SSS, LSS, TSS, LLS, TLS, TTS, LLL, TLL, TTL, TTT)
+	//                    222  322  422  332  432  442  333  433  443  444
+	// [lowest bit ... highest bit]
 	std::vector<size_t> arr(lambda_vars_size, 0);
 
 	// increase arrangement by one.
 	auto inc_arr = [&]() -> bool
 	{
-		arr[lambda_vars_size - 1] += 1;
+		arr[0] += 1;
 		// check if need carry lowest bit.
-		if (arr[lambda_vars_size - 1] < error_defs_size)
+		if (arr[0] < error_defs_size)
 		{
 			return true; // does not need carry, go on
 		}
 		// need carry the lowest bit, further check if need carry other bits
-		size_t i;
-		for (i = lambda_vars_size - 1; i > 0 && arr[i] == error_defs_size; --i)
+		int i;
+		for (i = 0; i < (int)lambda_vars_size - 1 && arr[i] == error_defs_size; ++i)
 		{
 			arr[i] = 0;
-			arr[i - 1] += 1;
+			arr[i + 1] += 1;
 		}
 		// if we need to carry to the highest bit but it can't be carried, stop
-		if (i == 0 && arr[0] == error_defs_size)
+		if (i == (int)lambda_vars_size - 1 && arr[i] == error_defs_size)
 			return false;
 		// adjust lower bits to be not less than current bit
-		for (size_t j = i + 1; j < lambda_vars_size; ++j)
+		for (int j = i - 1; j >= 0; --j)
 			arr[j] = arr[i];
 		return true; // go on
 	};
 
 	do
 	{
-		// generate arrangement short names	(e.g., "SSL")
+		// generate arrangement short names	(e.g., "LSS")
 		std::string arr_str = "";
 		for (size_t i = 0; i < lambda_vars_size; ++i)
 			arr_str += all_error_defs[arr[i]].short_name;
@@ -877,7 +877,7 @@ void Predicate::produceFilteredCode(const std::string &funcname,
 		// declare lambda variables
 		// -- declare type
 		bool first;
-		file << FT;
+		file << FT + " ";
 		// -- declare variables
 		first = true;
 		for (const Variable &v : all_vars)
@@ -1064,7 +1064,7 @@ void Predicate::produceIntervalCode(const std::string &funcname,
 	{
 		// declare lambda variables
 		// -- declare type
-		file << IT;
+		file << IT + " ";
 		// -- declare variables
 		bool first = true;
 		for (const Variable &v : all_vars)
@@ -1613,14 +1613,13 @@ void Predicate::produceExactCode(const std::string &funcname,
 	{
 		// declare lambda variables
 		// -- declare type
-		file << ET;
+		file << ET + " ";
 		// -- declare variables
 		bool first = true;
 		for (const Variable &v : all_vars)
 			if (v.isInput() && v.is_part_of_implicit)
 			{
-				file << ((first) ? (" ") : (", ")) << v.name;
-				first = false;
+				file << sepa_comma(first) << v.name;
 			}
 		file << ";\n";
 		// -- get variables

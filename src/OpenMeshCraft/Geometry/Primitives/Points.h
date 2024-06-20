@@ -127,19 +127,4 @@ public:
 	}
 };
 
-template <typename NT>
-class CreateImplicitLNC_Ex
-{
-public:
-	using GP3     = Point3T<NT>;
-	using EP3     = Point3T<NT>;
-	using IP3_LNC = Point3T<NT>;
-
-	IP3_LNC operator()(const GP3 &p, const GP3 &q, const double t)
-	{
-		OMC_THROW_NOT_IMPLEMENTED();
-		return IP3_LNC();
-	}
-};
-
 } // namespace OMC

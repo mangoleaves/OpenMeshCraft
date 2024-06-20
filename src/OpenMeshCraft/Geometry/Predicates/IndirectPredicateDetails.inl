@@ -10754,7 +10754,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.2204460492503147e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -10763,7 +10763,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 7.906088977938107e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -10782,7 +10782,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.922887626377606e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11119,7 +11119,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.2204460492503147e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11128,7 +11128,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 7.906088977938107e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11147,7 +11147,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.922887626377606e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11484,7 +11484,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.2204460492503147e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11493,7 +11493,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 7.906088977938107e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -11512,7 +11512,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.922887626377606e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -12779,7 +12779,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.3609560407276204e-13;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -12787,7 +12787,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.4603487689945929e-12;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -12807,7 +12807,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 5.12855469897434e-12;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13213,41 +13213,17 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 3.3892888495756848e-12;
 	}
 	break;
-	case PntArr3::SSL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.1492353076125757e-11;
+		epsilon *= 1.123655769125212e-11;
 	}
 	break;
-	case PntArr3::SST:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.6373565003835534e-10;
-	}
-	break;
-	case PntArr3::SLL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.725680701449641e-11;
-	}
-	break;
-	case PntArr3::SLT:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13257,11 +13233,35 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 5.254050666758681e-10;
+		epsilon *= 1.637356500383553e-10;
 	}
 	break;
-	case PntArr3::STT:
+	case PntArr3::LLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 3.776839778424368e-11;
+	}
+	break;
+	case PntArr3::TLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.254050666758682e-10;
+	}
+	break;
+	case PntArr3::TTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13283,7 +13283,7 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.2701613979343482e-10;
 	}
 	break;
-	case PntArr3::LLT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13295,10 +13295,10 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.7060943907631994e-09;
+		epsilon *= 1.6897234861312867e-09;
 	}
 	break;
-	case PntArr3::LTT:
+	case PntArr3::TTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13306,7 +13306,7 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 2.211968919141341e-08;
+		epsilon *= 2.2381623665524018e-08;
 	}
 	break;
 	case PntArr3::TTT:
@@ -13761,7 +13761,67 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.1414158507250298e-10;
 	}
 	break;
-	case PntArr3::SSSL:
+	case PntArr3::LSSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= 3.5335867565322753e-10;
+	}
+	break;
+	case PntArr3::TSSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.218697391422692e-09;
+	}
+	break;
+	case PntArr3::LLSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= 1.1301670710395284e-09;
+	}
+	break;
+	case PntArr3::TLSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.3447952085243826e-08;
+	}
+	break;
+	case PntArr3::TTSS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.549237005349381e-07;
+	}
+	break;
+	case PntArr3::LLLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13772,7 +13832,38 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 3.540747695041109e-09;
 	}
 	break;
-	case PntArr3::SSST:
+	case PntArr3::TLLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.21228074642957e-08;
+	}
+	break;
+	case PntArr3::TTLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 4.824441983686295e-07;
+	}
+	break;
+	case PntArr3::TTTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13792,121 +13883,6 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 5.493879559281876e-06;
 	}
 	break;
-	case PntArr3::SSLL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.1398581634125613e-08;
-	}
-	break;
-	case PntArr3::SSLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.7194465556258534e-05;
-	}
-	break;
-	case PntArr3::SSTT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 0.00018409301731026268;
-	}
-	break;
-	case PntArr3::SLLL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.591358010979228e-08;
-	}
-	break;
-	case PntArr3::SLLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 5.37498169812528e-05;
-	}
-	break;
-	case PntArr3::SLTT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= 0.0005752701378583036;
-	}
-	break;
-	case PntArr3::STTT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 0.00605601238839889;
-	}
-	break;
 	case PntArr3::LLLL:
 	{
 		epsilon *= epsilon;
@@ -13921,7 +13897,44 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.1643036135211634e-07;
 	}
 	break;
-	case PntArr3::LLLT:
+	case PntArr3::TLLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.3236301175112532e-06;
+	}
+	break;
+	case PntArr3::TTLL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.5007914488052301e-05;
+	}
+	break;
+	case PntArr3::TTTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -13942,31 +13955,6 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 0.00016759783762410226;
-	}
-	break;
-	case PntArr3::LLTT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= 0.0017707331971905868;
-	}
-	break;
-	case PntArr3::LTTT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 0.01883943108077826;
 	}
 	break;
 	case PntArr3::TTTT:
@@ -14688,25 +14676,23 @@ Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.3698378249246237e-13;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= 1.488743156530251e-12;
+		epsilon *= max_var;
+		epsilon *= 4.928571439855047e-12;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0438810366396684e-11;
+		epsilon *= epsilon;
+		epsilon *= 8.997237399555097e-10;
 	}
 	break;
 	case PntArr3::LL:
@@ -14720,18 +14706,14 @@ Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6996907353794606e-11;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
+		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.1849581172128747e-10;
+		epsilon *= 2.9221433051063342e-09;
 	}
 	break;
 	case PntArr3::TT:
@@ -14876,32 +14858,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.53477230924182e-12;
 	}
 	break;
-	case PntArr3::SSL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 4.8889503556637374e-12;
-	}
-	break;
-	case PntArr3::SST:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.384476280985069e-11;
-	}
-	break;
-	case PntArr3::SLL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -14913,22 +14870,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6089185539414123e-11;
 	}
 	break;
-	case PntArr3::SLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0530288580289475e-10;
-	}
-	break;
-	case PntArr3::STT:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -14937,6 +14879,46 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5007771409235755e-09;
+	}
+	break;
+	case PntArr3::LLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.264824687323274e-11;
+	}
+	break;
+	case PntArr3::TLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.045209720641875e-09;
+	}
+	break;
+	case PntArr3::TTS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.987540489613436e-08;
 	}
 	break;
 	case PntArr3::LLL:
@@ -14953,17 +14935,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.7563428489353397e-10;
 	}
 	break;
-	case PntArr3::LLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= 2.144556754402072e-09;
-	}
-	break;
-	case PntArr3::LTT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -14974,6 +14946,22 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5356810429144788e-08;
+	}
+	break;
+	case PntArr3::TTL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.854473741820152e-07;
 	}
 	break;
 	case PntArr3::TTT:
@@ -15339,25 +15327,23 @@ Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.3698378249246237e-13;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= 1.488743156530251e-12;
+		epsilon *= max_var;
+		epsilon *= 4.928571439855047e-12;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0438810366396684e-11;
+		epsilon *= epsilon;
+		epsilon *= 8.997237399555097e-10;
 	}
 	break;
 	case PntArr3::LL:
@@ -15371,18 +15357,14 @@ Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6996907353794606e-11;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
+		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.1849581172128747e-10;
+		epsilon *= 2.9221433051063342e-09;
 	}
 	break;
 	case PntArr3::TT:
@@ -15527,32 +15509,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.53477230924182e-12;
 	}
 	break;
-	case PntArr3::SSL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 4.8889503556637374e-12;
-	}
-	break;
-	case PntArr3::SST:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.384476280985069e-11;
-	}
-	break;
-	case PntArr3::SLL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -15564,22 +15521,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6089185539414123e-11;
 	}
 	break;
-	case PntArr3::SLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0530288580289475e-10;
-	}
-	break;
-	case PntArr3::STT:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -15588,6 +15530,46 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5007771409235755e-09;
+	}
+	break;
+	case PntArr3::LLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.264824687323274e-11;
+	}
+	break;
+	case PntArr3::TLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.045209720641875e-09;
+	}
+	break;
+	case PntArr3::TTS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.987540489613436e-08;
 	}
 	break;
 	case PntArr3::LLL:
@@ -15604,17 +15586,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.7563428489353397e-10;
 	}
 	break;
-	case PntArr3::LLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= 2.144556754402072e-09;
-	}
-	break;
-	case PntArr3::LTT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -15625,6 +15597,22 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5356810429144788e-08;
+	}
+	break;
+	case PntArr3::TTL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.854473741820152e-07;
 	}
 	break;
 	case PntArr3::TTT:
@@ -15990,25 +15978,23 @@ Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.3698378249246237e-13;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= 1.488743156530251e-12;
+		epsilon *= max_var;
+		epsilon *= 4.928571439855047e-12;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0438810366396684e-11;
+		epsilon *= epsilon;
+		epsilon *= 8.997237399555097e-10;
 	}
 	break;
 	case PntArr3::LL:
@@ -16022,18 +16008,14 @@ Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6996907353794606e-11;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
+		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.1849581172128747e-10;
+		epsilon *= 2.9221433051063342e-09;
 	}
 	break;
 	case PntArr3::TT:
@@ -16178,32 +16160,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.53477230924182e-12;
 	}
 	break;
-	case PntArr3::SSL:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 4.8889503556637374e-12;
-	}
-	break;
-	case PntArr3::SST:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.384476280985069e-11;
-	}
-	break;
-	case PntArr3::SLL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -16215,22 +16172,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6089185539414123e-11;
 	}
 	break;
-	case PntArr3::SLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0530288580289475e-10;
-	}
-	break;
-	case PntArr3::STT:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -16239,6 +16181,46 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5007771409235755e-09;
+	}
+	break;
+	case PntArr3::LLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.264824687323274e-11;
+	}
+	break;
+	case PntArr3::TLS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.045209720641875e-09;
+	}
+	break;
+	case PntArr3::TTS:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 8.987540489613436e-08;
 	}
 	break;
 	case PntArr3::LLL:
@@ -16255,17 +16237,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.7563428489353397e-10;
 	}
 	break;
-	case PntArr3::LLT:
-	{
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= 2.144556754402072e-09;
-	}
-	break;
-	case PntArr3::LTT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -16276,6 +16248,22 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= 2.5356810429144788e-08;
+	}
+	break;
+	case PntArr3::TTL:
+	{
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= epsilon;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 2.854473741820152e-07;
 	}
 	break;
 	case PntArr3::TTT:
@@ -17296,7 +17284,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6431300764452333e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -17305,7 +17293,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.084585960075558e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -17324,7 +17312,7 @@ Sign lessThanOnX_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.20746164403263e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -17696,7 +17684,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6431300764452333e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -17705,7 +17693,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.084585960075558e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -17724,7 +17712,7 @@ Sign lessThanOnY_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.20746164403263e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18096,7 +18084,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.6431300764452333e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18105,7 +18093,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.084585960075558e-14;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18124,7 +18112,7 @@ Sign lessThanOnZ_II_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.20746164403263e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18765,7 +18753,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.0605739337042936e-13;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18773,7 +18761,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.714967124010773e-13;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -18793,7 +18781,7 @@ Sign orient3D_IIEE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 2.3201249949034204e-12;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19246,17 +19234,17 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.0800249583553551e-12;
 	}
 	break;
-	case PntArr3::SSL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 3.538638132516435e-12;
+		epsilon *= 3.4533730042252224e-12;
 	}
 	break;
-	case PntArr3::SST:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19266,10 +19254,10 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 8.586198418925086e-11;
+		epsilon *= 8.398615136684418e-11;
 	}
 	break;
-	case PntArr3::SLL:
+	case PntArr3::LLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19277,10 +19265,10 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.1412128186894e-11;
+		epsilon *= 1.1582658443476424e-11;
 	}
 	break;
-	case PntArr3::SLT:
+	case PntArr3::TLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19291,17 +19279,17 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 2.7186095735709623e-10;
+		epsilon *= 2.7356625992292047e-10;
 	}
 	break;
-	case PntArr3::STT:
+	case PntArr3::TTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= 6.132438556960583e-09;
+		epsilon *= 6.159723398013771e-09;
 	}
 	break;
 	case PntArr3::LLL:
@@ -19316,7 +19304,7 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 3.747767721162821e-11;
 	}
 	break;
-	case PntArr3::LLT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19328,10 +19316,10 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 8.746082608146503e-10;
+		epsilon *= 8.70515534656672e-10;
 	}
 	break;
-	case PntArr3::LTT:
+	case PntArr3::TTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19339,7 +19327,7 @@ Sign orient3D_IIIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.956868465879957e-08;
+		epsilon *= 1.9503201040271917e-08;
 	}
 	break;
 	case PntArr3::TTT:
@@ -19881,18 +19869,16 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.668265773943881e-11;
 	}
 	break;
-	case PntArr3::SSSL:
+	case PntArr3::LSSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.554727971364587e-09;
+		epsilon *= 1.478261818510525e-10;
 	}
 	break;
-	case PntArr3::SSST:
+	case PntArr3::TSSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19901,30 +19887,20 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.0059331543743702e-05;
+		epsilon *= 2.9007765078859124e-09;
 	}
 	break;
-	case PntArr3::SSLL:
+	case PntArr3::LLSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 4.934037456383351e-09;
+		epsilon *= 4.736343817146629e-10;
 	}
 	break;
-	case PntArr3::SSLT:
+	case PntArr3::TLSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19934,18 +19910,10 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.112779300096265e-05;
+		epsilon *= 9.184822902241822e-09;
 	}
 	break;
-	case PntArr3::SSTT:
+	case PntArr3::TTSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19958,18 +19926,10 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 0.0005226793582551237;
+		epsilon *= 1.7266393115278468e-07;
 	}
 	break;
-	case PntArr3::SLLL:
+	case PntArr3::LLLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19977,12 +19937,10 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 1.535519549011886e-08;
+		epsilon *= 1.5236488321024391e-09;
 	}
 	break;
-	case PntArr3::SLLT:
+	case PntArr3::TLLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -19993,38 +19951,44 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 9.51822422479163e-05;
+		epsilon *= 2.9198399698060673e-08;
 	}
 	break;
-	case PntArr3::SLTT:
+	case PntArr3::TTLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
-		epsilon *= 0.0015946633955721441;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.442946893197176e-07;
 	}
 	break;
-	case PntArr3::STTT:
+	case PntArr3::TTTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 0.026444148039445593;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 9.942639735527431e-06;
 	}
 	break;
 	case PntArr3::LLLL:
@@ -20041,7 +20005,7 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 4.8781668676723156e-08;
 	}
 	break;
-	case PntArr3::LLLT:
+	case PntArr3::TLLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -20055,38 +20019,50 @@ Sign orient3D_IIII_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 0.0002952721038056467;
+		epsilon *= 9.090334473216346e-07;
 	}
 	break;
-	case PntArr3::LLTT:
+	case PntArr3::TTLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= 0.004930109261224001;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.6600963133051184e-05;
 	}
 	break;
-	case PntArr3::LTTT:
+	case PntArr3::TTTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 0.08154614984406648;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 0.0002985182577432995;
 	}
 	break;
 	case PntArr3::TTTT:
@@ -20977,7 +20953,7 @@ Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 5.684341886080809e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -20987,7 +20963,7 @@ Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.918578143578212e-13;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21005,7 +20981,7 @@ Sign orientOn2Dxy_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.750832531876594e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21112,7 +21088,7 @@ Sign orientOn2Dxy_IIE(const GenericPoint3T<IT, ET> &p1,
 		return ret;
 	OMC_PRED_PROFILE_INC_DFAIL(PredicateNames::_orientOn2Dxy_IIE, arr);
 	ret = orientOn2Dxy_IIE_expansion<IT, ET>(p1, p2, p3x, p3y);
-	OMC_PRED_PROFILE_INC_REALZERO(ret , PredicateNames::_orientOn2Dxy_IIE, arr);
+	OMC_PRED_PROFILE_INC_REALZERO(ret, PredicateNames::_orientOn2Dxy_IIE, arr);
 	return ret;
 }
 
@@ -21186,7 +21162,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 8.455458555545215e-13;
 	}
 	break;
-	case PntArr3::SSL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21194,22 +21170,24 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 9.344448825832107e-12;
+		epsilon *= 2.746382982143922e-12;
 	}
 	break;
-	case PntArr3::SST:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 3.816239768639228e-09;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.881872766622135e-11;
 	}
 	break;
-	case PntArr3::SLL:
+	case PntArr3::LLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21218,23 +21196,25 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.000987305878955e-11;
+		epsilon *= 9.152602287176878e-12;
 	}
 	break;
-	case PntArr3::SLT:
+	case PntArr3::TLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.1864709104081397e-08;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.9107143645058585e-10;
 	}
 	break;
-	case PntArr3::STT:
+	case PntArr3::TTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21242,11 +21222,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0999050320824756e-07;
+		epsilon *= 3.771219780901469e-09;
 	}
 	break;
 	case PntArr3::LLL:
@@ -21263,20 +21239,17 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 9.823293567468065e-11;
 	}
 	break;
-	case PntArr3::LLT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.742417331587001e-08;
+		epsilon *= 1.968414466146938e-09;
 	}
 	break;
-	case PntArr3::LTT:
+	case PntArr3::TTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21286,10 +21259,7 @@ Sign orientOn2Dxy_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.576550303227838e-07;
+		epsilon *= 3.784163138398379e-08;
 	}
 	break;
 	case PntArr3::TTT:
@@ -21700,7 +21670,7 @@ Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 5.684341886080809e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21710,7 +21680,7 @@ Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.918578143578212e-13;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21728,7 +21698,7 @@ Sign orientOn2Dyz_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.750832531876594e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21909,7 +21879,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 8.455458555545215e-13;
 	}
 	break;
-	case PntArr3::SSL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21917,22 +21887,24 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 9.344448825832107e-12;
+		epsilon *= 2.746382982143922e-12;
 	}
 	break;
-	case PntArr3::SST:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 3.816239768639228e-09;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.881872766622135e-11;
 	}
 	break;
-	case PntArr3::SLL:
+	case PntArr3::LLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21941,23 +21913,25 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.000987305878955e-11;
+		epsilon *= 9.152602287176878e-12;
 	}
 	break;
-	case PntArr3::SLT:
+	case PntArr3::TLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.1864709104081397e-08;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.9107143645058585e-10;
 	}
 	break;
-	case PntArr3::STT:
+	case PntArr3::TTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -21965,11 +21939,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0999050320824756e-07;
+		epsilon *= 3.771219780901469e-09;
 	}
 	break;
 	case PntArr3::LLL:
@@ -21986,20 +21956,17 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 9.823293567468065e-11;
 	}
 	break;
-	case PntArr3::LLT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.742417331587001e-08;
+		epsilon *= 1.968414466146938e-09;
 	}
 	break;
-	case PntArr3::LTT:
+	case PntArr3::TTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22009,10 +21976,7 @@ Sign orientOn2Dyz_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.576550303227838e-07;
+		epsilon *= 3.784163138398379e-08;
 	}
 	break;
 	case PntArr3::TTT:
@@ -22423,7 +22387,7 @@ Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 5.684341886080809e-14;
 	}
 	break;
-	case PntArr3::SL:
+	case PntArr3::LS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22433,7 +22397,7 @@ Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 1.918578143578212e-13;
 	}
 	break;
-	case PntArr3::ST:
+	case PntArr3::TS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22451,7 +22415,7 @@ Sign orientOn2Dzx_IIE_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 6.750832531876594e-13;
 	}
 	break;
-	case PntArr3::LT:
+	case PntArr3::TL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22632,7 +22596,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 8.455458555545215e-13;
 	}
 	break;
-	case PntArr3::SSL:
+	case PntArr3::LSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22640,22 +22604,24 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 9.344448825832107e-12;
+		epsilon *= 2.746382982143922e-12;
 	}
 	break;
-	case PntArr3::SST:
+	case PntArr3::TSS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 3.816239768639228e-09;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 5.881872766622135e-11;
 	}
 	break;
-	case PntArr3::SLL:
+	case PntArr3::LLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22664,23 +22630,25 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.000987305878955e-11;
+		epsilon *= 9.152602287176878e-12;
 	}
 	break;
-	case PntArr3::SLT:
+	case PntArr3::TLS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
-		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= 1.1864709104081397e-08;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= max_var;
+		epsilon *= 1.9107143645058585e-10;
 	}
 	break;
-	case PntArr3::STT:
+	case PntArr3::TTS:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22688,11 +22656,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= epsilon;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 2.0999050320824756e-07;
+		epsilon *= 3.771219780901469e-09;
 	}
 	break;
 	case PntArr3::LLL:
@@ -22709,20 +22673,17 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= 9.823293567468065e-11;
 	}
 	break;
-	case PntArr3::LLT:
+	case PntArr3::TLL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= epsilon;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 3.742417331587001e-08;
+		epsilon *= 1.968414466146938e-09;
 	}
 	break;
-	case PntArr3::LTT:
+	case PntArr3::TTL:
 	{
 		epsilon *= epsilon;
 		epsilon *= epsilon;
@@ -22732,10 +22693,7 @@ Sign orientOn2Dzx_III_filtered(const GenericPoint3T<IT, ET> &p1,
 		epsilon *= max_var;
 		epsilon *= max_var;
 		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= max_var;
-		epsilon *= 6.576550303227838e-07;
+		epsilon *= 3.784163138398379e-08;
 	}
 	break;
 	case PntArr3::TTT:

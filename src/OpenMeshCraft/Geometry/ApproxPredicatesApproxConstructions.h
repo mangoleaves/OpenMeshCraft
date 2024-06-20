@@ -105,7 +105,6 @@ public:
 	using CreateSSI3 = CreateImplicitSSI3_Ex<NT>;
 	using CreateLPI  = CreateImplicitLPI_Ex<NT>;
 	using CreateTPI  = CreateImplicitTPI_Ex<NT>;
-	using CreateLNC  = CreateImplicitLNC_Ex<NT>;
 	/// @}
 
 	static_assert(std::is_trivially_copyable<Point2>::value);

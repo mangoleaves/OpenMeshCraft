@@ -121,22 +121,6 @@ inline void lambda3d_TPI_expansion(
   double **lambda_y, int &lambda_y_len, double **lambda_z, int &lambda_z_len,
   double **lambda_d, int &lambda_d_len);
 
-template <typename IT>
-bool lambda3d_LNC_interval(IT px, IT py, IT pz, IT qx, IT qy, IT qz, IT t,
-                           IT &lambda_x, IT &lambda_y, IT &lambda_z,
-                           IT &lambda_d);
-
-template <typename ET>
-void lambda3d_LNC_exact(ET px, ET py, ET pz, ET qx, ET qy, ET qz, ET t,
-                        ET &lambda_x, ET &lambda_y, ET &lambda_z, ET &lambda_d);
-
-inline void lambda3d_LNC_expansion(double px, double py, double pz, double qx,
-                                   double qy, double qz, double t,
-                                   double **lambda_x, int &lambda_x_len,
-                                   double **lambda_y, int &lambda_y_len,
-                                   double **lambda_z, int &lambda_z_len,
-                                   double **lambda_d, int &lambda_d_len);
-
 #elif defined(OMC_OFFSET_PRED)
 
 inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
@@ -145,46 +129,43 @@ inline bool lambda3d_LPI_filtered(double xa, double ya, double za, double xb,
                                   double xq, double yq, double zq,
                                   double &lambda_d, double &lambda_x,
                                   double &lambda_y, double &lambda_z,
-                                  double &beta_x, double &beta_y,
-                                  double &beta_z, double &max_var);
+                                  double &max_var);
 
 template <typename IT>
 bool lambda3d_LPI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xo,
                            IT yo, IT zo, IT xp, IT yp, IT zp, IT xq, IT yq,
                            IT zq, IT &lambda_d, IT &lambda_x, IT &lambda_y,
-                           IT &lambda_z, IT &beta_x, IT &beta_y, IT &beta_z);
+                           IT &lambda_z);
 
 template <typename ET>
 void lambda3d_LPI_exact(ET xa, ET ya, ET za, ET xb, ET yb, ET zb, ET xo, ET yo,
                         ET zo, ET xp, ET yp, ET zp, ET xq, ET yq, ET zq,
-                        ET &lambda_d, ET &lambda_x, ET &lambda_y, ET &lambda_z,
-                        ET &beta_x, ET &beta_y, ET &beta_z);
+                        ET &lambda_d, ET &lambda_x, ET &lambda_y, ET &lambda_z);
 
-inline void lambda3d_LPI_expansion(
-  double xa, double ya, double za, double xb, double yb, double zb, double xo,
-  double yo, double zo, double xp, double yp, double zp, double xq, double yq,
-  double zq, double **lambda_d, int &lambda_d_len, double **lambda_x,
-  int &lambda_x_len, double **lambda_y, int &lambda_y_len, double **lambda_z,
-  int &lambda_z_len, double &beta_x, double &beta_y, double &beta_z);
+inline void lambda3d_LPI_expansion(double xa, double ya, double za, double xb,
+                                   double yb, double zb, double xo, double yo,
+                                   double zo, double xp, double yp, double zp,
+                                   double xq, double yq, double zq,
+                                   double **lambda_d, int &lambda_d_len,
+                                   double **lambda_x, int &lambda_x_len,
+                                   double **lambda_y, int &lambda_y_len,
+                                   double **lambda_z, int &lambda_z_len);
 
 inline bool lambda3d_SSI_filtered(double xa, double ya, double za, double xb,
                                   double yb, double zb, double xp, double yp,
                                   double xq, double yq, double &lambda_d,
                                   double &lambda_x, double &lambda_y,
-                                  double &lambda_z, double &beta_x,
-                                  double &beta_y, double &beta_z,
-                                  double &max_var);
+                                  double &lambda_z, double &max_var);
 
 template <typename IT>
 bool lambda3d_SSI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xp,
                            IT yp, IT xq, IT yq, IT &lambda_d, IT &lambda_x,
-                           IT &lambda_y, IT &lambda_z, IT &beta_x, IT &beta_y,
-                           IT &beta_z);
+                           IT &lambda_y, IT &lambda_z);
 
 template <typename ET>
 void lambda3d_SSI_exact(ET xa, ET ya, ET za, ET xb, ET yb, ET zb, ET xp, ET yp,
                         ET xq, ET yq, ET &lambda_d, ET &lambda_x, ET &lambda_y,
-                        ET &lambda_z, ET &beta_x, ET &beta_y, ET &beta_z);
+                        ET &lambda_z);
 
 inline void lambda3d_SSI_expansion(double xa, double ya, double za, double xb,
                                    double yb, double zb, double xp, double yp,
@@ -192,16 +173,16 @@ inline void lambda3d_SSI_expansion(double xa, double ya, double za, double xb,
                                    int &lambda_d_len, double **lambda_x,
                                    int &lambda_x_len, double **lambda_y,
                                    int &lambda_y_len, double **lambda_z,
-                                   int &lambda_z_len, double &beta_x,
-                                   double &beta_y, double &beta_z);
+                                   int &lambda_z_len);
 
-inline bool lambda3d_TPI_filtered(
-  double xa, double ya, double za, double xb, double yb, double zb, double xc,
-  double yc, double zc, double xo, double yo, double zo, double xp, double yp,
-  double zp, double xq, double yq, double zq, double xr, double yr, double zr,
-  double xs, double ys, double zs, double xt, double yt, double zt,
-  double &lambda_d, double &lambda_x, double &lambda_y, double &lambda_z,
-  double &beta_x, double &beta_y, double &beta_z, double &max_var);
+inline bool
+lambda3d_TPI_filtered(double xa, double ya, double za, double xb, double yb,
+                      double zb, double xc, double yc, double zc, double xo,
+                      double yo, double zo, double xp, double yp, double zp,
+                      double xq, double yq, double zq, double xr, double yr,
+                      double zr, double xs, double ys, double zs, double xt,
+                      double yt, double zt, double &lambda_d, double &lambda_x,
+                      double &lambda_y, double &lambda_z, double &max_var);
 
 template <typename IT>
 bool lambda3d_TPI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xc,
@@ -209,15 +190,14 @@ bool lambda3d_TPI_interval(IT xa, IT ya, IT za, IT xb, IT yb, IT zb, IT xc,
                            IT zp, IT xq, IT yq, IT zq, IT xr, IT yr, IT zr,
                            IT xs, IT ys, IT zs, IT xt, IT yt, IT zt,
                            IT &lambda_d, IT &lambda_x, IT &lambda_y,
-                           IT &lambda_z, IT &beta_x, IT &beta_y, IT &beta_z);
+                           IT &lambda_z);
 
 template <typename ET>
 void lambda3d_TPI_exact(ET xa, ET ya, ET za, ET xb, ET yb, ET zb, ET xc, ET yc,
                         ET zc, ET xo, ET yo, ET zo, ET xp, ET yp, ET zp, ET xq,
                         ET yq, ET zq, ET xr, ET yr, ET zr, ET xs, ET ys, ET zs,
                         ET xt, ET yt, ET zt, ET &lambda_d, ET &lambda_x,
-                        ET &lambda_y, ET &lambda_z, ET &beta_x, ET &beta_y,
-                        ET &beta_z);
+                        ET &lambda_y, ET &lambda_z);
 
 inline void lambda3d_TPI_expansion(
   double xa, double ya, double za, double xb, double yb, double zb, double xc,
@@ -225,8 +205,7 @@ inline void lambda3d_TPI_expansion(
   double zp, double xq, double yq, double zq, double xr, double yr, double zr,
   double xs, double ys, double zs, double xt, double yt, double zt,
   double **lambda_d, int &lambda_d_len, double **lambda_x, int &lambda_x_len,
-  double **lambda_y, int &lambda_y_len, double **lambda_z, int &lambda_z_len,
-  double &beta_x, double &beta_y, double &beta_z);
+  double **lambda_y, int &lambda_y_len, double **lambda_z, int &lambda_z_len);
 
 #endif
 

@@ -93,7 +93,7 @@ public:
 public:
 	// floating-point filter
 	// NaN demoninator is used to check if it is cached.
-	#ifdef OMC_CACHE_SSF
+	#ifndef OMC_CACHE_SSF
 	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
 	  ssfilter_denominator, ssfilter_max_val;
 	#endif
@@ -173,18 +173,15 @@ public:
 
 public:
 	// floating-point filter
-	#ifdef OMC_CACHE_SSF
+	#ifndef OMC_CACHE_SSF
 	FT ssfilter_lambda_x, ssfilter_lambda_y, ssfilter_lambda_z,
-	  ssfilter_denominator, ssfilter_beta_x, ssfilter_beta_y, ssfilter_beta_z,
-	  ssfilter_max_val;
+	  ssfilter_denominator, ssfilter_max_val;
 	#endif
 	// dynamic filter (interval number)
-	IT dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator,
-	  dfilter_beta_x, dfilter_beta_y, dfilter_beta_z;
+	IT  dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator;
 	// exact number
 	ET *exact_lambda_x = nullptr, *exact_lambda_y = nullptr,
-	   *exact_lambda_z = nullptr, *exact_denominator = nullptr,
-	   *exact_beta_x = nullptr, *exact_beta_y = nullptr, *exact_beta_z = nullptr;
+	   *exact_lambda_z = nullptr, *exact_denominator = nullptr;
 	// expansion number
 	FT *expansion_lambda_x = nullptr, *expansion_lambda_y = nullptr,
 	   *expansion_lambda_z = nullptr, *expansion_denominator = nullptr;
@@ -203,9 +200,6 @@ public:
 		exact_lambda_y    = nullptr;
 		exact_lambda_z    = nullptr;
 		exact_denominator = nullptr;
-		exact_beta_x      = nullptr;
-		exact_beta_y      = nullptr;
-		exact_beta_z      = nullptr;
 
 		expansion_lambda_x     = nullptr;
 		expansion_lambda_y     = nullptr;
@@ -245,14 +239,11 @@ public:
 
 	void alloc_ET()
 	{
-		ET *new_et        = new ET[7];
+		ET *new_et        = new ET[4];
 		exact_lambda_x    = new_et + 0;
 		exact_lambda_y    = new_et + 1;
 		exact_lambda_z    = new_et + 2;
 		exact_denominator = new_et + 3;
-		exact_beta_x      = new_et + 4;
-		exact_beta_y      = new_et + 5;
-		exact_beta_z      = new_et + 6;
 	}
 };
 

@@ -90,7 +90,7 @@ void two_one_sub_full(const double a1, const double a0, const double b,
 {
 	double _tt;
 	two_sub(a0, b, _tt, x0);
-	two_sub(a1, _tt, x2, x1);
+	two_sum(a1, _tt, x2, x1);
 }
 
 void two_one_sub_clip(const double a1, const double a0, const double b,
