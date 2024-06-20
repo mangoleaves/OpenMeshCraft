@@ -129,9 +129,24 @@
 /* Macros that control behavior of predicates ************/
 /*********************************************************/
 
+// Enable indirect predicates
 // #define OMC_INDIRECT_PRED
+
+// Enable indirect offset predicates
 #define OMC_OFFSET_PRED
 
+// Cache semi-static filter in points (lx, ly, lz, ld, max_var...)
 #define OMC_CACHE_SSF
 
-// #define OMC_COMPRESS_EXPANSION
+// Compress expansion before:
+// 1. storing coordinates.
+// 2. calculate the final determinant in orientOn2D_IIE and orientOn2D_III.
+#define OMC_COMPRESS_EXPANSION
+
+// Update interval coordinates after calculating expansion coordinates.
+#define OMC_UPDATE_INTERVAL_BY_EXPANSION
+
+// Switch to other exact arithmetic if expansion's length is too long.
+#define OMC_LIMIT_EXPANSION_LENGTH
+#define OMC_EXPANSION_LENGTH_THRES 100
+#define OMC_SUM_LENGTH_THRES 40

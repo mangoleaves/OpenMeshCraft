@@ -2,6 +2,8 @@
 
 #include "ExpansionObject.h"
 
+#include "FPU.h"
+
 namespace OMC {
 
 int expansionObject::Gen_Sum(const int elen, const double *e, const int flen,
@@ -225,14 +227,6 @@ int expansionObject::Gen_Product_With_PreAlloc(const int alen, const double *a,
 	return Gen_Product(alen, a, blen, b, *h);
 }
 
-double expansionObject::To_Double(const int elen, const double *e)
-{
-	double Q = e[0];
-	for (int e_i = 1; e_i < elen; e_i++)
-		Q += e[e_i];
-	return Q;
-}
-
 void expansionObject::Compress(int &elen, double *e)
 {
 	double *h = e;
@@ -276,6 +270,73 @@ void expansionObject::CompressIf(int &elen, double *e)
 {
 	if (elen > compress_thres)
 		Compress(elen, e);
+}
+
+double expansionObject::To_Double(const int elen, const double *e)
+{
+	double Q = e[0];
+	for (int e_i = 1; e_i < elen; e_i++)
+		Q += e[e_i];
+	return Q;
+}
+
+std::pair<double, double> expansionObject::To_Interval(const int     elen,
+                                                       const double *e)
+{
+	// Optimized expansion-to-interval conversion:
+	//
+	// Add components starting from the one of largest magnitude
+	// Stop as soon as next component is smaller than ulp (and then
+	// expand interval by ulp).
+
+	// rounding to +infinity
+	FPU_RoundingProtector<std::false_type> P;
+
+	int    l    = elen;
+	double ninf = -e[l - 1];
+	double sup  = e[l - 1];
+
+	for (int comp_idx = l - 2; comp_idx >= 0; --comp_idx)
+	{
+		double comp = e[comp_idx];
+		sup += comp;
+		ninf -= comp;
+		if (comp > 0)
+		{
+			double new_sup = sup + comp;
+			if (new_sup == sup)
+			{
+				sup = std::nextafter(sup, std::numeric_limits<double>::infinity());
+				break;
+			}
+			else
+			{
+				sup = new_sup;
+			}
+		}
+		else
+		{
+			// If we stored inf, we would write:
+			//  new_inf  =  inf  + comp
+			// But we store ninf = -inf, so we write:
+			// -new_ninf = -ninf + comp
+			// Which means:
+			//  new_ninf =  ninf - comp
+
+			double new_ninf = ninf - comp;
+			if (new_ninf == ninf)
+			{
+				ninf = std::nextafter(ninf, std::numeric_limits<double>::infinity());
+				break;
+			}
+			else
+			{
+				ninf = new_ninf;
+			}
+		}
+	}
+
+	return std::pair<double, double>(ninf, sup);
 }
 
 } // namespace OMC

@@ -2020,10 +2020,6 @@ Sign lessThan_II(const GenericPoint3T<IT, ET> &p1,
 	return lessThanOnZ_II<IT, ET, WithSSFilter>(p1, p2, arr);
 }
 
-#define OMC_LIMIT_EXPANSION_LENGTH
-#define OMC_EXPANSION_LENGTH_THRES 100
-#define OMC_SUM_LENGTH_THRES 40
-
 #if defined(OMC_INDIRECT_PRED)
 
 template <typename IT, typename ET>
@@ -2911,6 +2907,13 @@ Sign orientOn2Dxy_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    i2y_len =
 		  o.Gen_Sum_With_PreAlloc(d2_b2p3y_len, d2_b2p3y, l2y_len, l2y, &i2y, 64);
 
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1x_len, i1x);
+		o.CompressIf(i1y_len, i1y);
+		o.CompressIf(i2x_len, i2x);
+		o.CompressIf(i2y_len, i2y);
+	#endif
+
 		double t0_p[64], *t0 = t0_p;
 		int    t0_len;
 		double t1_p[64], *t1 = t1_p;
@@ -3100,6 +3103,13 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    i2y_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2y_len, d3d2_b2b3_l2y,
 		                                          l3d2y_len, l3d2y, &i2y, 32);
 
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1x_len, i1x);
+		o.CompressIf(i1y_len, i1y);
+		o.CompressIf(i2x_len, i2x);
+		o.CompressIf(i2y_len, i2y);
+	#endif
+
 		// clang-format off
 		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3x_len);
 		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3y_len);
@@ -3129,6 +3139,7 @@ Sign orientOn2Dxy_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t1_len;
 		double det_p[32], *det = det_p;
 		int    det_len;
+
 	#ifdef OMC_LIMIT_EXPANSION_LENGTH
 		if (i1x_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES &&
 		    i1y_len * i2x_len <= OMC_EXPANSION_LENGTH_THRES)
@@ -3309,12 +3320,20 @@ Sign orientOn2Dyz_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    i2z_len =
 		  o.Gen_Sum_With_PreAlloc(d2_b2p3z_len, d2_b2p3z, l2z_len, l2z, &i2z, 64);
 
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1y_len, i1y);
+		o.CompressIf(i1z_len, i1z);
+		o.CompressIf(i2y_len, i2y);
+		o.CompressIf(i2z_len, i2z);
+	#endif
+
 		double t0_p[64], *t0 = t0_p;
 		int    t0_len;
 		double t1_p[64], *t1 = t1_p;
 		int    t1_len;
 		double det_p[64], *det = det_p;
 		int    det_len;
+
 	#ifdef OMC_LIMIT_EXPANSION_LENGTH
 		if (i1y_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES &&
 		    i1z_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES)
@@ -3497,6 +3516,13 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    i2z_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2z_len, d3d2_b2b3_l2z,
 		                                          l3d2z_len, l3d2z, &i2z, 32);
 
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1y_len, i1y);
+		o.CompressIf(i1z_len, i1z);
+		o.CompressIf(i2y_len, i2y);
+		o.CompressIf(i2z_len, i2z);
+	#endif
+
 		// clang-format off
 		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3y_len);
 		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3z_len);
@@ -3526,6 +3552,7 @@ Sign orientOn2Dyz_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		int    t1_len;
 		double det_p[32], *det = det_p;
 		int    det_len;
+
 	#ifdef OMC_LIMIT_EXPANSION_LENGTH
 		if (i1y_len * i2z_len <= OMC_EXPANSION_LENGTH_THRES &&
 		    i1z_len * i2y_len <= OMC_EXPANSION_LENGTH_THRES)
@@ -3705,6 +3732,13 @@ Sign orientOn2Dzx_IIE_expansion(const GenericPoint3T<IT, ET> &p1,
 		double i2x_p[64], *i2x = i2x_p;
 		int    i2x_len =
 		  o.Gen_Sum_With_PreAlloc(d2_b2p3x_len, d2_b2p3x, l2x_len, l2x, &i2x, 64);
+
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1x_len, i1x);
+		o.CompressIf(i1z_len, i1z);
+		o.CompressIf(i2x_len, i2x);
+		o.CompressIf(i2z_len, i2z);
+	#endif
 
 		double t0_p[64], *t0 = t0_p;
 		int    t0_len;
@@ -3894,6 +3928,13 @@ Sign orientOn2Dzx_III_expansion(const GenericPoint3T<IT, ET> &p1,
 		double i2x_p[32], *i2x = i2x_p;
 		int    i2x_len = o.Gen_Diff_With_PreAlloc(d3d2_b2b3_l2x_len, d3d2_b2b3_l2x,
 		                                          l3d2x_len, l3d2x, &i2x, 32);
+
+	#ifdef OMC_COMPRESS_EXPANSION
+		o.CompressIf(i1x_len, i1x);
+		o.CompressIf(i1z_len, i1z);
+		o.CompressIf(i2x_len, i2x);
+		o.CompressIf(i2z_len, i2z);
+	#endif
 
 		// clang-format off
 		OMC_PRED_PROFILE_INC_LEN(PredicateNames::_orientOn2D_III, d1_b1b3z_len);

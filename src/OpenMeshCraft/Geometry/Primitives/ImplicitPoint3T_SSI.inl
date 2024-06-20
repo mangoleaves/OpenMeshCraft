@@ -1062,6 +1062,17 @@ void ImplicitPoint3T_SSI<IT, ET>::getExpansionLambda(FT **lx, int &lx_len,
 			                  cv.expansion_lambda_y, cv.expansion_lambda_y_len,
 			                  cv.expansion_lambda_z, cv.expansion_lambda_z_len,
 			                  cv.expansion_denominator, cv.expansion_d_len);
+	#ifdef OMC_UPDATE_INTERVAL_BY_EXPANSION
+			std::pair<double, double> it_; // -inf, sup
+			it_ = o.To_Interval(cv.expansion_lambda_x_len, cv.expansion_lambda_x);
+			cv.dfilter_lambda_x = IT(it_.first, it_.second);
+			it_ = o.To_Interval(cv.expansion_lambda_y_len, cv.expansion_lambda_y);
+			cv.dfilter_lambda_y = IT(it_.first, it_.second);
+			it_ = o.To_Interval(cv.expansion_lambda_z_len, cv.expansion_lambda_z);
+			cv.dfilter_lambda_z = IT(it_.first, it_.second);
+			it_ = o.To_Interval(cv.expansion_d_len, cv.expansion_denominator);
+			cv.dfilter_denominator = IT(it_.first, it_.second);
+	#endif
 		}
 		*lx    = cv.expansion_lambda_x;
 		*ly    = cv.expansion_lambda_y;

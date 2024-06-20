@@ -194,14 +194,13 @@ public:
 	                                     const int blen, const double *b,
 	                                     double **h, const int hlen);
 
-	// Approximates the expansion to a double
-	inline double To_Double(const int elen, const double *e);
-
 	/// @brief Compress an expansion
 	/// @details
 	/// Theory reference:
 	///   [Shewchuk 97] (https://people.eecs.berkeley.edu/~jrs/papers/robustr.pdf)
 	///   Section 2.8: other operations Compression
+	///   [Levy 24] Exact predicates, exact constructions and combinatorics for
+	///   mesh CSG.
 	/// Implementation reference:
 	///   Geogram, multi_precision.h/cpp, compress_expansion.
 	/// Note from geogram:
@@ -211,10 +210,20 @@ public:
 	///   be h_top <= q (small q and not capital Q).
 	inline void Compress(int &elen, double *e);
 
-	static constexpr int compress_thres = 0;
+	static constexpr int compress_thres = 2;
 
 	/// @brief Compress an expansion if its length is larger than the threshold
 	inline void CompressIf(int &elen, double *e);
+
+	/// @brief Approximates the expansion to a double
+	inline double To_Double(const int elen, const double *e);
+
+	/// @brief Approximates the expansion to an interval
+	/// @return [inf, sup]
+	/// @details
+	/// Implementation reference:
+	///   Geogram, interval_nt.h, intervaRU& operator=(const expansion& rhs).
+	inline std::pair<double, double> To_Interval(const int elen, const double *e);
 };
 
 } // namespace OMC
