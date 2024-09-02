@@ -1,12 +1,45 @@
 # README
 
+## Main projects
+
+> Last updated: 2024.09.02-15:32.
+
+### Mesh arrangements
+
+* Reference paper
+  * Jia-Peng Guo and Xiao-Ming Fu. 2024. Exact and Efficient Intersection Resolution for Mesh Arrangements. *ACM Trans. Graph*. 43, 6 (December 2024), 14 pages.
+  * Cherchi, G., Livesu, M., Scateni, R. and Attene, M. Fast and robust mesh arrangements using floating-point arithmetic. ACM Transactions on Graphics, 39, 6 (2020), 1-16.
+* Source codes
+  * `src/OpenMeshCraft/Arrangements`
+* Running examples
+  * `test/Executables/arrangements.cpp` (in CMake target `OpenMeshCraft-Arrangements`)
+  * `test/Arrangements/test_arrangements.cpp` (in CMake target `OpenMeshCraft-Test`)
+* Tested on Thingi10k dataset and one dataset from the first reference paper.
+
+### Mesh boolean
+
+* Reference paper
+  * Cherchi, G., Pellacini, F., Attene, M. and Livesu, M. Interactive and Robust Mesh Booleans. *ACM Transactions on Graphics*, 41, 6 (2022), 1-14.
+* Source codes
+  * `src/OpenMeshCraft/Boolean`
+* Running examples
+  * `test/Boolean/test_boolean.cpp` (in CMake target `OpenMeshCraft-Test`)
+* Haven't been tested thoroughly.
+
 ## Documents
 
 > Last updated: 2024.04.21-17:50.
 
 * [ChangeLog](./doc/Version/ChangeLog.md)
 
-## Verified environment
+## Build
+
+> Last updated: 2024.09.02-15:39.
+
+1. Configure the path to the Boost library. All other third-party libraries are already included.
+2. Run the CMake configuration and build the target you intend to run.
+
+### Verified environment
 
 > Last updated: 2024.06.10-23:15.
 
@@ -16,7 +49,7 @@
 |&check; | Windows11    | VS 2022 (vc143)                  |
 |&check; | Ubuntu 24.04 | GCC 14.0.1 X86_64                |
 
-## external libraries
+### external libraries
 
 > Last updated: 2024.04.21-17:58.
 
@@ -51,3 +84,7 @@ We do not provide boost, so you need to install it on your computer and link to 
   * Unpack boost and run `./booststrap.sh --prefix=/usr/`
   * Run `./b2` to compile
   * Run `sudo ./b2 install` to install
+
+## Bug report
+
+Please report bugs by opening a GitHub issue and providing the model that caused the error. While I strive to minimize bugs, some may have gone untested during development, and I will do my best to correct them `:)`.

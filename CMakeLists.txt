@@ -39,7 +39,6 @@ option(OMC_CMAKE_INTER_PROFILE "Enable profiling intersection in OpenMeshCraft."
 option(OMC_CMAKE_ARR_PROFILE "Enable profiling arrangements in OpenMeshCraft." OFF)
 
 option(OMC_BUILD_TEST "Build test project of OpenMeshCraft" ${OMC_MASTER_PROJECT})
-option(OMC_BUILD_EXAMPLE "Build example project of OpenMeshCraft" ${OMC_MASTER_PROJECT})
 # cmake-format: on
 
 # ##############################################################################
@@ -120,8 +119,4 @@ add_subdirectory(src)
 
 if(OMC_BUILD_TEST)
   add_subdirectory(test)
-endif()
-
-if(OMC_BUILD_EXAMPLE)
-  add_subdirectory(examples)
 endif()

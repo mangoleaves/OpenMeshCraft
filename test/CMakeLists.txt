@@ -120,7 +120,8 @@ gtest_discover_tests(${PROJECT_NAME})
 # Configure an executable to run dataset for arrangements.
 # ##############################################################################
 
-add_executable(OpenMeshCraft-Arrangements arrangements.cpp)
+add_executable(OpenMeshCraft-Arrangements
+               ${CMAKE_CURRENT_SOURCE_DIR}/Executables/arrangements.cpp)
 
 foreach(_TARGET OpenMeshCraft-Arrangements)
 

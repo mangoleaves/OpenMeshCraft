@@ -1,11 +1,11 @@
 # README
 
-测试中可变的参数（如网格文件路径）已经提取到外部的test_config.json文件（下面简称config文件）中，方便修改测试参数，且不需要重新编译测试程序。
+The parameters that may vary during testing (such as the mesh file path) have been extracted into an external `test_config.json` file (referred to as the `config file` below). This allows you to modify the test parameters without recompiling the test program.
 
-## config文件是怎样的？
+## What is the config file?
 
-`config文件`的组织形式为`TestSuitName.TestName.ParamName: Value`，对应`google test`中的两级组织形式`TestSuitName`和`TestName`。  
-对每个`Test`（由`TestSuitName+TestName`唯一确定），可以定义多个参数，如
+The `config file` is organized in the format `TestSuitName.TestName.ParamName: Value`, corresponding to the two-level structure of `TestSuitName` and `TestName` in `Google Test`.
+For each `Test` (uniquely identified by `TestSuitName` and `TestName`), you can define multiple parameters, such as:
 
 ```json
   "Boolean": {
@@ -16,19 +16,19 @@
   }
 ```
 
-> 当然，`config文件`中的`TestSuitName`和`TestName`并没有限制要完全和`google test`中的对应一致。  
-> 你可以任意修改`config文件`中的名字，以方便你的使用。  
-> 建议`config文件`和`google test`中的名称对应或相似，以方便其他人查找和修改。
+> * Of course, the `TestSuitName` and `TestName` in the `config file` do not need to exactly match those in `Google Test`.
+> * You can modify the names in the `config file` as you see fit for your usage.
+> * However, it is recommended that the names in the `config file` correspond to or resemble those in `Google Test` to facilitate searching and editing by others.
 
-## 如何使用config文件？
+## How to use the config file?
 
-* 在运行测试程序时，输入参数`--config=path-to-json`让测试程序可以读取`config文件`（和`--gtest...`类似）。
-* 要改变测试参数时，改变`config文件`中的相关值即可。
-* 不同测试机器上的文件路径可能不一样，请自行复制一份`config文件`修改内容，并修改测试程序的`--config`参数到新的`config文件`。
+* When running the test program, use the `--config=path-to-json` argument to allow the test program to read the `config file` (similar to `--gtest`...).
+* To change the test parameters, simply modify the relevant values in the `config file`.
+* File paths may differ on different test machines, so it is recommended to copy the `config file`, modify its contents as needed, and then adjust the test program's `--config` parameter to point to the new `config file`.
 
-## 如何让你写的Test利用上这个特性
+## How to make your Test utilize this feature
 
-* 首先，在`config文件`中添加你的`TestSuitName.TestName`结构体，并添加你的参数结构体`{Param:Value, ...}`（可参考已存在的设置）。比如
+* First, add your `TestSuitName.TestName` structure in the `config file` and include your parameter structure `{Param:Value, ...}` (you can refer to existing settings). For example:
 
   ```json
   "FastQEM": {
@@ -45,23 +45,24 @@
   }
   ```
 
-* 其次，在你的`Test`函数中获取这些参数。`test_utils.h`文件中定义了一个宏`TEST_GET_CONFIG`，通过该宏得到`Test`对应的`config对象`
-  * 该宏的参数是`(TestSuitName, TestName)`，对应`config文件`中的`TestSuitName.TestName`
-  * 在你的`Test`函数开头调用该宏，来得到对应`TestSuitName.TestName`的`config对象`
-  * 比如
+* Next, in your `Test` function, retrieve these parameters. The macro `TEST_GET_CONFIG` is defined in the `test_utils.h` file and allows you to obtain the `config object` corresponding to a `Test`.
+  * The macro takes the parameters `(TestSuitName, TestName)`, corresponding to the TestSuitName.TestName in the config file.
+  * Call this macro at the beginning of your `Test` function to obtain the `config object` corresponding to `TestSuitName.TestName`.
+  * For example:
 
     ```cpp
     TEST_GET_CONFIG(FastQEM, Common);
     ```
 
-* `config对象`的使用方法是
-  * 对于`int`、`double`、`std::string`等参数类型，可以通过`config.get<ParamType>("ParamName")`获得参数对应的值。比如获取`dir`的值
+* The `config object` can be used as follows:
+
+  * For parameters of types like `int`, `double`, `std::string`, etc., you can obtain the value using `config.get<ParamType>("ParamName")`. For instance, to get the value of `dir`:
 
     ```cpp
     std::string dir = config.get<std::string>("dir");
     ```
 
-  * 对于数组类型的参数，可以通过迭代器遍历数组内容。比如，可以在Test函数中使用如下代码获取`ratios`的值
+  * For array-type parameters, you can iterate through the array contents using an iterator. For example, you can use the following code in the Test function to get the values of `ratios`:
 
     ```cpp
     std::vector<double> ratios;

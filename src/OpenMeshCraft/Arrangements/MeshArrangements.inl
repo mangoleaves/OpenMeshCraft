@@ -544,8 +544,8 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 
 	for (GPoint *v : arr_out_verts)
 		tri_soup.addImplVert(v);
-	tri_soup.triangles  = std::move(arr_in_tris);
-	tri_soup.tri_labels = std::move(arr_in_labels);
+	tri_soup.triangles  = arr_in_tris;	  // copy, do not move
+	tri_soup.tri_labels = arr_in_labels;  // copy, do not move
 	tri_soup.pnt_arenas = &pnt_arenas;
 	tri_soup.initialize();
 }

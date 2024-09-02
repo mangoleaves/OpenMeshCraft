@@ -1,5 +1,21 @@
 # ChangeLog
 
+## 1.0.2 (2024.09.02)
+
+Algorithm Improvements:
+
+- Improve implementations of multi-precision arithmetics.
+- Compress expansions and update interval numbers by expansions to improve efficiency.
+- Optimize implicit point order to improve accuray of semi-static filter.
+
+Docs:
+
+- Update README.md and test/README.md
+
+Bug Fix:
+
+- Fix bugs in *Mesh arrangements* and *Mesh boolean*
+
 ## 1.0.1 (2024.06.10)
 
 New Features:
