@@ -30,7 +30,7 @@
 
 > Last updated: 2024.04.21-17:50.
 
-* [ChangeLog](./doc/Version/ChangeLog.md)
+* [ChangeLog](./ChangeLog.md)
 
 ## Build
 
