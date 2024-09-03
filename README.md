@@ -85,6 +85,15 @@ We do not provide boost, so you need to install it on your computer and link to 
   * Run `./b2` to compile
   * Run `sudo ./b2 install` to install
 
+## License
+
+This project is licensed under the terms of the GNU General Public License (GPL) and the GNU Lesser General Public License (LGPL).
+
+* The source code and related materials are licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html). For more information, see the LICENSE file.
+* Some components of this project are licensed under the [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.html), which allows for linking with proprietary modules.
+
+By contributing to this project, you agree that your contributions will be licensed under the same terms as the rest of the project.
+
 ## Bug report
 
 Please report bugs by opening a GitHub issue and providing the model that caused the error. While I strive to minimize bugs, some may have gone untested during development, and I will do my best to correct them `:)`.
