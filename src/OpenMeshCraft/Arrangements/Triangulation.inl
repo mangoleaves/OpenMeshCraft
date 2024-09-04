@@ -8,11 +8,15 @@
 namespace OMC {
 
 template <typename Traits>
-Triangulation<Traits>::Triangulation(TriSoup              &_ts,
-                                     std::vector<index_t> &new_tris,
-                                     std::vector<Label>   &new_labels)
+Triangulation<Traits>::Triangulation(TriSoup                       &_ts,
+                                     std::vector<index_t>          &new_tris,
+                                     std::vector<Label>            &new_labels,
+                                     const MeshArrangements_Config &_config,
+                                     MeshArrangements_Stats        &_stats)
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
+  , config(_config)
+  , stats(_stats)
 {
 	new_labels.clear();
 	new_tris.clear();

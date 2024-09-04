@@ -1,9 +1,9 @@
 #pragma once
 
-#include "OpenMeshCraft/Geometry/Primitives/Vector2T.h"
-#include "OpenMeshCraft/Geometry/Primitives/Vector3T.h"
 #include "OpenMeshCraft/Geometry/Primitives/Point2T.h"
 #include "OpenMeshCraft/Geometry/Primitives/Point3T.h"
+#include "OpenMeshCraft/Geometry/Primitives/Vector2T.h"
+#include "OpenMeshCraft/Geometry/Primitives/Vector3T.h"
 
 #include "OpenMeshCraft/Utils/IndexDef.h"
 

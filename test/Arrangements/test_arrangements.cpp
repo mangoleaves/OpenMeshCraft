@@ -29,6 +29,7 @@ protected:
 	using Triangles = typename TriSoupTraits::Triangles;
 
 	using Arrangements = OMC::MeshArrangements<EIAC, TriSoupTraits>;
+	using Config       = OMC::MeshArrangements_Config;
 };
 
 /**
@@ -57,13 +58,20 @@ TEST_F(test_Arrangements, TestIfCrash)
 	  tbb::global_control::max_allowed_parallelism,
 	  config.get<size_t>("thread_num", tbb::this_task_arena::max_concurrency()));
 
+	// set config for arrangements
+	Config arr_config;
+	arr_config.verbose                = config.get<bool>("verbose");
+	arr_config.output_explicit_result = config.get<bool>("num_vf");
+	arr_config.ignore_same_mesh       = false;
+
 	auto start = OMC::Logger::elapse_reset();
 
-	Arrangements arrangements(config.get<bool>("verbose"));
+	Arrangements arrangements;
 
+	arrangements.setConfig(arr_config);
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
-	arrangements.meshArrangements(false, config.get<bool>("num_vf"));
+	arrangements.meshArrangements();
 
 	std::cout << std::format("mesh arrangement uses {} s\n",
 	                         OMC::Logger::elapsed(start).count());
@@ -106,6 +114,9 @@ TEST_F(test_Arrangements, TestDataSet)
 	bool set_parameter = config.get<bool>("set_parameter", false);
 
 	OMC::MeshArrangements_Config arr_config;
+	arr_config.verbose                = verbose;
+	arr_config.output_explicit_result = num_vf;
+	arr_config.ignore_same_mesh       = false;
 	if (set_parameter)
 	{
 		boost::property_tree::ptree &parameters = config.get_child("parameters");
@@ -141,20 +152,16 @@ TEST_F(test_Arrangements, TestDataSet)
 			read_mesh(iter->path().string(), input_points, input_triangles,
 			          io_options);
 
-			Arrangements arrangements(/*verbose*/ verbose);
+			Arrangements arrangements;
+			arrangements.setConfig(arr_config);
 			arrangements.addTriMeshAsInput(input_points, input_triangles);
 			arrangements.setTriMeshAsOutput(result_points, result_triangles);
-
-			if (set_parameter)
-			{
-				arrangements.setConfig(arr_config);
-			}
 
 			OMC::MeshArrangements_Stats &stats = arrangements.stats();
 
 			auto start = OMC::Logger::elapse_reset();
 
-			arrangements.meshArrangements(false, num_vf);
+			arrangements.meshArrangements();
 
 			double total_time = OMC::Logger::elapsed(start).count();
 			std::cout << total_time << " s\n";

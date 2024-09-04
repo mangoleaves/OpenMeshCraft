@@ -101,10 +101,8 @@ public: /* Auxiliary data structures *****************************************/
 	using FastMesh = FastTriMesh<Traits>;
 
 public: /* Constructors ******************************************************/
-	MeshArrangements_Impl(MeshArrangements_Stats *_stats   = nullptr,
-	                      bool                    _verbose = false)
+	MeshArrangements_Impl(MeshArrangements_Stats *_stats = nullptr)
 	  : stats(_stats)
-	  , verbose(_verbose)
 	{
 	}
 
@@ -112,14 +110,11 @@ public: /* Constructors ******************************************************/
 	void setConfig(MeshArrangements_Config _config) { config = _config; }
 
 public: /* Pipeline **********************************************************/
-	/// @brief Detect intersections, classify intersections, and triangulate
-	/// all triangles with intersect points and constrained segments.
-	/// @param ignore_same_mesh If set to true, will ignore
-	/// intersections between triangles in the same mesh, this feature is used by
-	/// boolean.
-	/// @note Will store all useful middle data until being destroyed.
-	/// @note Won't output explicit result.
-	void meshArrangementsPipeline(bool ignore_same_mesh);
+	/// @brief Detects intersections, classifies them, and triangulates
+	/// all triangles with intersection points and constrained segments.
+	/// @note All useful intermediate data will be stored until it is destroyed.
+	/// @note The explicit result will not be output.
+	void meshArrangementsPipeline();
 
 	/// @brief Output explicit result (points and triangles).
 	template <typename iPoint, typename iPoints, typename iTri, typename iTris>
@@ -167,14 +162,11 @@ public:
 	/// information of removed duplicate triangles (maybe used again)
 	std::vector<DuplTriInfo> dupl_triangles;
 
-	/* Parameters */
+	/* Configuration */
 	MeshArrangements_Config config;
 
-	/* Behavior control flags and data */
-	/// save stats
+	/* Statistics */
 	MeshArrangements_Stats *stats;
-	/// output log messages
-	bool                    verbose;
 
 private: /* Private middle data *******************************************/
 	/// point arena for explicit points
@@ -186,8 +178,7 @@ private: /* Private middle data *******************************************/
 };
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
-  bool ignore_same_mesh)
+void MeshArrangements_Impl<Traits>::meshArrangementsPipeline()
 {
 	OMC_ASSERT(!in_coords.empty() && !in_tris.empty(), "empty input.");
 	OMC_ASSERT(in_tris.size() % 3 == 0, "triangle size error.");
@@ -245,14 +236,14 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline(
 	initBeforeDetectClassify();
 
 	// Classify intersections.
-	DetectClassifyTTIs<Traits> DCI(tri_soup, tree, ignore_same_mesh, stats,
-	                               verbose);
+	DetectClassifyTTIs<Traits> DCI(tri_soup, tree, config, *stats);
 
 	OMC_ARR_SAVE_ELAPSED(start_ci, ci_elapsed, "Classify intersection");
 	OMC_ARR_START_ELAPSE(start_tr);
 
 	// Triangulation.
-	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface);
+	Triangulation<Traits> TR(tri_soup, arr_out_tris, arr_out_labels.surface,
+	                         config, *stats);
 
 	// collect vertices, triangles and labels.
 	exitAfterTriangulation();
@@ -319,7 +310,7 @@ void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
 		               arr_in_tris.begin(),
 		               [&lookup](index_t idx) { return lookup[idx]; });
 
-	if (verbose)
+	if (config.verbose)
 	{
 		Logger::info(
 		  std::format("[OpenMeshCraft Arrangements] removed {} duplicate vertices.",
@@ -408,7 +399,7 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 		if (!exist_removed_tri)
 		{
 			/* #region log */
-			if (verbose)
+			if (config.verbose)
 			{
 				Logger::info(std::format(
 				  "[OpenMeshCraft Arrangements] No degenerate and duplicate "
@@ -524,7 +515,7 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 	}
 
 	/* #region log */
-	if (verbose)
+	if (config.verbose)
 	{
 		Logger::info(
 		  std::format("[OpenMeshCraft Arrangements] removed {}  degenerate and "
@@ -544,8 +535,8 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 
 	for (GPoint *v : arr_out_verts)
 		tri_soup.addImplVert(v);
-	tri_soup.triangles  = arr_in_tris;	  // copy, do not move
-	tri_soup.tri_labels = arr_in_labels;  // copy, do not move
+	tri_soup.triangles  = arr_in_tris;   // copy, do not move
+	tri_soup.tri_labels = arr_in_labels; // copy, do not move
 	tri_soup.pnt_arenas = &pnt_arenas;
 	tri_soup.initialize();
 }
@@ -720,9 +711,8 @@ void MeshArrangements_Impl<Traits>::computeExplicitResult(
 /*****************************************************************************/
 
 template <typename Kernel, typename Traits>
-MeshArrangements<Kernel, Traits>::MeshArrangements(bool _verbose)
+MeshArrangements<Kernel, Traits>::MeshArrangements()
 {
-	verbose = _verbose;
 }
 
 template <typename Kernel, typename Traits>
@@ -771,11 +761,10 @@ void MeshArrangements<Kernel, Traits>::clear()
 }
 
 template <typename Kernel, typename Traits>
-void MeshArrangements<Kernel, Traits>::meshArrangements(
-  bool ignore_same_mesh, bool output_explicit_result)
+void MeshArrangements<Kernel, Traits>::meshArrangements()
 {
-	m_impl = std::make_unique<MeshArrangements_Impl<ArrangementsTraits>>(
-	  &arr_stats, verbose);
+	m_impl =
+	  std::make_unique<MeshArrangements_Impl<ArrangementsTraits>>(&arr_stats);
 
 	if (!loadMultipleMeshes()(input_meshes, m_impl->in_coords, m_impl->in_tris,
 	                          m_impl->in_labels))
@@ -785,9 +774,9 @@ void MeshArrangements<Kernel, Traits>::meshArrangements(
 	}
 
 	m_impl->setConfig(config);
-	m_impl->meshArrangementsPipeline(ignore_same_mesh);
+	m_impl->meshArrangementsPipeline();
 
-	if (output_explicit_result)
+	if (config.output_explicit_result)
 	{
 		OMC_THROW_DOMAIN_ERROR_IF(output_points == nullptr ||
 		                            output_triangles == nullptr,

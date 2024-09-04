@@ -45,7 +45,7 @@ public: /* Traits about input data ********************************************/
 	using iTriangles = typename Traits::Triangles;
 
 public: /* Constructors ******************************************************/
-	MeshArrangements(bool _verbose);
+	MeshArrangements();
 	~MeshArrangements();
 
 	MeshArrangements(const MeshArrangements &) = delete;
@@ -53,49 +53,42 @@ public: /* Constructors ******************************************************/
 
 public: /* Interfaces ********************************************************/
 	/**
-	 * @brief add a triangle mesh (triangle soup) as one input.
-	 * @param points points of the mesh.
-	 * @param triangles triangles of the mesh.
-	 * @return index_t The internal index of the just added mesh.
-	 * @note We only store pointers to input, won't store a copy.
+	 * @brief Adds a triangle mesh (triangle soup) as an input.
+	 * @param points The points of the mesh.
+	 * @param triangles The triangles of the mesh.
+	 * @return index_t The internal index of the newly added mesh.
+	 * @note We only store pointers to the input; we do not store a copy.
 	 */
 	index_t addTriMeshAsInput(const iPoints &points, const iTriangles &triangles);
 
 	/**
-	 * @brief Set the triangle mesh (triangle soup) as output destination.
-	 * @param points points of the mesh.
-	 * @param triangles triangles of the mesh.
-	 * @note We store pointers to output and write to them without check.
+	 * @brief Sets the triangle mesh (triangle soup) as the output destination.
+	 * @param points The points of the mesh.
+	 * @param triangles The triangles of the mesh.
+	 * @note We store pointers to the output and write to them without checks.
 	 */
 	void setTriMeshAsOutput(iPoints &points, iTriangles &triangles);
 
 	/**
-	 * @brief Set the output labels.
+	 * @brief Sets the output labels.
 	 * @details
-	 * * Each input triangle mesh will be attached with an index internally
+	 * * Each input triangle mesh will be assigned an index internally
 	 *   (the index is the return value of addTriMeshAsInput).
-	 * * Each output triangle's label indicates the triangle mesh it locates on.
+	 * * Each output triangle's label indicates the triangle mesh it belongs to.
 	 * * Labels are used to transfer attributes from input triangle meshes to
-	 * output triangle meshes.
-	 * @param labels labels of the output mesh.
+	 *   output triangle meshes.
+	 * @param labels The labels of the output mesh.
 	 */
 	void setOutputLabels(std::vector<Label> &labels);
 
 	/// @brief Clear input meshes and output mesh.
 	void clear();
 
-	/// @brief Apply arrangement operation on input meshes and save explicit
-	/// result to output mesh.
-	/// @param ignore_same_mesh If set to true, algorithm will ignore intersection
-	/// between triangles in the same mesh. This is a feature used by mesh
-	/// boolean.
-	/// @param output_explicit_result If set to true, the explicit result (points
-	/// and triangles) will be saved in output mesh set by setTriMeshAsOutput.
-	/// All middle data will be cleared.
-	void meshArrangements(bool ignore_same_mesh, bool output_explicit_result);
+	/// @brief Apply arrangement operation on input meshes and
+	/// (optionally) save explicit result to output mesh.
+	void meshArrangements();
 
-	/// @brief An experimental interface to set parameters.
-	/// @note Don't modify it except you know it.
+	/// @brief An interface to set configuration (flags and parameters).
 	void setConfig(MeshArrangements_Config _config);
 
 	MeshArrangements_Stats &stats();
@@ -114,11 +107,10 @@ private:
 
 	std::vector<Label> *output_labels = nullptr;
 
-	/* Parameters */
+	/* Configuration */
 	MeshArrangements_Config config;
 
-	/// behavior control flags
-	bool                   verbose;
+	/* Statistics */
 	MeshArrangements_Stats arr_stats;
 
 private:

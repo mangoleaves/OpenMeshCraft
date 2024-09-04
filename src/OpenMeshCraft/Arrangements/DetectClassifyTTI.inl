@@ -262,7 +262,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 	index_t eav0 = ea, eav1 = (ea + 1) % 3; // two endpoints of ea
 	index_t ebv0 = eb, ebv1 = (eb + 1) % 3; // two endpoints of eb
 
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 	Sign eav0_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav0]);
 	Sign eav1_wrt_tb = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[eav1]);
 
@@ -301,7 +301,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 		OMC_ARR_PROF_TTI_INCR(5);
 
 		{ // initialize cache
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 			if (!t_nmax_init)
 			{
 				ha.t_nmax = ts.triPlane(ha.t_id);
@@ -387,7 +387,7 @@ void DetectClassifyTTI<Traits>::check_TTI_share_vertex(TTIHelper &ha,
 
 	// go on classifying intersections on `tb`
 	{ // initialize cache
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 		if (!t_nmax_init)
 		{
 			ha.t_nmax = ts.triPlane(ha.t_id);
@@ -632,7 +632,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	index_t edge_id, vtx_id;
 
 	Sign orAB[3]; // orientation of edge of `ta` with respect to `tb`
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 	orAB[0] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[0]);
 	orAB[1] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[1]);
 	orAB[2] = Orient3D().filter(hb.v[0], hb.v[1], hb.v[2], ha.v[2]);
@@ -682,7 +682,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 		// CASE: all edge of ta are coplanar to all edges of tb   (orAB: 0 0 0)
 
 		{ // initialize cache
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 			if (!t_nmax_init)
 			{
 				ha.t_nmax = ts.triPlane(ha.t_id);
@@ -733,7 +733,7 @@ void DetectClassifyTTI<Traits>::check_TTI_separate(TTIHelper &ha, TTIHelper &hb)
 	}
 
 	{ // initialize cache
-#ifdef ARR_DC_FILTER_ORIENT3D
+#ifdef OMC_ARR_DC_FILTER_O3D
 		if (!t_nmax_init)
 		{
 			ha.t_nmax = ts.triPlane(ha.t_id);

@@ -6,7 +6,6 @@
 #include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 #include "OpenMeshCraft/Utils/Exception.h"
 
-
 #if defined(OMC_ARR_PROFILE) && 0
 	#define COLLECT_INTERSECTING_TRIANGLE                                     \
 		if (Tri3_Tri3_DoInter().intersection_type(                              \
@@ -31,17 +30,15 @@
 namespace OMC {
 
 template <typename Traits>
-DetectClassifyTTIs<Traits>::DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
-                                               bool _ignore_same_label,
-                                               MeshArrangements_Stats *_stats,
-                                               bool                    _verbose)
+DetectClassifyTTIs<Traits>::DetectClassifyTTIs(
+  TriSoup &_ts, const Tree &_tree, const MeshArrangements_Config &_config,
+  MeshArrangements_Stats &_stats)
   : ts(_ts)
   , pnt_arenas(*ts.pnt_arenas)
   , labels(ts.tri_labels)
   , tree(_tree)
-  , ignore_same_label(_ignore_same_label)
+  , config(_config)
   , stats(_stats)
-  , verbose(_verbose)
 {
 	/* Detect and classify Triangle-Triangle-Intersection */
 
@@ -111,7 +108,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 		CStyleVector<typename Tree::TreeBbox> cache_boxes;
 		CStyleVector<Label>                   cache_labels;
 
-		cacheBoxesInNode(node, cache_boxes, ignore_same_label, cache_labels);
+		cacheBoxesInNode(node, cache_boxes, config.ignore_same_mesh, cache_labels);
 
 		const size_t num_boxes = tree.node(node_idx).size();
 
@@ -121,7 +118,7 @@ void DetectClassifyTTIs<Traits>::parallelOnSmallNodes(
 		                              num_boxes * (num_boxes - 1) / 2);
 
 		GPoint::clear_global_cached_values();
-		if (ignore_same_label)
+		if (config.ignore_same_mesh)
 		{
 			for (index_t bi0 = 0; bi0 < num_boxes; bi0++)
 			{
@@ -196,13 +193,13 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 
 		CStyleVector<typename Tree::TreeBbox> cache_boxes;
 		CStyleVector<Label>                   cache_labels;
-		cacheBoxesInNode(node, cache_boxes, ignore_same_label, cache_labels);
+		cacheBoxesInNode(node, cache_boxes, config.ignore_same_mesh, cache_labels);
 
 		// check Box-Box-Intersection in current node.
 		auto on_large_node = [&](index_t thread_id)
 		{
 			GPoint::clear_global_cached_values();
-			if (ignore_same_label)
+			if (config.ignore_same_mesh)
 			{
 				for (index_t bi0 = thread_id; bi0 < num_boxes; bi0 += num_threads)
 				{

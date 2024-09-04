@@ -138,7 +138,7 @@ public: /* Auxiliary data structures *****************************************/
 
 public: /* Constructors ******************************************************/
 	MeshBoolean_Impl(bool _verbose)
-	  : arr_impl(nullptr, _verbose)
+	  : arr_impl(nullptr)
 	  // Get reference to data in arrangements
 	  , in_coords(arr_impl.in_coords)
 	  , in_tris(arr_impl.in_tris)
@@ -305,8 +305,14 @@ public:
 template <typename Traits>
 void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
 {
+	// Set config for mesh arrangements
+	MeshArrangements_Config arr_config;
+	arr_config.ignore_same_mesh = true;
+	arr_config.verbose          = verbose;
+	arr_impl.setConfig(arr_config);
+
 	// Apply arrangments to all input meshes.
-	arr_impl.meshArrangementsPipeline(/*ignore intersection in same mesh*/ true);
+	arr_impl.meshArrangementsPipeline();
 
 	auto start_init = OMC::Logger::elapse_reset();
 

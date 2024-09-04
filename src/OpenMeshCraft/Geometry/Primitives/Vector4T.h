@@ -10,18 +10,18 @@ namespace OMC {
 
 /**
  * @ingroup Geometry
- * @brief Vec3T, containing two numbers of type `T`, is an inexact type of
- * general Vector4T. We use `x`, `y` and `z` to refer to its three elements
+ * @brief Vec4T, containing two numbers of type `T`, is an inexact type of
+ * general Vector4T. We use `x`, `y`, `z` and `w` to refer to its four elements
  * in order.
  * @tparam T Number type.
  */
 template <typename T>
-class Vec3T
+class Vec4T
 {
 public:
-	static constexpr size_t size_ = 3;
+	static constexpr size_t size_ = 4;
 	using NT                      = T;
-	using VT                      = Vec3T<T>;
+	using VT                      = Vec4T<T>;
 	using value_type              = T;
 	using vector_type             = VT;
 
@@ -29,71 +29,74 @@ public:
 	/**
 	 * @brief Default constructor.
 	 */
-	Vec3T() noexcept {}
+	Vec4T() noexcept {}
 
 	/**
-	 * @brief Construct a new Vec3T object, vectorize it by \p v .
+	 * @brief Construct a new Vec4T object, vectorize it by \p v .
 	 */
-	explicit Vec3T(const T &v) noexcept { vectorize(v); }
+	explicit Vec4T(const T &v) noexcept { vectorize(v); }
 
 	/**
-	 * @brief Construct a new Vec3T object from three numbers.
+	 * @brief Construct a new Vec4T object from four numbers.
 	 */
-	template <typename T1, typename T2, typename T3,
+	template <typename T1, typename T2, typename T3, typename T4,
 	          typename =
 	            std::enable_if_t<std::is_constructible_v<T, remove_cvref_t<T1>> &&
 	                             std::is_constructible_v<T, remove_cvref_t<T2>> &&
-	                             std::is_constructible_v<T, remove_cvref_t<T3>>>>
-	explicit Vec3T(T1 &&x, T2 &&y, T3 &&z) noexcept
+	                             std::is_constructible_v<T, remove_cvref_t<T3>> &&
+	                             std::is_constructible_v<T, remove_cvref_t<T4>>>>
+	explicit Vec4T(T1 &&x, T2 &&y, T3 &&z, T4 &&w) noexcept
 	  : _x(std::forward<T1>(x))
 	  , _y(std::forward<T2>(y))
 	  , _z(std::forward<T3>(z))
+	  , _w(std::forward<T4>(w))
 	{
 	}
 
 	/**
-	 * @brief Construct a new Vec3T object from a pointer to numbers \p v .
-	 * @note We assume the pointer points to at least three numbers and won't
+	 * @brief Construct a new Vec4T object from a pointer to numbers \p v .
+	 * @note We assume the pointer points to at least four numbers and won't
 	 * check the validity of the pointer.
 	 * @param v the pointer to numbers.
 	 */
-	explicit Vec3T(const T *v) noexcept
+	explicit Vec4T(const T *v) noexcept
 	  : _x(v[0])
 	  , _y(v[1])
 	  , _z(v[2])
+	  , _w(v[3])
 	{
 	}
 
 	/**
-	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
-	 * @param v The given Vec3T.
+	 * @brief Construct a new Vec4T object by copying from a given Vec4T \p v .
+	 * @param v The given Vec4T.
 	 */
-	Vec3T(const VT &v) = default;
+	Vec4T(const VT &v) = default;
 
 	/**
-	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
-	 * @param v The given Vec3T.
+	 * @brief Construct a new Vec4T object by copying from a given Vec4T \p v .
+	 * @param v The given Vec4T.
 	 */
-	Vec3T(VT &&v) = default;
+	Vec4T(VT &&v) = default;
 
 	/**
-	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
-	 * @param v The given Vec3T.
-	 * @return Vec3T& return the reference to this object.
+	 * @brief Construct a new Vec4T object by copying from a given Vec4T \p v .
+	 * @param v The given Vec4T.
+	 * @return Vec4T& return the reference to this object.
 	 */
 	VT &operator=(const VT &v) = default;
 
 	/**
-	 * @brief Construct a new Vec3T object by copying from a given Vec3T \p v .
-	 * @param v The given Vec3T.
-	 * @return Vec3T& return the reference to this object.
+	 * @brief Construct a new Vec4T object by copying from a given Vec4T \p v .
+	 * @param v The given Vec4T.
+	 * @return Vec4T& return the reference to this object.
 	 */
 	VT &operator=(VT &&v) = default;
 
 	/**
-	 * @brief Destroy the Vec3T object.
+	 * @brief Destroy the Vec4T object.
 	 */
-	~Vec3T() = default;
+	~Vec4T() = default;
 
 	/// @brief Get the reference to `x`
 	inline T       &x() { return _x; }
@@ -101,12 +104,16 @@ public:
 	inline T       &y() { return _y; }
 	/// @brief Get the reference to `z`
 	inline T       &z() { return _z; }
+	/// @brief Get the reference to `w`
+	inline T       &w() { return _w; }
 	/// @brief Get `x`
 	inline const T &x() const { return _x; }
 	/// @brief Get `y`
 	inline const T &y() const { return _y; }
 	/// @brief Get `z`
 	inline const T &z() const { return _z; }
+	/// @brief Get `w`
+	inline const T &w() const { return _w; }
 
 	/// @brief size(dimention) of vector
 	size_t size() const { return size_; }
@@ -133,25 +140,26 @@ public:
 
 	/// @brief Get the opposite of all elements.
 	/// @todo If add more unary operators, try using a macro to repelace them.
-	inline VT operator-() const { return VT{-_x, -_y, -_z}; }
+	inline VT operator-() const { return VT{-_x, -_y, -_z, -_w}; }
 
 	/// This micro defines two functions for a given binary operator.
 	/// The functions apply element wisely binary operator to \p this and \p rhs .
-#define ELEMENT_WISELY_BINARY_OPERATOR(op)               \
-	inline VT operator op(const VT &rhs) const             \
-	{                                                      \
-		return VT{_x op rhs._x, _y op rhs._y, _z op rhs._z}; \
-	}                                                      \
-	inline VT &&operator op(VT && rhs) const               \
-	{                                                      \
-		rhs._x = _x op rhs._x;                               \
-		rhs._y = _y op rhs._y;                               \
-		rhs._z = _z op rhs._z;                               \
-		return std::move(rhs);                               \
-	}                                                      \
-	inline VT operator op(const T &rhs) const              \
-	{                                                      \
-		return VT{_x op rhs, _y op rhs, _z op rhs};          \
+#define ELEMENT_WISELY_BINARY_OPERATOR(op)                             \
+	inline VT operator op(const VT &rhs) const                           \
+	{                                                                    \
+		return VT{_x op rhs._x, _y op rhs._y, _z op rhs._z, _w op rhs._w}; \
+	}                                                                    \
+	inline VT &&operator op(VT && rhs) const                             \
+	{                                                                    \
+		rhs._x = _x op rhs._x;                                             \
+		rhs._y = _y op rhs._y;                                             \
+		rhs._z = _z op rhs._z;                                             \
+		rhs._w = _w op rhs._w;                                             \
+		return std::move(rhs);                                             \
+	}                                                                    \
+	inline VT operator op(const T &rhs) const                            \
+	{                                                                    \
+		return VT{_x op rhs, _y op rhs, _z op rhs, _w op rhs};             \
 	}
 
 	ELEMENT_WISELY_BINARY_OPERATOR(-);
@@ -170,6 +178,7 @@ public:
 		_x op rhs._x;                              \
 		_y op rhs._y;                              \
 		_z op rhs._z;                              \
+		_w op rhs._w;                              \
 		return *this;                              \
 	}                                            \
 	inline VT &operator op(const T & rhs)        \
@@ -177,6 +186,7 @@ public:
 		_x op rhs;                                 \
 		_y op rhs;                                 \
 		_z op rhs;                                 \
+		_w op rhs;                                 \
 		return *this;                              \
 	}
 
@@ -188,14 +198,14 @@ public:
 #undef ELEMENT_WISELY_COMPOUND_ASSIGNMENT
 
 /// Compare \p this with \p rhs element-wisely.
-#define ELEMENT_WISELY_COMPARE(op)                       \
-	inline bool operator op(const VT &rhs) const           \
-	{                                                      \
-		return _x op rhs._x && _y op rhs._y && _z op rhs._z; \
-	}                                                      \
-	inline bool operator op(const T &rhs) const            \
-	{                                                      \
-		return _x op rhs && _y op rhs && _z op rhs;          \
+#define ELEMENT_WISELY_COMPARE(op)                                       \
+	inline bool operator op(const VT &rhs) const                           \
+	{                                                                      \
+		return _x op rhs._x && _y op rhs._y && _z op rhs._z && _w op rhs._w; \
+	}                                                                      \
+	inline bool operator op(const T &rhs) const                            \
+	{                                                                      \
+		return _x op rhs && _y op rhs && _z op rhs && _w op rhs;             \
 	}
 
 	ELEMENT_WISELY_COMPARE(==);
@@ -226,27 +236,17 @@ public:
 	/// @brief Dot product of \p this and \p rhs .
 	inline T dot(const VT &rhs) const
 	{
-		return _x * rhs._x + _y * rhs._y + _z * rhs._z;
+		return _x * rhs._x + _y * rhs._y + _z * rhs._z + _w * rhs._w;
 	}
 
 	/// @brief Dot product of \p this and \p rhs, it is equivalent to \ref dot.
 	inline T operator|(const VT &rhs) const { return this->dot(rhs); }
 
-	/// @brief Cross product of \p this and \p rhs.
-	inline VT cross(const VT &rhs) const
-	{
-		return VT{_y * rhs._z - _z * rhs._y, _z * rhs._x - _x * rhs._z,
-		          _x * rhs._y - _y * rhs._x};
-	}
-	/// @brief Cross product of \p this and \p rhs, it is equivalent to \ref
-	/// cross.
-	inline VT operator%(const VT &rhs) const { return this->cross(rhs); }
-
 	/// @brief Get the sum of all elements.
-	inline T sum() const { return _x + _y + _z; }
+	inline T sum() const { return _x + _y + _z + _w; }
 
 	/// @brief Get the squared sum of all elements.
-	inline T sqrnorm() const { return _x * _x + _y * _y + _z * _z; }
+	inline T sqrnorm() const { return _x * _x + _y * _y + _z * _z + _w * _w; }
 
 	/// @brief Minimize \p this by the other vector \p rhs .
 	/// For each element \f( x_i \f) of \p this and \f( y_i \f) of \p rhs ,
@@ -259,6 +259,8 @@ public:
 			_y = rhs._y;
 		if (rhs._z < _z)
 			_z = rhs._z;
+		if (rhs._w < _w)
+			_w = rhs._w;
 	}
 
 	/// @brief Maximize \p this by the other vector \p rhs .
@@ -272,6 +274,8 @@ public:
 			_y = rhs._y;
 		if (rhs._z > _z)
 			_z = rhs._z;
+		if (rhs._w > _w)
+			_w = rhs._w;
 	}
 
 	/// @brief Vectorize \p this by a given number \p rhs ,
@@ -281,6 +285,7 @@ public:
 		_x = s;
 		_y = s;
 		_z = s;
+		_w = s;
 		return *this;
 	}
 
@@ -324,7 +329,8 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	inline VT pow(const T &exp) const
 	{
-		return VT{std::pow(_x, exp), std::pow(_y, exp), std::pow(_z, exp)};
+		return VT{std::pow(_x, exp), std::pow(_y, exp), std::pow(_z, exp),
+		          std::pow(_w, exp)};
 	}
 
 	/// @brief Get the \f( \ell_p \f)-norm of \p this .
@@ -335,7 +341,8 @@ public:
 		T px = std::pow(std::abs(_x), exp);
 		T py = std::pow(std::abs(_y), exp);
 		T pz = std::pow(std::abs(_z), exp);
-		return std::pow(px + py + pz, 1. / exp);
+		T pw = std::pow(std::abs(_w), exp);
+		return std::pow(px + py + pz + pw, 1. / exp);
 	}
 
 	/// @brief Check if all elements are finite.
@@ -343,7 +350,8 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	inline bool isfinite() const
 	{
-		return std::isfinite(_x) && std::isfinite(_y) && std::isfinite(_z);
+		return std::isfinite(_x) && std::isfinite(_y) && std::isfinite(_z) &&
+		       std::isfinite(_w);
 	}
 
 	/// @brief Get element-wisely floor result.
@@ -351,7 +359,7 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	VT floor() const
 	{
-		return VT{std::floor(_x), std::floor(_y), std::floor(_z)};
+		return VT{std::floor(_x), std::floor(_y), std::floor(_z), std::floor(_w)};
 	}
 
 	/// @brief Get element-wisely ceil result.
@@ -359,7 +367,7 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	VT ceil() const
 	{
-		return VT{std::ceil(_x), std::ceil(_y), std::ceil(_z)};
+		return VT{std::ceil(_x), std::ceil(_y), std::ceil(_z), std::ceil(_w)};
 	}
 
 	/// @brief Get element-wisely round result.
@@ -367,7 +375,7 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	VT round() const
 	{
-		return VT{std::round(_x), std::round(_y), std::round(_z)};
+		return VT{std::round(_x), std::round(_y), std::round(_z), std::round(_w)};
 	}
 
 	/// @brief Get element-wisely absolute result.
@@ -375,7 +383,7 @@ public:
 	          typename = std::enable_if_t<std::is_floating_point_v<U>>> // SFINAE
 	VT abs() const
 	{
-		return VT{std::abs(_x), std::abs(_y), std::abs(_z)};
+		return VT{std::abs(_x), std::abs(_y), std::abs(_z), std::abs(_w)};
 	}
 
 	/// @brief Negate elements in-place.
@@ -386,6 +394,7 @@ public:
 		_x = -_x;
 		_y = -_y;
 		_z = -_z;
+		_w = -_w;
 		return *this;
 	}
 
@@ -393,12 +402,13 @@ protected:
 	T _x;
 	T _y;
 	T _z;
+	T _w;
 }; // namespace Geometry
 
 /******* Below operators are optimized for right values. *******/
 
 template <typename T>
-inline Vec3T<T> operator-(Vec3T<T> &&lhs)
+inline Vec4T<T> operator-(Vec4T<T> &&lhs)
 {
 	lhs.negate();
 	return std::move(lhs);
@@ -409,17 +419,17 @@ inline Vec3T<T> operator-(Vec3T<T> &&lhs)
 /// They are specially optimized for right values.
 #define ELEMENT_WISELY_BINARY_OPERATOR_RV(op, compound_op)           \
 	template <typename T>                                              \
-	inline Vec3T<T> &&operator op(Vec3T<T> &&lhs, const Vec3T<T> &rhs) \
+	inline Vec4T<T> &&operator op(Vec4T<T> &&lhs, const Vec4T<T> &rhs) \
 	{                                                                  \
 		return std::move(lhs compound_op rhs);                           \
 	}                                                                  \
 	template <typename T>                                              \
-	inline Vec3T<T> &&operator op(Vec3T<T> &&lhs, Vec3T<T> &&rhs)      \
+	inline Vec4T<T> &&operator op(Vec4T<T> &&lhs, Vec4T<T> &&rhs)      \
 	{                                                                  \
 		return std::move(lhs compound_op rhs);                           \
 	}                                                                  \
 	template <typename T>                                              \
-	inline Vec3T<T> &&operator op(Vec3T<T> &&lhs, const T & rhs)       \
+	inline Vec4T<T> &&operator op(Vec4T<T> &&lhs, const T & rhs)       \
 	{                                                                  \
 		return std::move(lhs compound_op rhs);                           \
 	}
@@ -431,97 +441,43 @@ ELEMENT_WISELY_BINARY_OPERATOR_RV(/, /=);
 
 #undef ELEMENT_WISELY_BINARY_OPERATOR_RV
 
-/// @brief Multiply a number \p lhs and a Vec3T \p rhs .
+/// @brief Multiply a number \p lhs and a Vec4T \p rhs .
 template <typename T>
-inline Vec3T<T> operator*(const T &lhs, const Vec3T<T> &rhs)
+inline Vec4T<T> operator*(const T &lhs, const Vec4T<T> &rhs)
 {
 	return rhs * lhs;
 }
 
-/// @brief Multiply a number \p lhs and a Vec3T \p rhs .
+/// @brief Multiply a number \p lhs and a Vec4T \p rhs .
 template <typename T>
-inline Vec3T<T> &&operator*(const T &lhs, Vec3T<T> &&rhs)
+inline Vec4T<T> &&operator*(const T &lhs, Vec4T<T> &&rhs)
 {
 	return std::move(std::move(rhs) * lhs);
 }
 
-/// @brief A number \p lhs divede a Vec3T \p rhs element-wisely.
+/// @brief A number \p lhs divede a Vec4T \p rhs element-wisely.
 /// result[i] = lhs / rhs[i].
 template <typename T>
-inline Vec3T<T> operator/(const T &lhs, const Vec3T<T> &rhs)
+inline Vec4T<T> operator/(const T &lhs, const Vec4T<T> &rhs)
 {
-	return Vec3T<T>{lhs / rhs.x(), lhs / rhs.y(), lhs / rhs.z()};
+	return Vec4T<T>{lhs / rhs.x(), lhs / rhs.y(), lhs / rhs.z(), lhs / rhs.w()};
 }
 
-/// @brief A number \p lhs divede a Vec3T \p rhs element-wisely.
+/// @brief A number \p lhs divede a Vec4T \p rhs element-wisely.
 /// result[i] = lhs / rhs[i].
 template <typename T>
-inline Vec3T<T> &&operator/(const T &lhs, Vec3T<T> &&rhs)
+inline Vec4T<T> &&operator/(const T &lhs, Vec4T<T> &&rhs)
 {
 	rhs.x() = lhs / rhs.x();
 	rhs.y() = lhs / rhs.y();
 	rhs.z() = lhs / rhs.z();
+	rhs.w() = lhs / rhs.w();
 	return std::move(rhs);
 }
 
-/// @brief Cross product of \p this and \p rhs.
-template <typename T>
-inline Vec3T<T> &&cross(Vec3T<T> &&lhs, const Vec3T<T> &rhs)
-{
-	// can compiler automatically optimize the sequence of operators?
-	T x     = lhs.x();
-	lhs.x() = lhs.y() * rhs.z() - lhs.z() * rhs.y();
-	T y     = lhs.y();
-	lhs.y() = lhs.z() * rhs.x() - x * rhs.z();
-	lhs.z() = x * rhs.y() - y * rhs.x();
-	return std::move(lhs);
-}
-
-/// @brief Cross product of \p this and \p rhs, it is equivalent to \ref cross.
-template <typename T>
-inline Vec3T<T> &&operator%(Vec3T<T> &&lhs, const Vec3T<T> &rhs)
-{
-	return cross(std::move(lhs), rhs);
-}
-
-/// @brief Cross product of \p this and \p rhs.
-template <typename T>
-inline Vec3T<T> &&cross(const Vec3T<T> &lhs, Vec3T<T> &&rhs)
-{
-	// can compiler automatically optimize the sequence of operators?
-	double x = rhs.x();
-	rhs.x()  = lhs.y() * rhs.z() - lhs.z() * rhs.y();
-	double y = rhs.y();
-	rhs.y()  = lhs.z() * x - lhs.x() * rhs.z();
-	rhs.z()  = lhs.x() * y - lhs.y() * x;
-	return std::move(rhs);
-}
-
-/// @brief Cross product of \p this and \p rhs, it is equivalent to \ref cross.
-template <typename T>
-inline Vec3T<T> &&operator%(const Vec3T<T> &lhs, Vec3T<T> &&rhs)
-{
-	return cross(lhs, std::move(rhs));
-}
-
-/// @brief Cross product of \p this and \p rhs.
-template <typename T>
-inline Vec3T<T> &&cross(Vec3T<T> &&lhs, Vec3T<T> &&rhs)
-{
-	// can compiler automatically optimize the sequence of operators?
-	return cross(std::move(lhs), rhs);
-}
-
-/// @brief Cross product of \p this and \p rhs, it is equivalent to \ref cross.
-template <typename T>
-inline Vec3T<T> &&operator%(Vec3T<T> &&lhs, Vec3T<T> &&rhs)
-{
-	return cross(std::move(lhs), rhs);
-}
-
-using Vec3f = Vec3T<float>;
-using Vec3d = Vec3T<double>;
-using Vec3i = Vec3T<int>;
-using Vec3u = Vec3T<unsigned int>;
+using Vec4f = Vec4T<float>;
+using Vec4d = Vec4T<double>;
+using Vec4i = Vec4T<int>;
+using Vec4u = Vec4T<unsigned int>;
 
 } // namespace OMC

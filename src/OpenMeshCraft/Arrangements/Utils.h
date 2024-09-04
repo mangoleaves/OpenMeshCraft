@@ -35,7 +35,7 @@ namespace OMC {
 #define OMC_ARR_DC_TTI_PARA
 #define OMC_ARR_TR_PARA
 // === accelerate control for components
-#define ARR_DC_FILTER_ORIENT3D
+#define OMC_ARR_DC_FILTER_O3D
 #define OMC_ARR_AVOID_TPI
 // === ablation control for features
 // #define OMC_ARR_GLOBAL_POINT_SET
@@ -44,23 +44,33 @@ namespace OMC {
 
 constexpr int NBIT = 32;
 
-/// * Label for each triangle in arrangements (boolean, and other applications).
-///   Label indicates where this triangle locates on.
-///   (For example, if Label[0] and Label[1] is true, this triangle locates on
-///   triangle soup with index 0 and triangle soup with index 1 at the same
-///   time.)
-/// * Users can use this label to transfer attributes from input triangle soups
-///   to the output triangle soup.
-/// * Consider efficiency, we limit maximal label count to be less than
-///   NBIT(32).
+/// * Label for each triangle in arrangements (boolean and other applications). 
+///   The label indicates the location of this triangle. 
+///   (For example, if Label[0] and Label[1] are true, this triangle is located in 
+///   triangle soup with index 0 and triangle soup with index 1 simultaneously.) 
+/// * Users can use this label to transfer attributes from input triangle soups 
+///   to the output triangle soup. 
+/// * To ensure efficiency, we limit the maximum label count to less than 
+///   NBIT (32).
 using Label = std::bitset<NBIT>;
 
 struct MeshArrangements_Config
 {
-	double tree_enlarge_ratio    = 1.01;
-	size_t tree_split_size_thres = 400;
-	// only for OcTree
-	double tree_adaptive_thres   = 0.2;
+	/*   behavior   */
+	// report more information during running
+	bool   verbose                = false;
+	// If set to true, the algorithm will ignore intersections between triangles
+	// in the same mesh. This feature is utilized by mesh boolean operations.
+	bool   ignore_same_mesh       = false;
+	// If set to true, the explicit results (points and triangles) will be saved
+	// in the output mesh specified by setTriMeshAsOutput. All intermediate data
+	// will be cleared.
+	bool   output_explicit_result = false;
+	/*  tree parameters  */
+	double tree_enlarge_ratio     = 1.01;
+	size_t tree_split_size_thres  = 400;
+	/*  only for OcTree  */
+	double tree_adaptive_thres    = 0.2;
 };
 
 struct MeshArrangements_Stats
@@ -540,7 +550,7 @@ inline void ArrProfile::print()
 #define OMC_ARR_SAVE_ELAPSED(name, dst_name, dscrpt)                     \
 	if (stats != nullptr)                                                  \
 		stats->dst_name = OMC::Logger::elapsed(name).count();                \
-	if (verbose)                                                           \
+	if (config.verbose)                                                    \
 	{                                                                      \
 		OMC::Logger::info(std::format("[OpenMeshCraft Arrangements] " dscrpt \
 		                              " time : {} s",                        \

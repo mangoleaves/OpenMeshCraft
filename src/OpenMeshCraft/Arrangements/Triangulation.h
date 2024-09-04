@@ -56,7 +56,9 @@ private:
 
 public:
 	Triangulation(TriSoup &_ts, std::vector<index_t> &new_tris,
-	              std::vector<Label> &new_labels);
+	              std::vector<Label>            &new_labels,
+	              const MeshArrangements_Config &_config,
+	              MeshArrangements_Stats        &_stats);
 
 private:
 	void triangulateSingleTriangle(index_t t_id, FTriMesh &subm,
@@ -162,6 +164,11 @@ private:
 	TriSoup &ts;
 
 	std::vector<PntArena> &pnt_arenas;
+
+	/* Configuration */
+	const MeshArrangements_Config &config;
+	/* Statistics */
+	MeshArrangements_Stats        &stats;
 };
 
 } // namespace OMC

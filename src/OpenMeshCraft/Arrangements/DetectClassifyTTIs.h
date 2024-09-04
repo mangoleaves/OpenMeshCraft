@@ -35,8 +35,9 @@ public:
 
 	using Tree = Arr_Tree_Intersection<Traits>;
 
-	DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree, bool _ignore_same_label,
-	                   MeshArrangements_Stats *_stats, bool _verbose);
+	DetectClassifyTTIs(TriSoup &_ts, const Tree &_tree,
+	                   const MeshArrangements_Config &_config,
+	                   MeshArrangements_Stats        &_stats);
 
 protected:
 	/**
@@ -91,12 +92,10 @@ protected:
 	tbb::concurrent_vector<UIPair> intersecting_triangle_pairs;
 #endif
 
-	/* ignore intersection between triangles with same label */
-	bool                    ignore_same_label;
+	/* configuration */
+	const MeshArrangements_Config &config;
 	/* statistics */
-	MeshArrangements_Stats *stats;
-	/* Behavior control flags */
-	bool                    verbose;
+	MeshArrangements_Stats        &stats;
 };
 
 } // namespace OMC
