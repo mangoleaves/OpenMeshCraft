@@ -7,6 +7,7 @@
 #include "TriangleSoup.h"
 
 // Sub-algorithms of arrangements
+#include "CleanMesh.h"
 #include "DetectClassifyTTIs.h"
 #include "Triangulation.h"
 
@@ -121,16 +122,9 @@ public: /* Pipeline **********************************************************/
 	void computeExplicitResult(iPoints &final_points, iTris &final_tris,
 	                           std::vector<Label> *final_labels = nullptr);
 
-public: /* Preprocessing steps ***********************************************/
-	void convertLabels();
-
-	void mergeDuplicatedVertices();
-
-	void removeDegenerateAndDuplicatedTriangles();
-
-	static bool consistentWinding(const index_t *t0, const index_t *t1);
-
 public: /* Routines before and after solving intersecions ********************/
+	void collectCleanResults(ArrCleanMesh<Traits> &CM);
+
 	void initBeforeDetectClassify();
 
 	void exitAfterTriangulation();
@@ -171,9 +165,12 @@ public:
 	MeshArrangements_Stats *stats;
 
 private: /* Private middle data *******************************************/
-	/// point arena for explicit points
-	PntArena              exp_pnt_arena;
-	/// All generated points in algorithm are stored in pnt_arena
+	/// explicit points and jolly points
+	std::vector<EPoint> exp_pnt; // explicit points
+#ifdef OMC_ARR_AUX_LPI
+	std::vector<EPoint> jolly_pnt; // jolly points
+#endif
+	/// All generated implicit points in algorithm are stored in pnt_arena
 	std::vector<PntArena> pnt_arenas;
 	/// Triangle soup
 	TriSoup               tri_soup;
@@ -191,35 +188,18 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline()
 
 	OMC_ARR_START_ELAPSE(start_pp);
 
-	// convert in_labels to arr_in_labels.
-	// (in_labels will NOT be used again later).
-	convertLabels();
+	// clean input mesh
+	ArrCleanMesh<Traits> CM(in_coords, in_tris, in_labels);
+	CM.convertLabels();
+	CM.mergeDuplicatedVertices();
+	CM.removeDegenerateAndDuplicatedTriangles();
+	CM.removeIsolatedVertices();
+	collectCleanResults(CM);
 
-	OMC_ARR_START_ELAPSE(start_mdv);
+	OMC_ARR_SAVE_ELAPSED(start_pp, pp_elapsed, "Preprocessing");
 
-	// 1. merge duplicate vertices in in_coords and store them as explicit points
-	// in arena.
-	// 2. store pointers to explicit points in arr_out_verts.
-	// 3. fix indices in in_tris to get arr_in_tris.
-	// (in_coords and in_tris will NOT be used again later).
-	mergeDuplicatedVertices();
+	/***** Build tree *****/
 
-	OMC_ARR_SAVE_ELAPSED(start_mdv, mdv_elapsed, "Merge duplicate vertices");
-	OMC_ARR_START_ELAPSE(start_rdt);
-
-	// 1. remove degenerate and duplicate triangles in arr_in_tris.
-	// 2. merge labels of duplicate triangles to the unique one in arr_in_labels.
-	// (so, multiple bits in arr_in_labels(std::bitset) are possibly set to true)
-	removeDegenerateAndDuplicatedTriangles();
-
-	// After removing degenerate triangles, there are possibly isolated vertices.
-	// Remove them before arrangements pipeline if it is neccessary one day.
-	// But even if isolated vertices are not removed here, they will be removed
-	// when outputing explicit results. Because the unreferenced vertices (i.e.,
-	// isolated vertices) won't be output.
-
-	OMC_ARR_SAVE_ELAPSED(start_rdt, rdt_elapsed,
-	                     "Remove degenerate and duplicate triangles");
 	OMC_ARR_START_ELAPSE(start_tree);
 
 	// initialize tree from triangle soup (vertices and triangles)
@@ -228,7 +208,6 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline()
 	                             config);
 
 	OMC_ARR_SAVE_ELAPSED(start_tree, tree_elapsed, "Build tree");
-	OMC_ARR_SAVE_ELAPSED(start_pp, pp_elapsed, "Preprocessing");
 
 	/***** Arrangements *****/
 
@@ -254,296 +233,21 @@ void MeshArrangements_Impl<Traits>::meshArrangementsPipeline()
 }
 
 template <typename Traits>
-void MeshArrangements_Impl<Traits>::convertLabels()
+void MeshArrangements_Impl<Traits>::collectCleanResults(
+  ArrCleanMesh<Traits> &CM)
 {
-	arr_in_labels.resize(in_labels.size());
-	Label mask;
-
-	for (size_t i = 0; i < in_labels.size(); i++)
-	{
-		arr_in_labels[i][in_labels[i]] = true;
-		mask[in_labels[i]]             = true;
-	}
-	arr_out_labels.num = mask.count();
-}
-
-template <typename Traits>
-void MeshArrangements_Impl<Traits>::mergeDuplicatedVertices()
-{
-	bool parallel = in_coords.size() / 3 > 10000;
-	arr_out_verts.reserve(in_coords.size() / 3);
-	exp_pnt_arena.init.reserve(in_coords.size() / 3);
-	arr_in_tris.reserve(in_tris.size());
-
-	using vec3    = std::array<NT, 3>;
-	vec3 *in_vecs = (vec3 *)in_coords.data();
-
-	std::vector<index_t> sorted(in_coords.size() / 3);
-	std::iota(sorted.begin(), sorted.end(), 0);
-	size_t origin_num = sorted.size();
-
-	if (parallel)
-		tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
-		                   { return in_vecs[a] < in_vecs[b]; });
-	else
-		std::sort(sorted.begin(), sorted.end(),
-		          [in_vecs](auto a, auto b) { return in_vecs[a] < in_vecs[b]; });
-
-	std::vector<index_t> lookup(origin_num);
-	for (size_t idx = 0; idx < origin_num; idx++)
-	{
-		if (idx == 0 || in_vecs[sorted[idx]] != in_vecs[sorted[idx - 1]])
-		{
-			const vec3 &v = in_vecs[sorted[idx]];
-			// create explicit point and save it as generic point.
-			arr_out_verts.push_back(
-			  &AsGP()(exp_pnt_arena.init.emplace_back(v[0], v[1], v[2])));
-		}
-		lookup[sorted[idx]] = arr_out_verts.size() - 1;
-	}
-
-	arr_in_tris.resize(in_tris.size());
-	if (parallel)
-		std::transform(std::execution::par_unseq, in_tris.begin(), in_tris.end(),
-		               arr_in_tris.begin(),
-		               [&lookup](index_t idx) { return lookup[idx]; });
-	else
-		std::transform(std::execution::seq, in_tris.begin(), in_tris.end(),
-		               arr_in_tris.begin(),
-		               [&lookup](index_t idx) { return lookup[idx]; });
-
-	if (config.verbose)
-	{
-		Logger::info(
-		  std::format("[OpenMeshCraft Arrangements] removed {} duplicate vertices.",
-		              std::to_string(in_coords.size() / 3 - arr_out_verts.size())));
-	}
-}
-
-template <typename Traits>
-void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
-{
-	using vec3i           = std::array<index_t, 3>;
-	size_t num_orig_verts = arr_out_verts.size();
-	size_t num_orig_tris  = arr_in_tris.size() / 3;
-	vec3i *data_orig_tris = (vec3i *)arr_in_tris.data();
-	size_t tri_off        = 0;
-
-	// compute collinear
-	std::vector<uint8_t> collinear_res(num_orig_tris, false);
-	tbb::parallel_for((size_t)0, num_orig_tris,
-	                  [this, data_orig_tris, &collinear_res](index_t t_id)
-	                  {
-		                  vec3i &t = data_orig_tris[t_id];
-		                  collinear_res[t_id] =
-		                    CollinearPoints3D()(arr_out_verts[t[0]]->data(),
-		                                        arr_out_verts[t[1]]->data(),
-		                                        arr_out_verts[t[2]]->data());
-	                  });
-
-	bool parallel = num_orig_tris > 10000;
-	if (parallel)
-	{
-		// map: edge (two larger tri vertices) -> triangle_id
-		using TriMap = phmap::flat_hash_map<std::pair<index_t, index_t>, index_t>;
-		// the smallest tri vertex -> map
-		std::vector<tbb::spin_mutex> tris_map_mutex(num_orig_verts);
-		std::vector<TriMap>          tris_map(num_orig_verts);
-
-		// unique index or compact index
-		std::vector<index_t> tris_idx(num_orig_tris);
-
-		bool exist_removed_tri = false;
-
-		auto check_tri_is_unique = [this, &collinear_res, &tris_map,
-		                            &tris_map_mutex, &tris_idx,
-		                            &exist_removed_tri](index_t t_id)
-		{
-			if (collinear_res[t_id])
-			{
-				tris_idx[t_id]    = InvalidIndex; // means removed
-				exist_removed_tri = true;
-				return;
-			}
-
-			index_t v0_id = arr_in_tris[(3 * t_id)];
-			index_t v1_id = arr_in_tris[(3 * t_id) + 1];
-			index_t v2_id = arr_in_tris[(3 * t_id) + 2];
-
-			std::array<index_t, 3> tri = {v0_id, v1_id, v2_id};
-			std::sort(tri.begin(), tri.end());
-
-			std::pair<index_t, index_t> edge = {tri[1], tri[2]};
-
-			{ // critical section
-				std::lock_guard<tbb::spin_mutex> lock(tris_map_mutex[tri[0]]);
-
-				auto ins = tris_map[tri[0]].insert({edge, t_id});
-				// if we meet this triangle for the first time, it is unique and
-				// ins.first->second is same as t_id. otherwise, it is duplicate and
-				// ins.first->second is the index of existed triangle.
-				if (t_id < ins.first->second)
-				{ // always save unique triangle with lower index
-					tris_idx[ins.first->second] = t_id;
-					tris_idx[t_id]              = t_id;
-					tris_map[tri[0]][edge]      = t_id;
-				}
-				else
-					tris_idx[t_id] = ins.first->second;
-				if (!ins.second)
-					exist_removed_tri = true;
-			}
-		};
-
-		// parallel build map from triangle to unique tri
-		tbb::parallel_for((size_t)0, num_orig_tris, check_tri_is_unique);
-
-		if (!exist_removed_tri)
-		{
-			/* #region log */
-			if (config.verbose)
-			{
-				Logger::info(std::format(
-				  "[OpenMeshCraft Arrangements] No degenerate and duplicate "
-				  "triangle found."));
-			}
-			/* #endregion */
-			return;
-		}
-		// clear to save mem
-		tris_map       = std::vector<TriMap>();
-		tris_map_mutex = std::vector<tbb::spin_mutex>();
-
-		// loop as before by use simpler way
-		std::vector<index_t> compact_tris_idx(num_orig_tris);
-
-		// the first traversal to map unique triangle to compact index
-		for (index_t t_id = 0; t_id < num_orig_tris; t_id++)
-		{
-			if (!is_valid_idx(tris_idx[t_id]))
-				continue;
-
-			index_t v0_id = arr_in_tris[3 * t_id];
-			index_t v1_id = arr_in_tris[3 * t_id + 1];
-			index_t v2_id = arr_in_tris[3 * t_id + 2];
-			Label   label = arr_in_labels[t_id];
-
-			if (tris_idx[t_id] == t_id)
-			{
-				// triangle is unique, save it and its compact id.
-				arr_in_tris[tri_off * 3]     = v0_id;
-				arr_in_tris[tri_off * 3 + 1] = v1_id;
-				arr_in_tris[tri_off * 3 + 2] = v2_id;
-				arr_in_labels[tri_off]       = label;
-
-				// update unique index to compact index
-				compact_tris_idx[t_id] = tri_off;
-				tri_off += 1;
-			}
-			else
-			{
-				// triangle is duplicate, save info abount duplication
-				index_t unique_idx = t_id;
-				while (unique_idx != tris_idx[unique_idx])
-					unique_idx = tris_idx[unique_idx];
-				index_t compact_idx = compact_tris_idx[unique_idx];
-
-				arr_in_labels[compact_idx] |= label;
-				size_t mesh_label = LabelToIdx(label);
-
-				index_t curr_tri_verts[] = {v0_id, v1_id, v2_id};
-				index_t uniq_tri_verts[] = {arr_in_tris[compact_idx * 3],
-				                            arr_in_tris[compact_idx * 3 + 1],
-				                            arr_in_tris[compact_idx * 3 + 2]};
-				bool    w = consistentWinding(curr_tri_verts, uniq_tri_verts);
-				dupl_triangles.push_back({/*compact triangle id*/ compact_idx,
-				                          /*label of the actual triangle*/ mesh_label,
-				                          /*winding with respect to the triangle stored
-				                             in mesh (true -> same, false -> opposite)*/
-				                          w});
-			}
-		}
-	}
-	else
-	{
-		// loop as before by use simpler way
-		// map: tri_vertices -> tri_off
-		using tri_t = std::array<index_t, 3>;
-		phmap::flat_hash_map<tri_t, size_t, hash<tri_t>> tris_map;
-
-		for (size_t t_id = 0; t_id < num_orig_tris; ++t_id)
-		{
-			if (collinear_res[t_id])
-				continue;
-			index_t v0_id = arr_in_tris[(3 * t_id)];
-			index_t v1_id = arr_in_tris[(3 * t_id) + 1];
-			index_t v2_id = arr_in_tris[(3 * t_id) + 2];
-			Label   label = arr_in_labels[t_id];
-
-			tri_t tri = {v0_id, v1_id, v2_id};
-			std::sort(tri.begin(), tri.end());
-
-			auto ins = tris_map.insert({tri, tri_off});
-
-			if (ins.second) // first time for tri v0, v1, v2
-			{
-				arr_in_tris[tri_off * 3]     = v0_id;
-				arr_in_tris[tri_off * 3 + 1] = v1_id;
-				arr_in_tris[tri_off * 3 + 2] = v2_id;
-				arr_in_labels[tri_off]       = label;
-				tri_off += 1;
-			}
-			else // triangle already present -> save info about duplicates
-			{
-				size_t orig_tri_off = ins.first->second;
-				arr_in_labels[orig_tri_off] |= label; // label for duplicates
-
-				size_t mesh_label = LabelToIdx(label);
-				OMC_EXPENSIVE_ASSERT(mesh_label >= 0, "invalid label id");
-
-				index_t curr_tri_verts[] = {v0_id, v1_id, v2_id};
-				index_t orig_tri_verts[] = {arr_in_tris[orig_tri_off * 3],
-				                            arr_in_tris[orig_tri_off * 3 + 1],
-				                            arr_in_tris[orig_tri_off * 3 + 2]};
-
-				bool w = consistentWinding(curr_tri_verts, orig_tri_verts);
-
-				dupl_triangles.push_back({/*original triangle id*/ orig_tri_off,
-				                          /*label of the actual triangle*/ mesh_label,
-				                          /*winding with respect to the triangle stored
-				                             in mesh (true -> same, false -> opposite)*/
-				                          w});
-			}
-		}
-	}
-
-	/* #region log */
-	if (config.verbose)
-	{
-		Logger::info(
-		  std::format("[OpenMeshCraft Arrangements] removed {}  degenerate and "
-		              "duplicate triangles.",
-		              std::to_string(arr_in_labels.size() - tri_off)));
-	}
-	/* #endregion */
-
-	arr_in_tris.resize(tri_off * 3);
-	arr_in_labels.resize(tri_off);
-}
-
-/// @brief t0 -> vertex ids of triangle t0, t1 -> vertex ids of triangle t1
-template <typename Traits>
-bool MeshArrangements_Impl<Traits>::consistentWinding(const index_t *t0,
-                                                      const index_t *t1)
-{
-	int j = 0;
-	while (j < 3 && t0[0] != t1[j])
-		j++;
-	OMC_EXPENSIVE_ASSERT(j < 3, "not same triangle");
-	OMC_EXPENSIVE_ASSERT((t0[1] == t1[(j + 1) % 3] && t0[2] == t1[(j + 2) % 3]) ||
-	                       (t0[1] == t1[(j + 2) % 3] && t0[2] == t1[(j + 1) % 3]),
-	                     "not same triangle");
-	return t0[1] == t1[(j + 1) % 3] && t0[2] == t1[(j + 2) % 3];
+	// collect vertices
+	arr_out_verts.reserve(CM.out_coords.size() / 3);
+	exp_pnt.reserve(CM.out_coords.size() / 3);
+	for (index_t vi = 0; vi < CM.out_coords.size(); vi += 3)
+		arr_out_verts.push_back(&AsGP()(exp_pnt.emplace_back(&CM.out_coords[vi])));
+	// collect triangles
+	arr_in_tris        = std::move(CM.out_tris);
+	// collect labels
+	arr_in_labels      = std::move(CM.out_labels);
+	arr_out_labels.num = CM.num_labels;
+	// collect info about duplicated triangles
+	dupl_triangles     = std::move(CM.dupl_triangles);
 }
 
 template <typename Traits>
@@ -557,6 +261,17 @@ void MeshArrangements_Impl<Traits>::initBeforeDetectClassify()
 	tri_soup.tri_labels = arr_in_labels; // copy, do not move
 	tri_soup.pnt_arenas = &pnt_arenas;
 	tri_soup.initialize();
+
+#ifdef OMC_ARR_AUX_LPI
+	// clang-format off
+	jolly_pnt.reserve(5);
+	tri_soup.jolly_points.push_back(&jolly_pnt.emplace_back(0.94280904158, 0.0, -0.333333333));
+	tri_soup.jolly_points.push_back(&jolly_pnt.emplace_back(-0.47140452079, 0.81649658092, -0.333333333));
+	tri_soup.jolly_points.push_back(&jolly_pnt.emplace_back(-0.47140452079, -0.81649658092, -0.333333333));
+	tri_soup.jolly_points.push_back(&jolly_pnt.emplace_back(0.0, 0.0, 1.0));
+	tri_soup.jolly_points.push_back(&jolly_pnt.emplace_back(1.0, 0.0, 0.0));
+	// clang-format on
+#endif
 }
 
 template <typename Traits>

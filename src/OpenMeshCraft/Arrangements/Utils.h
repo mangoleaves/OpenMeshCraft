@@ -68,12 +68,9 @@ struct MeshArrangements_Config
 
 struct MeshArrangements_Stats
 {
-	/* Preprocessing *************************************************/
+	/* Preprocess and build tree *************************************/
 
 	double pp_elapsed   = 0.; // timings of preprocessing
-	double mdv_elapsed  = 0.; // timings of merging duplicate vertices
-	double rdt_elapsed  = 0.; // timings of removing degenerate and
-	                          // duplicate triangles
 	double tree_elapsed = 0.; // timings of building tree
 
 	/* detect and classify intersection ******************************/
@@ -118,13 +115,9 @@ public:
 	using IPoint_TPI = typename Traits::IPoint_TPI;
 
 public:
-	std::vector<EPoint>    init; // explicit points
 	std::deque<IPoint_SSI> ssi;  // SSI points
 	std::deque<IPoint_LPI> lpi;  // LPI points
 	std::deque<IPoint_TPI> tpi;  // TPI points
-#ifdef OMC_ARR_AUX_LPI
-	std::deque<EPoint> jolly; // jolly points
-#endif
 
 public:
 	void recycle(IPoint_SSI *ssi_ptr) { recycled_ssi.push(ssi_ptr); }
