@@ -206,6 +206,9 @@ private:
 	                                                        const GPoint &tv2);
 	/* Topology utils **********************************************************/
 
+	static bool triContainsVert(index_t t_id, index_t v_id,
+	                            const std::vector<index_t> &in_tris);
+
 	static void findVertRingTris(index_t v_id, const Label &ref_label,
 	                             const std::vector<index_t> &inters_tris,
 	                             const std::vector<index_t> &in_tris,
@@ -279,13 +282,13 @@ public:
 	/// output triangles
 	std::vector<index_t>  &arr_out_tris;
 	/// output labels for all unique triangles
-	Labels                &arr_out_labels;
+	ArrLabels             &arr_out_labels;
 
 	/* Auxiliary data */
 	/// tree build on arr_in_tris (NOTE: not on in_tris)
-	Tree                     &tree;
+	Tree                        &tree;
 	/// information of removed duplicate triangles (maybe used again)
-	std::vector<DuplTriInfo> &dupl_triangles;
+	std::vector<ArrDuplTriInfo> &dupl_triangles;
 
 	/* Boolean data **********************************************************/
 
@@ -437,7 +440,7 @@ void MeshBoolean_Impl<Traits>::computeAllPatches()
 template <typename Traits>
 void MeshBoolean_Impl<Traits>::addDuplicateTrisInfoInStructures()
 {
-	for (DuplTriInfo &item : dupl_triangles)
+	for (ArrDuplTriInfo &item : dupl_triangles)
 	{
 		index_t v0_id    = arr_in_tris[3 * item.t_id];
 		index_t v1_id    = arr_in_tris[3 * item.t_id + 1];
@@ -510,6 +513,14 @@ bool MeshBoolean_Impl<Traits>::checkIntersectionInsideTriangle3DImplPoints(
 	Sign or20f = Orient3D()(tv2, tv0, AsGP()(ray.segment.start()), AsGP()(ray.segment.end()));
 	// clang-format on
 	return (or01f != Sign::ZERO && or01f == or12f && or01f == or20f);
+}
+
+template <typename Traits>
+bool MeshBoolean_Impl<Traits>::triContainsVert(
+  index_t t_id, index_t v_id, const std::vector<index_t> &in_tris)
+{
+	return in_tris[3 * t_id] == v_id || in_tris[3 * t_id + 1] == v_id ||
+	       in_tris[3 * t_id + 2] == v_id;
 }
 
 template <typename Traits>
@@ -1205,10 +1216,10 @@ MeshBoolean<Kernel, Traits>::addTriMeshAsInput(const iPoints    &points,
 	input_meshes.emplace_back();
 	input_meshes.back().points    = &points;
 	input_meshes.back().triangles = &triangles;
-	if (input_meshes.size() == NBIT)
+	if (input_meshes.size() == LABEL_NBIT)
 		OMC_THROW_OUT_OF_RANGE("Input meshes for arrangments are too much, limit "
 		                       "the number to less than {}",
-		                       NBIT);
+		                       LABEL_NBIT);
 	// once the input meshes change, reset internal data
 	m_impl = nullptr;
 	return input_meshes.size() - 1;
@@ -1303,6 +1314,39 @@ public:
 			     mesh_id, coords, tris, arr_out_labels);
 		}
 		return !coords.empty() && !tris.empty();
+	}
+
+private:
+	template <typename Points, typename Triangles, typename NT>
+	void load(const Points &points, const Triangles &triangles,
+	          const size_t label, std::vector<NT> &coords,
+	          std::vector<index_t> &flat_tris, std::vector<size_t> &labels)
+	{
+		size_t p_off = coords.size() / 3; // prev num verts
+		coords.resize(coords.size() + points.size() * 3);
+		tbb::parallel_for(size_t(0), points.size(),
+		                  [&coords, &points, &p_off](size_t p_id)
+		                  {
+			                  coords[(p_off + p_id) * 3]     = points[p_id][0];
+			                  coords[(p_off + p_id) * 3 + 1] = points[p_id][1];
+			                  coords[(p_off + p_id) * 3 + 2] = points[p_id][2];
+		                  });
+
+		size_t t_off = flat_tris.size() / 3; // prev num tris
+		flat_tris.resize(flat_tris.size() + triangles.size() * 3);
+		tbb::parallel_for(
+		  size_t(0), triangles.size(),
+		  [&flat_tris, &triangles, &t_off, &p_off](size_t t_id)
+		  {
+			  flat_tris[(t_off + t_id) * 3]     = p_off + triangles[t_id][0];
+			  flat_tris[(t_off + t_id) * 3 + 1] = p_off + triangles[t_id][1];
+			  flat_tris[(t_off + t_id) * 3 + 2] = p_off + triangles[t_id][2];
+		  });
+
+		size_t l_off = labels.size();
+		labels.resize(labels.size() + triangles.size());
+		std::fill(std::execution::par_unseq, labels.begin() + l_off, labels.end(),
+		          label);
 	}
 };
 

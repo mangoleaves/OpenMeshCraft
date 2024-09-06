@@ -75,7 +75,7 @@ public: /* Interfaces ********************************************************/
 	 * * Each input triangle mesh will be assigned an index internally
 	 *   (the index is the return value of addTriMeshAsInput).
 	 * * Each output triangle's label indicates the triangle mesh it belongs to.
-	 * * Labels are used to transfer attributes from input triangle meshes to
+	 * * ArrLabels are used to transfer attributes from input triangle meshes to
 	 *   output triangle meshes.
 	 * @param labels The labels of the output mesh.
 	 */
@@ -94,17 +94,24 @@ public: /* Interfaces ********************************************************/
 	MeshArrangements_Stats &stats();
 
 private:
-	/// Input data
+	/* Input data */
 	struct iTriSoup
 	{
 		const iPoints    *points    = nullptr;
 		const iTriangles *triangles = nullptr;
 	};
 	std::vector<iTriSoup> input_meshes;
-	/// Output data
-	iPoints              *output_points    = nullptr;
-	iTriangles           *output_triangles = nullptr;
 
+	/* Output data */
+	iPoints    *output_points    = nullptr;
+	iTriangles *output_triangles = nullptr;
+
+	/// * Label for each triangle in arrangements (boolean and other
+	/// applications). The label indicates the location of this triangle. (For
+	/// example, if Label[0] and Label[1] are true, this triangle is located in
+	/// triangle soup with index 0 and triangle soup with index 1 simultaneously.)
+	/// * Users can use this label to transfer attributes from input triangle
+	/// soups to the output triangle soup.
 	std::vector<Label> *output_labels = nullptr;
 
 	/* Configuration */

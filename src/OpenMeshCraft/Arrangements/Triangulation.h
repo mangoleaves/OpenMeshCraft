@@ -35,18 +35,18 @@ private:
 	  typename Traits::Triangle3_Point3_DoIntersect;
 
 	using FTriMesh = FastTriMesh<Traits>;
-	using PntArena = PointArena<Traits>;
+	using PntArena = ArrPointArena<Traits>;
 	using TriSoup  = TriangleSoup<Traits>;
 
 	// Segment, containing seg_id and seg's endpoints
 	using Segment      = UIPair;
 	// Collect segments on a triangle
-	using SegmentsList = phmap::flat_hash_set<Segment>;
+	using SegmentsList = phmap::flat_hash_set<Segment, hash<Segment>>;
 	// Segment will be split to sub-segments by TPI points,
 	// map sub-segments to its original segment id.
 	using RefSegs      = boost::container::flat_set<index_t, std::less<index_t>,
 	                                                AuxVector4<index_t>>;
-	using SubSegMap    = phmap::flat_hash_map<Segment, RefSegs>;
+	using SubSegMap    = phmap::flat_hash_map<Segment, RefSegs, hash<Segment>>;
 	// Store segments adajcent to TPI points in a triangle.
 	using TPI2Segs     = phmap::flat_hash_map<index_t, AuxVector4<index_t>>;
 	// Pockets

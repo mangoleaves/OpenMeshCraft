@@ -30,7 +30,7 @@ public:
 
 	using Tri3_Tri3_DoInter = typename Traits::Triangle3_Triangle3_DoIntersect;
 
-	using PntArena = PointArena<Traits>;
+	using PntArena = ArrPointArena<Traits>;
 	using TriSoup  = TriangleSoup<Traits>;
 
 	using Tree = Arr_Tree_Intersection<Traits>;

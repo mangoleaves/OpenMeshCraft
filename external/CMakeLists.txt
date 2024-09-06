@@ -1,3 +1,7 @@
+# policy settings #############################################################
+cmake_policy(SET CMP0074 NEW) # use XXX_ROOT variable in find_package
+cmake_policy(SET CMP0167 OLD) # use BOOST_ROOT in find_package(boost)
+
 # GMP ##########################################################################
 # ##############################################################################
 # The target GMP can be linked to other targets.

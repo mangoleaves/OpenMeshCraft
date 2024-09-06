@@ -3,7 +3,7 @@
 # ##############################################################################
 
 cmake_minimum_required(VERSION 3.11)
-cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0074 NEW) # use XXX_ROOT variable in find_package
 
 project(OpenMeshCraft VERSION 1.0.0)
 

@@ -130,7 +130,7 @@ FastTriMesh<Traits>::~FastTriMesh()
 template <typename Traits>
 void FastTriMesh<Traits>::initialize(const GPoint *tv0, const GPoint *tv1,
                                      const GPoint *tv2, const index_t *tv_id,
-                                     const Plane &ref_p, const Sign &ori)
+                                     const OrPlane &ref_p, const Sign &ori)
 {
 	clear();
 
@@ -819,7 +819,7 @@ bool FastTriMesh<Traits>::edgeIsManifold(index_t e_id) const
 }
 
 template <typename Traits>
-Plane FastTriMesh<Traits>::refPlane() const
+OrPlane FastTriMesh<Traits>::refPlane() const
 {
 	return triangle_plane;
 }

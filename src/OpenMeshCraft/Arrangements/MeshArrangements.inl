@@ -94,7 +94,7 @@ public: /* Auxiliary data structures *****************************************/
 	// tree
 	using Tree     = Arr_Tree_Intersection<Traits>;
 	// point arena
-	using PntArena = PointArena<Traits>;
+	using PntArena = ArrPointArena<Traits>;
 	// triangle soup
 	using TriSoup  = TriangleSoup<Traits>;
 	// fast triangle mesh
@@ -128,6 +128,8 @@ public: /* Preprocessing steps ***********************************************/
 
 	void removeDegenerateAndDuplicatedTriangles();
 
+	static bool consistentWinding(const index_t *t0, const index_t *t1);
+
 public: /* Routines before and after solving intersecions ********************/
 	void initBeforeDetectClassify();
 
@@ -154,13 +156,13 @@ public:
 	/// output triangles
 	std::vector<index_t>  arr_out_tris;
 	/// output labels for all unique triangles
-	Labels                arr_out_labels;
+	ArrLabels             arr_out_labels;
 
 	/* Auxiliary data */
 	/// tree build on arr_in_tris (NOTE: not on in_tris)
-	Tree                     tree;
+	Tree                        tree;
 	/// information of removed duplicate triangles (maybe used again)
-	std::vector<DuplTriInfo> dupl_triangles;
+	std::vector<ArrDuplTriInfo> dupl_triangles;
 
 	/* Configuration */
 	MeshArrangements_Config config;
@@ -466,7 +468,8 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 	{
 		// loop as before by use simpler way
 		// map: tri_vertices -> tri_off
-		phmap::flat_hash_map<std::array<index_t, 3>, size_t> tris_map;
+		using tri_t = std::array<index_t, 3>;
+		phmap::flat_hash_map<tri_t, size_t, hash<tri_t>> tris_map;
 
 		for (size_t t_id = 0; t_id < num_orig_tris; ++t_id)
 		{
@@ -477,7 +480,7 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 			index_t v2_id = arr_in_tris[(3 * t_id) + 2];
 			Label   label = arr_in_labels[t_id];
 
-			std::array<index_t, 3> tri = {v0_id, v1_id, v2_id};
+			tri_t tri = {v0_id, v1_id, v2_id};
 			std::sort(tri.begin(), tri.end());
 
 			auto ins = tris_map.insert({tri, tri_off});
@@ -526,6 +529,21 @@ void MeshArrangements_Impl<Traits>::removeDegenerateAndDuplicatedTriangles()
 
 	arr_in_tris.resize(tri_off * 3);
 	arr_in_labels.resize(tri_off);
+}
+
+/// @brief t0 -> vertex ids of triangle t0, t1 -> vertex ids of triangle t1
+template <typename Traits>
+bool MeshArrangements_Impl<Traits>::consistentWinding(const index_t *t0,
+                                                      const index_t *t1)
+{
+	int j = 0;
+	while (j < 3 && t0[0] != t1[j])
+		j++;
+	OMC_EXPENSIVE_ASSERT(j < 3, "not same triangle");
+	OMC_EXPENSIVE_ASSERT((t0[1] == t1[(j + 1) % 3] && t0[2] == t1[(j + 2) % 3]) ||
+	                       (t0[1] == t1[(j + 2) % 3] && t0[2] == t1[(j + 1) % 3]),
+	                     "not same triangle");
+	return t0[1] == t1[(j + 1) % 3] && t0[2] == t1[(j + 2) % 3];
 }
 
 template <typename Traits>
@@ -728,10 +746,10 @@ MeshArrangements<Kernel, Traits>::addTriMeshAsInput(const iPoints    &points,
 	input_meshes.emplace_back();
 	input_meshes.back().points    = &points;
 	input_meshes.back().triangles = &triangles;
-	if (input_meshes.size() == NBIT)
+	if (input_meshes.size() == LABEL_NBIT)
 		OMC_THROW_OUT_OF_RANGE("Input meshes for arrangments are too much, limit "
 		                       "the number to less than {}.",
-		                       NBIT);
+		                       LABEL_NBIT);
 	return input_meshes.size() - 1;
 }
 
@@ -815,6 +833,39 @@ public:
 			     mesh_id, coords, tris, labels);
 		}
 		return !coords.empty() && !tris.empty();
+	}
+
+private:
+	template <typename Points, typename Triangles, typename NT>
+	void load(const Points &points, const Triangles &triangles,
+	          const size_t label, std::vector<NT> &coords,
+	          std::vector<index_t> &flat_tris, std::vector<size_t> &labels)
+	{
+		size_t p_off = coords.size() / 3; // prev num verts
+		coords.resize(coords.size() + points.size() * 3);
+		tbb::parallel_for(size_t(0), points.size(),
+		                  [&coords, &points, &p_off](size_t p_id)
+		                  {
+			                  coords[(p_off + p_id) * 3]     = points[p_id][0];
+			                  coords[(p_off + p_id) * 3 + 1] = points[p_id][1];
+			                  coords[(p_off + p_id) * 3 + 2] = points[p_id][2];
+		                  });
+
+		size_t t_off = flat_tris.size() / 3; // prev num tris
+		flat_tris.resize(flat_tris.size() + triangles.size() * 3);
+		tbb::parallel_for(
+		  size_t(0), triangles.size(),
+		  [&flat_tris, &triangles, &t_off, &p_off](size_t t_id)
+		  {
+			  flat_tris[(t_off + t_id) * 3]     = p_off + triangles[t_id][0];
+			  flat_tris[(t_off + t_id) * 3 + 1] = p_off + triangles[t_id][1];
+			  flat_tris[(t_off + t_id) * 3 + 2] = p_off + triangles[t_id][2];
+		  });
+
+		size_t l_off = labels.size();
+		labels.resize(labels.size() + triangles.size());
+		std::fill(std::execution::par_unseq, labels.begin() + l_off, labels.end(),
+		          label);
 	}
 };
 

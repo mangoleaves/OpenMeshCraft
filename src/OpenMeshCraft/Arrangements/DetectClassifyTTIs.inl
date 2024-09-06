@@ -14,7 +14,7 @@
 		      ts.triVertPtr(b1.id(), 1),                                        \
 		      ts.triVertPtr(b1.id(), 2)) >= SimplexIntersectionType::INTERSECT) \
 		{                                                                       \
-			intersecting_triangle_pairs.push_back(uniquePair(b0.id(), b1.id()));  \
+			intersecting_triangle_pairs.push_back(unique_pair(b0.id(), b1.id()));  \
 		}
 
 	#define REPORT_INTERSECTING_TRIANGLE                                \

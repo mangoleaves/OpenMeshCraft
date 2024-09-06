@@ -46,18 +46,18 @@ public: /* Types **************************************************************/
 	using CollinearPoints3D  = typename Traits::CollinearPoints3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
-	using PntArena = PointArena<Traits>;
+	using PntArena = ArrPointArena<Traits>;
 
 	using Tree = Arr_Tree_Intersection<Traits>;
 
 	/* ----- Edge related structures ----- */
 
 	/// <smaller vertex index, larger vertex index>
-	using Edge           = UIPair;
+	using Edge    = UIPair;
 	/// map an edge(index pair) to a unique edge index.
 	/// 1. map smaller vertex index by std::vector.
 	/// 2. map larger vertex index by flat hash map.
-	using EdgeMap        = std::vector<phmap::flat_hash_map<Edge, index_t>>;
+	using EdgeMap = std::vector<phmap::flat_hash_map<Edge, index_t, hash<Edge>>>;
 	/// mutex for reading and writing EdgeMap.
 	using EdgeMapMutexes = std::vector<tbb::spin_mutex>;
 
@@ -68,12 +68,13 @@ public: /* Types **************************************************************/
 	/* ----- seg2tris related structures ----- */
 
 	/// <smaller vertex index, larger vertex index>
-	using Segment       = UIPair;
+	using Segment = UIPair;
 	/// map a segment to its related triangles.
 	/// 1. map Seg to (Seg.first+Seg.second) % Seg2Tris.size() to locate the
 	/// flat_hash_map in the outer std::vector.
 	/// 2. map Seg to Tris in the inner flat_hash_map.
-	using SegMap        = std::vector<phmap::flat_hash_map<Segment, index_t>>;
+	using SegMap =
+	  std::vector<phmap::flat_hash_map<Segment, index_t, hash<Segment>>>;
 	/// mutex for reading and writing Seg2Tris.
 	using SegMapMutexes = std::vector<tbb::spin_mutex>;
 
@@ -99,7 +100,8 @@ public: /* Types **************************************************************/
 
 	/* ----- coplnar pockes related structures ----- */
 
-	using PocketsMap = phmap::flat_hash_map<std::vector<index_t>, index_t>;
+	using PocketsMap = phmap::flat_hash_map<std::vector<index_t>, index_t,
+	                                        hash<std::vector<index_t>>>;
 
 public: /* Constructors *******************************************************/
 	TriangleSoup() = default;
@@ -227,7 +229,7 @@ public:
 
 	/// orthogonal plane of a triangle
 	/// (only the triangles with intersections will be calculated)
-	std::vector<Plane> tri_plane;
+	std::vector<OrPlane> tri_plane;
 
 	/// orientation of a triangle on its orthogonal plane
 	/// (only the triangles with intersections will be calculated)
@@ -366,7 +368,7 @@ public: /* Query ***********************************************************/
 
 	/* Orthogonal plane and orientation on the orthogonal plane */
 
-	Plane triPlane(index_t t_id) const;
+	OrPlane triPlane(index_t t_id) const;
 
 	Sign triOrient(index_t t_id) const;
 

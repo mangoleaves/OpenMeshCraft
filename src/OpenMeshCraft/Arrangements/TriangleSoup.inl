@@ -220,9 +220,9 @@ auto TriangleSoup<Traits>::edge(index_t e_id) const -> Edge
 template <typename Traits>
 index_t TriangleSoup<Traits>::getOrAddEdge(index_t v0_id, index_t v1_id)
 {
-	Edge edge = uniquePair(v0_id, v1_id);
+	Edge edge = unique_pair(v0_id, v1_id);
 
-	phmap::flat_hash_map<Edge, index_t> &em =
+	phmap::flat_hash_map<Edge, index_t, hash<Edge>> &em =
 	  edge_map[edge.first % edge_map_size];
 
 	// lock until finding and/or adding operation end.
@@ -348,8 +348,8 @@ index_t TriangleSoup<Traits>::triEdgeID(index_t t_id, index_t off)
 	// otherwise check if the edge exists
 	index_t v0_id = triangles[3 * t_id + off];
 	index_t v1_id = triangles[3 * t_id + ((off + 1) % 3)];
-	Edge    edge  = uniquePair(v0_id, v1_id);
-	phmap::flat_hash_map<Edge, index_t> &em =
+	Edge    edge  = unique_pair(v0_id, v1_id);
+	phmap::flat_hash_map<Edge, index_t, hash<Edge>> &em =
 	  edge_map[edge.first % edge_map_size];
 	if (em.find(edge) == em.end())
 		// the edge does not exist, return invalid index.
@@ -424,7 +424,7 @@ void TriangleSoup<Traits>::addVertexInEdge(index_t e_id, index_t v_id)
 {
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 	OMC_EXPENSIVE_ASSERT(e_id < edge2pts.size(), "out of range");
-	Edge2PntsSet &points = edge2pts[e_id];
+	Edge2PntsSet &points            = edge2pts[e_id];
 	OMC_UNUSED auto [iter, succeed] = points.insert(v_id);
 	OMC_EXPENSIVE_ASSERT(succeed, "fail to insert vertex in edge.");
 #else
@@ -465,10 +465,11 @@ void TriangleSoup<Traits>::fixVertexInEdge(index_t e_id, index_t old_vid,
 template <typename Traits>
 index_t TriangleSoup<Traits>::getOrAddSegment(const Segment &seg, index_t e_id)
 {
-	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
+	OMC_EXPENSIVE_ASSERT(is_unique(seg), "segment is not unique");
 	index_t outer_map = (seg.first + seg.second) % seg_map.size();
 
-	phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
+	phmap::flat_hash_map<Segment, index_t, hash<Segment>> &sm =
+	  seg_map[outer_map];
 
 	// lock until finding and/or adding operation end.
 	std::lock_guard<tbb::spin_mutex> lock_map(seg_mutexes[outer_map]);
@@ -516,9 +517,10 @@ auto TriangleSoup<Traits>::segment(index_t seg_id) const -> Segment
 template <typename Traits>
 index_t TriangleSoup<Traits>::segmentID(const Segment &seg) const
 {
-	OMC_EXPENSIVE_ASSERT(isUnique(seg), "segment is not unique");
+	OMC_EXPENSIVE_ASSERT(is_unique(seg), "segment is not unique");
 	index_t outer_map = (seg.first + seg.second) % seg_map.size();
-	const phmap::flat_hash_map<Segment, index_t> &sm = seg_map[outer_map];
+	const phmap::flat_hash_map<Segment, index_t, hash<Segment>> &sm =
+	  seg_map[outer_map];
 
 	// we do not lock bacause it is not neccessary now.
 	// std::lock_guard<tbb::spin_mutex> lock_map(seg_mutexes[outer_map]);
@@ -766,10 +768,10 @@ TriangleSoup<Traits>::segmentTrianglesList(index_t seg_id) const
 }
 
 template <typename Traits>
-Plane TriangleSoup<Traits>::triPlane(index_t t_id) const
+OrPlane TriangleSoup<Traits>::triPlane(index_t t_id) const
 {
 	OMC_EXPENSIVE_ASSERT(t_id < numOrigTris(), "out of range.");
-	OMC_EXPENSIVE_ASSERT(planeToInt(tri_plane[t_id]) >= 0, "invalid plane");
+	OMC_EXPENSIVE_ASSERT(OrPlane_to_int(tri_plane[t_id]) >= 0, "invalid plane");
 	return tri_plane[t_id];
 }
 
@@ -947,8 +949,8 @@ void TriangleSoup<Traits>::fixAllIndices()
 		{
 			const Segment &old_seg = segments[seg_id];
 			Segment        new_seg =
-			  uniquePair(indices[old_seg.first].load(std::memory_order_relaxed),
-			             indices[old_seg.second].load(std::memory_order_relaxed));
+			  unique_pair(indices[old_seg.first].load(std::memory_order_relaxed),
+			              indices[old_seg.second].load(std::memory_order_relaxed));
 			if (new_seg == old_seg)
 				seg_new_id[seg_id] = seg_id;
 			else
@@ -1103,7 +1105,7 @@ void TriangleSoup<Traits>::addEndPointsToE2P()
 template <typename Traits>
 void TriangleSoup<Traits>::calcOrthogonalPlane()
 {
-	tri_plane.resize(numOrigTris(), intToPlane(-1));
+	tri_plane.resize(numOrigTris(), int_to_OrPlane(-1));
 
 	auto calc_plane = [this](index_t t_id)
 	{
@@ -1111,7 +1113,7 @@ void TriangleSoup<Traits>::calcOrthogonalPlane()
 		index_t v1_id = triVertID(t_id, 1);
 		index_t v2_id = triVertID(t_id, 2);
 
-		tri_plane[t_id] = intToPlane(
+		tri_plane[t_id] = int_to_OrPlane(
 		  MaxCompInTriNormal()(vertPtr(v0_id), vertPtr(v1_id), vertPtr(v2_id)));
 	};
 

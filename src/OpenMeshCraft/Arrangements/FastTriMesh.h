@@ -39,7 +39,7 @@ public:
 	{
 		iEdge() = delete;
 		explicit iEdge(index_t _v0, index_t _v1, const bool _b = false) noexcept
-		  : verts(uniquePair(_v0, _v1))
+		  : verts(unique_pair(_v0, _v1))
 		  , constr(_b)
 		{
 		}
@@ -86,7 +86,7 @@ public: /* Constructors, Copy and Move ***************************************/
 	~FastTriMesh();
 
 	void initialize(const GPoint *tv0, const GPoint *tv1, const GPoint *tv2,
-	                const index_t *tv_id, const Plane &ref_p, const Sign &ori);
+	                const index_t *tv_id, const OrPlane &ref_p, const Sign &ori);
 
 	void preAllocateSpace(size_t estimated_num_verts);
 
@@ -199,7 +199,7 @@ public: /* Property queries **************************************************/
 
 	size_t vertValence(index_t v_id) const;
 
-	Plane refPlane() const;
+	OrPlane refPlane() const;
 
 	Sign Orientation() const;
 
@@ -229,7 +229,7 @@ private:
 
 	phmap::flat_hash_map<index_t, index_t> rev_vtx_map;
 
-	Plane triangle_plane;
+	OrPlane triangle_plane;
 	Sign  orientation;
 };
 

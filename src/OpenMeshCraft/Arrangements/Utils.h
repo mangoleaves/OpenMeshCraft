@@ -10,12 +10,17 @@
 #include "OpenMeshCraft/Utils/EnableWarnings.h"
 // clang-format on
 
-#include "OpenMeshCraft/Utils/CStyleVector.h"
-#include "OpenMeshCraft/Utils/Exception.h"
-#include "OpenMeshCraft/Utils/IndexDef.h"
+#include "OpenMeshCraft/NumberTypes/NumberUtils.h"
 
 #include "OpenMeshCraft/Geometry/Intersection/IntersectionUtils.h"
-#include "OpenMeshCraft/NumberTypes/NumberUtils.h"
+#include "OpenMeshCraft/Geometry/Utils.h"
+
+#include "OpenMeshCraft/Utils/CStyleVector.h"
+#include "OpenMeshCraft/Utils/ContainerOp.h"
+#include "OpenMeshCraft/Utils/Exception.h"
+#include "OpenMeshCraft/Utils/Hashers.h"
+#include "OpenMeshCraft/Utils/IndexDef.h"
+#include "OpenMeshCraft/Utils/Label.h"
 
 #include <algorithm>
 #include <bitset>
@@ -41,18 +46,6 @@ namespace OMC {
 // #define OMC_ARR_GLOBAL_POINT_SET
 // #define OMC_ARR_AUX_LPI
 // #define OMC_ARR_3D_PREDS
-
-constexpr int NBIT = 32;
-
-/// * Label for each triangle in arrangements (boolean and other applications). 
-///   The label indicates the location of this triangle. 
-///   (For example, if Label[0] and Label[1] are true, this triangle is located in 
-///   triangle soup with index 0 and triangle soup with index 1 simultaneously.) 
-/// * Users can use this label to transfer attributes from input triangle soups 
-///   to the output triangle soup. 
-/// * To ensure efficiency, we limit the maximum label count to less than 
-///   NBIT (32).
-using Label = std::bitset<NBIT>;
 
 struct MeshArrangements_Config
 {
@@ -92,12 +85,19 @@ struct MeshArrangements_Stats
 	double tr_elapsed = 0.; // timings of triangulation
 };
 
-/********************************************************************/
-/* Below are used internally ****************************************/
-/********************************************************************/
+template <typename T>
+using AuxVector64 = boost::container::small_vector<T, 64>;
+template <typename T>
+using AuxVector32 = boost::container::small_vector<T, 32>;
+template <typename T>
+using AuxVector16 = boost::container::small_vector<T, 16>;
+template <typename T>
+using AuxVector8 = boost::container::small_vector<T, 8>;
+template <typename T>
+using AuxVector4 = boost::container::small_vector<T, 4>;
 
 /// @brief Each output triangle has a surface label and inside label.
-struct Labels
+struct ArrLabels
 {
 	/// surface (mesh) that a triangle belongs to.
 	std::vector<Label> surface;
@@ -107,40 +107,8 @@ struct Labels
 	size_t             num;
 };
 
-using UIPair = std::pair<index_t, index_t>;
-
-enum Plane
-{
-	YZ = 0,
-	ZX = 1,
-	XY = 2
-};
-
-inline size_t LabelToIdx(const Label &b)
-{
-	OMC_EXPENSIVE_ASSERT(b.count() == 1, "more than 1 bit set to 1");
-	uint32_t x = b.to_ulong();
-#ifdef __GNUC__
-	return __builtin_ffs(x) - 1; // GCC
-#endif
-#ifdef _MSC_VER
-	return 32 - __lzcnt(x) - 1; // Visual studio
-#endif
-}
-
-inline UIPair uniquePair(index_t i, index_t j)
-{
-	return (i < j) ? std::make_pair(i, j) : std::make_pair(j, i);
-}
-
-/// "<" in case of unique, "==" in case of two invalid indices.
-inline bool isUnique(const UIPair &p) { return p.first <= p.second; }
-
-inline Plane intToPlane(const int &norm) { return static_cast<Plane>(norm); }
-inline int   planeToInt(const Plane &p) { return static_cast<int>(p); }
-
 template <typename Traits>
-struct PointArena
+struct ArrPointArena
 {
 public:
 	using EPoint     = typename Traits::EPoint;
@@ -238,160 +206,14 @@ private:
 	std::queue<IPoint_TPI *> recycled_tpi;
 };
 
-struct DuplTriInfo
+struct ArrDuplTriInfo
 {
 	index_t t_id; // triangle id
 	index_t l_id; // label id
 	bool    w;    // winding (CW or CCW)
 };
 
-template <typename T>
-using AuxVector64 = boost::container::small_vector<T, 64>;
-template <typename T>
-using AuxVector32 = boost::container::small_vector<T, 32>;
-template <typename T>
-using AuxVector16 = boost::container::small_vector<T, 16>;
-template <typename T>
-using AuxVector8 = boost::container::small_vector<T, 8>;
-template <typename T>
-using AuxVector4 = boost::container::small_vector<T, 4>;
-
-template <typename Points, typename Triangles, typename NT>
-void load(const Points &points, const Triangles &triangles, const size_t label,
-          std::vector<NT> &coords, std::vector<index_t> &flat_tris,
-          std::vector<size_t> &labels)
-{
-	size_t p_off = coords.size() / 3; // prev num verts
-	coords.resize(coords.size() + points.size() * 3);
-	tbb::parallel_for(size_t(0), points.size(),
-	                  [&coords, &points, &p_off](size_t p_id)
-	                  {
-		                  coords[(p_off + p_id) * 3]     = points[p_id][0];
-		                  coords[(p_off + p_id) * 3 + 1] = points[p_id][1];
-		                  coords[(p_off + p_id) * 3 + 2] = points[p_id][2];
-	                  });
-
-	size_t t_off = flat_tris.size() / 3; // prev num tris
-	flat_tris.resize(flat_tris.size() + triangles.size() * 3);
-	tbb::parallel_for(
-	  size_t(0), triangles.size(),
-	  [&flat_tris, &triangles, &t_off, &p_off](size_t t_id)
-	  {
-		  flat_tris[(t_off + t_id) * 3]     = p_off + triangles[t_id][0];
-		  flat_tris[(t_off + t_id) * 3 + 1] = p_off + triangles[t_id][1];
-		  flat_tris[(t_off + t_id) * 3 + 2] = p_off + triangles[t_id][2];
-	  });
-
-	size_t l_off = labels.size();
-	labels.resize(labels.size() + triangles.size());
-	std::fill(std::execution::par_unseq, labels.begin() + l_off, labels.end(),
-	          label);
-}
-
-// t0 -> vertex ids of triangle t0, t1 -> vertex ids of triangle t1
-inline bool consistentWinding(const index_t *t0, const index_t *t1)
-{
-	int j = 0;
-	while (j < 3 && t0[0] != t1[j])
-		j++;
-	OMC_EXPENSIVE_ASSERT(j < 3, "not same triangle");
-	return t0[1] == t1[(j + 1) % 3] && t0[2] == t1[(j + 2) % 3];
-}
-
-inline bool triContainsVert(index_t t_id, index_t v_id,
-                            const std::vector<index_t> &in_tris)
-{
-	return in_tris[3 * t_id] == v_id || in_tris[3 * t_id + 1] == v_id ||
-	       in_tris[3 * t_id + 2] == v_id;
-}
-
-template <typename T>
-inline void remove_duplicates(std::vector<T> &values)
-{
-	std::sort(values.begin(), values.end());
-	values.resize(std::unique(values.begin(), values.end()) - values.begin());
-}
-
-template <typename T, size_t N>
-inline size_t remove_duplicates(std::array<T, N> &values)
-{
-	std::sort(values.begin(), values.end());
-	return (size_t)(std::unique(values.begin(), values.end()) - values.begin());
-}
-
-template <typename T>
-inline void remove_duplicates(tbb::concurrent_vector<T> &values)
-{
-	std::sort(values.begin(), values.end());
-	values.resize(std::unique(values.begin(), values.end()) - values.begin());
-}
-
-template <typename T>
-inline void parallel_remove_duplicates(std::vector<T> &values)
-{
-	tbb::parallel_sort(values.begin(), values.end());
-	values.resize(std::unique(values.begin(), values.end()) - values.begin());
-}
-
-template <typename T, typename Alloc,
-          template <typename T_, typename Alloc_> class Container>
-inline bool contains(const Container<T, Alloc> &values, T value)
-{
-	return std::find(values.begin(), values.end(), value) != values.end();
-}
-
-template <typename T, typename Alloc,
-          template <typename T_, typename Alloc_> class Container>
-inline void reserve(Container<T, Alloc> &values, size_t s)
-{
-	for (T &v : values)
-		v.reserve(s);
-}
-
 } // namespace OMC
-
-namespace std {
-
-template <typename T, size_t N>
-struct hash<std::array<T, N>>
-{
-	std::hash<T>  hasher;
-	inline size_t operator()(const std::array<T, N> &p) const
-	{
-		size_t seed = 0;
-		for (size_t i = 0; i < N; i++)
-			seed ^= hasher(p[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		return seed;
-	}
-};
-
-template <typename T>
-struct hash<std::pair<T, T>>
-{
-	std::hash<T>  hasher;
-	inline size_t operator()(const std::pair<T, T> &p) const
-	{
-		size_t seed = 0;
-		seed ^= hasher(p.first) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		seed ^= hasher(p.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		return seed;
-	}
-};
-
-template <typename T>
-struct hash<std::vector<T>>
-{
-	std::hash<T>  hasher;
-	inline size_t operator()(const std::vector<T> &p) const
-	{
-		size_t seed = 0;
-		for (size_t i = 0; i < p.size(); i++)
-			seed ^= hasher(p[i]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-		return seed;
-	}
-};
-
-} // namespace std
 
 #ifdef OMC_ARR_PROFILE
 

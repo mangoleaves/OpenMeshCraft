@@ -318,11 +318,11 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 					return locatePointInTreeRecur(subm, p, tree, nd.c[j], ev);
 		}
 		Sign ori[3] = {OrientOn2D()(subm.vert(ps), p, subm.vert(nd.v[0]),
-		                            planeToInt(subm.refPlane())),
+		                            OrPlane_to_int(subm.refPlane())),
 		               OrientOn2D()(subm.vert(ps), p, subm.vert(nd.v[1]),
-		                            planeToInt(subm.refPlane())),
+		                            OrPlane_to_int(subm.refPlane())),
 		               OrientOn2D()(subm.vert(ps), p, subm.vert(nd.v[2]),
-		                            planeToInt(subm.refPlane()))};
+		                            OrPlane_to_int(subm.refPlane()))};
 		for (int j = 0; j < 3; j++)
 		{
 			if (ori[j] == Sign::ZERO && ori[(j + 1) % 3] == orientation &&
@@ -351,7 +351,7 @@ std::pair<index_t, bool> Triangulation<Traits>::locatePointInTreeRecur(
 		    (vo == ev.second && vn == ev.first))
 			return locatePointInTreeRecur(subm, p, tree, nn, ev);
 		Sign ori = OrientOn2D()(subm.vert(ps), subm.vert(vo), p,
-		                        planeToInt(subm.refPlane()));
+		                        OrPlane_to_int(subm.refPlane()));
 		if (ori == Sign::ZERO)
 			return locatePointInTreeRecur(subm, p, tree, np, UIPair(ps, vo));
 
@@ -415,7 +415,8 @@ void Triangulation<Traits>::addConstraintSegmentsInSingleTriangle(
 {
 	// change segment's global index to local index
 	for (Segment &seg : segments)
-		seg = uniquePair(subm.vertLocalID(seg.first), subm.vertLocalID(seg.second));
+		seg =
+		  unique_pair(subm.vertLocalID(seg.first), subm.vertLocalID(seg.second));
 	// add segments to map, map local segment to global segment id
 	SubSegMap sub_segs_map;
 	sub_segs_map.reserve(segments.size());
@@ -527,7 +528,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	{
 		index_t t_id = subm.meshInfo();
 
-		const RefSegs &seg_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
+		const RefSegs &seg_ids = sub_segs_map.at(unique_pair(v_start, v_stop));
 		index_t        seg_id  = *seg_ids.begin();
 
 		index_t seg_e_id = ts.segmentEdgeID(seg_id);
@@ -540,12 +541,13 @@ void Triangulation<Traits>::findIntersectingElements(
 			{
 				const GPoint &gv = subm.vert(i);
 
-				Sign ori_to_line = OrientOn2D()(aux_separator[0], aux_separator[1],
-				                                gv.data(), planeToInt(subm.refPlane()));
+				Sign ori_to_line =
+				  OrientOn2D()(aux_separator[0], aux_separator[1], gv.data(),
+				               OrPlane_to_int(subm.refPlane()));
 				if (ori_to_line != Sign::ZERO)
 				{
 					Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-					                               gv, planeToInt(subm.refPlane()));
+					                               gv, OrPlane_to_int(subm.refPlane()));
 					OMC_EXPENSIVE_ASSERT(ori_to_seg != Sign::ZERO, "wrong orientation.");
 					if (ori_to_line != ori_to_seg)
 						// reverse the orientation of the plane.
@@ -560,10 +562,11 @@ void Triangulation<Traits>::findIntersectingElements(
 			{
 				const GPoint &gv = subm.vert(i);
 
-				Sign ori_to_line = OrientOn2D()(aux_separator[0], aux_separator[1],
-				                                gv.data(), planeToInt(subm.refPlane()));
-				Sign ori_to_seg  = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-                                       gv, planeToInt(subm.refPlane()));
+				Sign ori_to_line =
+				  OrientOn2D()(aux_separator[0], aux_separator[1], gv.data(),
+				               OrPlane_to_int(subm.refPlane()));
+				Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
+				                               gv, OrPlane_to_int(subm.refPlane()));
 				OMC_ASSERT(ori_to_line == ori_to_seg, "mismatch");
 			}
 		#endif
@@ -604,7 +607,7 @@ void Triangulation<Traits>::findIntersectingElements(
 				if (ori_to_plane != Sign::ZERO)
 				{
 					Sign ori_to_seg = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-					                               gv, planeToInt(subm.refPlane()));
+					                               gv, OrPlane_to_int(subm.refPlane()));
 					OMC_EXPENSIVE_ASSERT(ori_to_seg != Sign::ZERO, "wrong orientation.");
 					if (ori_to_plane != ori_to_seg)
 						// reverse the orientation of the plane.
@@ -622,7 +625,7 @@ void Triangulation<Traits>::findIntersectingElements(
 				Sign ori_to_plane = Orient3D()(aux_separator[0], aux_separator[1],
 				                               aux_separator[2], gv.data());
 				Sign ori_to_seg   = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-                                       gv, planeToInt(subm.refPlane()));
+                                       gv, OrPlane_to_int(subm.refPlane()));
 				OMC_ASSERT(ori_to_plane == ori_to_seg, "mismatch");
 			}
 		#endif
@@ -651,12 +654,12 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// push (v_inter, v_stop) to check list.
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.push_back(uniquePair(v_inter, v_stop));
+		segment_list.push_back(unique_pair(v_inter, v_stop));
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids   = sub_segs_map.at(uniquePair(v_start, v_stop));
+			const RefSegs &seg_ids   = sub_segs_map.at(unique_pair(v_start, v_stop));
 			AuxVector4<index_t> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
@@ -704,17 +707,17 @@ void Triangulation<Traits>::findIntersectingElements(
 		{
 			curr_ori.first =
 			  OrientOn2D()(aux_separator[0], aux_separator[1],
-			               subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
-			curr_ori.second =
-			  OrientOn2D()(aux_separator[0], aux_separator[1],
-			               subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
+			               subm.vert(curr_ev.first), OrPlane_to_int(subm.refPlane()));
+			curr_ori.second = OrientOn2D()(aux_separator[0], aux_separator[1],
+			                               subm.vert(curr_ev.second),
+			                               OrPlane_to_int(subm.refPlane()));
 		}
 	#else
 		SignPair curr_ori{
 		  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-		               subm.vert(curr_ev.first), planeToInt(subm.refPlane())),
+		               subm.vert(curr_ev.first), OrPlane_to_int(subm.refPlane())),
 		  OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-		               subm.vert(curr_ev.second), planeToInt(subm.refPlane()))};
+		               subm.vert(curr_ev.second), OrPlane_to_int(subm.refPlane()))};
 	#endif
 
 		// sequencially walk around v_start to find intersected vertex/edge.
@@ -770,9 +773,9 @@ void Triangulation<Traits>::findIntersectingElements(
 				curr_ori.first =
 					is_valid_idx(nc_t_id) ?
 					Orient3D()(aux_separator[0], aux_separator[1], aux_separator[2], subm.vert(curr_ev.first)):
-					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
+					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.first), OrPlane_to_int(subm.refPlane()));
 			#else
-				curr_ori.first = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.first), planeToInt(subm.refPlane()));
+				curr_ori.first = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.first), OrPlane_to_int(subm.refPlane()));
 			#endif
 			}
 
@@ -784,9 +787,9 @@ void Triangulation<Traits>::findIntersectingElements(
 				curr_ori.second = 
 					is_valid_idx(nc_t_id) ?
 					Orient3D()(aux_separator[0], aux_separator[1], aux_separator[2], subm.vert(curr_ev.second)):
-					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
+					OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(curr_ev.second), OrPlane_to_int(subm.refPlane()));
 			#else
-				curr_ori.second = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), planeToInt(subm.refPlane()));
+				curr_ori.second = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop), subm.vert(curr_ev.second), OrPlane_to_int(subm.refPlane()));
 			#endif
 			}
 			// clang-format on
@@ -836,12 +839,12 @@ void Triangulation<Traits>::findIntersectingElements(
 		splitSegmentInSubSegments(v_start, v_stop, v_inter, sub_segs_map);
 		// put (v_inter, v_stop) in the segment_list to check later
 		// it is a sub-segment so we set its index to invalid index.
-		segment_list.push_back(uniquePair(v_inter, v_stop));
+		segment_list.push_back(unique_pair(v_inter, v_stop));
 #ifndef OMC_ARR_GLOBAL_POINT_SET
 		// check if current segment encounters a TPI point
 		if (/*isTPI*/ subm.vertFlag(v_inter))
 		{ // if v_inter is a TPI point, fix indices stored in related segments.
-			const RefSegs &seg_ids   = sub_segs_map.at(uniquePair(v_start, v_stop));
+			const RefSegs &seg_ids   = sub_segs_map.at(unique_pair(v_start, v_stop));
 			AuxVector4<index_t> &t2s = tpi2segs.at(v_inter);
 			for (index_t seg_id : seg_ids)
 			{
@@ -897,14 +900,15 @@ void Triangulation<Traits>::findIntersectingElements(
 #ifndef OMC_ARR_3D_PREDS
 	// check whether meet a vertex of triangle.
 	#ifdef OMC_ARR_AVOID_TPI
-		Sign v2_ori = is_valid_idx(nc_t_id)
-		                ? Orient3D()(aux_separator[0], aux_separator[1],
-		                             aux_separator[2], subm.vert(v2))
-		                : OrientOn2D()(aux_separator[0], aux_separator[1],
-		                               subm.vert(v2), planeToInt(subm.refPlane()));
+		Sign v2_ori =
+		  is_valid_idx(nc_t_id)
+		    ? Orient3D()(aux_separator[0], aux_separator[1], aux_separator[2],
+		                 subm.vert(v2))
+		    : OrientOn2D()(aux_separator[0], aux_separator[1], subm.vert(v2),
+		                   OrPlane_to_int(subm.refPlane()));
 	#else
 		Sign v2_ori = OrientOn2D()(subm.vert(v_start), subm.vert(v_stop),
-		                           subm.vert(v2), planeToInt(subm.refPlane()));
+		                           subm.vert(v2), OrPlane_to_int(subm.refPlane()));
 	#endif
 		if (v2_ori == Sign::ZERO)
 		{ // meet a vertex
@@ -943,8 +947,8 @@ void Triangulation<Traits>::findIntersectingElements(
 
 	// now, e_id is a constraint edge already present in the triangulation.
 	// two constraint edges form a TPI point.
-	const RefSegs &seg0_ids = sub_segs_map.at(uniquePair(v_start, v_stop));
-	const RefSegs &seg1_ids = sub_segs_map.at(uniquePair(ev0_id, ev1_id));
+	const RefSegs &seg0_ids = sub_segs_map.at(unique_pair(v_start, v_stop));
+	const RefSegs &seg1_ids = sub_segs_map.at(unique_pair(ev0_id, ev1_id));
 	index_t        seg0_id  = *seg0_ids.begin();
 	index_t        seg1_id  = *seg1_ids.begin();
 
@@ -1001,7 +1005,7 @@ void Triangulation<Traits>::findIntersectingElements(
 	// (new_tpi, v_stop).
 
 	// put (new_tpi, v_stop) in the segment_list to check later
-	segment_list.push_back(uniquePair(local_tpi_id, v_stop));
+	segment_list.push_back(unique_pair(local_tpi_id, v_stop));
 
 	// output found edges/tris intersected with (v_start, new_ip).
 	if (intersected_tris.size() == 1)
@@ -1038,9 +1042,9 @@ void Triangulation<Traits>::splitSegmentInSubSegments(index_t    v_start,
                                                       index_t    mid_point,
                                                       SubSegMap &sub_segs_map)
 {
-	UIPair orig_seg = uniquePair(v_start, v_stop);
-	UIPair sub_seg0 = uniquePair(v_start, mid_point);
-	UIPair sub_seg1 = uniquePair(v_stop, mid_point);
+	UIPair orig_seg = unique_pair(v_start, v_stop);
+	UIPair sub_seg0 = unique_pair(v_start, mid_point);
+	UIPair sub_seg1 = unique_pair(v_stop, mid_point);
 
 	// create two map before spliting and inserting
 	sub_segs_map[sub_seg0];
@@ -1331,7 +1335,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 			const GPoint &p1 = subm.vert(poly[curr]);
 			const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 			OMC_ASSERT(check == orientation, "TPI vertex is not convex.");
 #endif
 			ears.emplace_back(curr);
@@ -1368,7 +1372,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 				const GPoint &p0 = subm.vert(poly[prev[prev[curr]]]);
 				const GPoint &p1 = subm.vert(poly[prev[curr]]);
 				const GPoint &p2 = subm.vert(poly[next[curr]]);
-				Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+				Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 				OMC_ASSERT(check == orientation, "TPI vertex is not convex.")
 #endif
 				ears.emplace_back(prev[curr]);
@@ -1384,7 +1388,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 				const GPoint &p0 = subm.vert(poly[prev[curr]]);
 				const GPoint &p1 = subm.vert(poly[next[curr]]);
 				const GPoint &p2 = subm.vert(poly[next[next[curr]]]);
-				Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+				Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 				OMC_ASSERT(check == orientation, "TPI vertex is not convex.")
 #endif
 				ears.emplace_back(next[curr]);
@@ -1426,7 +1430,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 		const GPoint &p1 = subm.vert(poly[curr]);
 		const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-		Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+		Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 		if (check == orientation)
 		{
 			ears.emplace_back(curr);
@@ -1470,7 +1474,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 			const GPoint &p1 = subm.vert(poly[prev[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[curr]]);
 
-			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 			if (check == orientation)
 			{
 				ears.emplace_back(prev[curr]);
@@ -1484,7 +1488,7 @@ void Triangulation<Traits>::earcutLinear(const FTriMesh             &subm,
 			const GPoint &p1 = subm.vert(poly[next[curr]]);
 			const GPoint &p2 = subm.vert(poly[next[next[curr]]]);
 
-			Sign check = OrientOn2D()(p0, p1, p2, planeToInt(subm.refPlane()));
+			Sign check = OrientOn2D()(p0, p1, p2, OrPlane_to_int(subm.refPlane()));
 			if (check == orientation)
 			{
 				ears.emplace_back(next[curr]);
@@ -1714,7 +1718,7 @@ bool Triangulation<Traits>::fastPointOnLine(const FTriMesh &subm, index_t e_id,
 	index_t ev1_id = subm.edgeVertID(e_id, 1);
 
 	return OrientOn2D()(subm.vert(ev0_id), subm.vert(ev1_id), subm.vert(p_id),
-	                    planeToInt(subm.refPlane())) == Sign::ZERO;
+	                    OrPlane_to_int(subm.refPlane())) == Sign::ZERO;
 }
 
 template <typename Traits>

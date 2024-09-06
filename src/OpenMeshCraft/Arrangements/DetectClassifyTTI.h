@@ -29,7 +29,7 @@ public:
 	using LessThan3D         = typename Traits::LessThan3D;
 	using MaxCompInTriNormal = typename Traits::MaxCompInTriNormal;
 
-	using PntArena = PointArena<Traits>;
+	using PntArena = ArrPointArena<Traits>;
 	using TriSoup  = TriangleSoup<Traits>;
 
 	DetectClassifyTTI(TriSoup &_ts, PntArena &_pnt_arena);

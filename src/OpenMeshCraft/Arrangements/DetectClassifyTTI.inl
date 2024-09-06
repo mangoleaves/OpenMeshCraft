@@ -2052,7 +2052,7 @@ void DetectClassifyTTI<Traits>::add_symbolic_segment(index_t v0, index_t v1,
                                                      TTIHelper &hb, index_t eb)
 {
 	OMC_EXPENSIVE_ASSERT(v0 != v1, "trying to add a 0-length symbolic edge");
-	UIPair  seg = uniquePair(v0, v1);
+	UIPair  seg = unique_pair(v0, v1);
 	index_t seg_id;
 	if (is_valid_idx(ea))
 		seg_id = ts.getOrAddSegment(seg, get_e_id(ha, ea));
@@ -2214,7 +2214,7 @@ index_t DetectClassifyTTI<Traits>::add_edge_cross_coplanar_edge(
 
 	IPoint_SSI *new_v = pnt_arena.emplace(CreateSSI()(
 	  ts.vert(min_min_vid), ts.vert(min_max_vid), ts.vert(max_min_vid),
-	  ts.vert(max_max_vid), intToPlane(hb.t_nmax)));
+	  ts.vert(max_max_vid), int_to_OrPlane(hb.t_nmax)));
 
 	// try to add the point
 	auto [added_vid, new_vertex_created] = add_SSI(ea_id, eb_id, new_v);

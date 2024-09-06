@@ -89,7 +89,7 @@ public: /* Interfaces ********************************************************/
 	 * * Each input triangle mesh will be attached with an index internally
 	 *   (the index is the return value of addTriMeshAsInput).
 	 * * Each output triangle's label indicates the triangle mesh it locates on.
-	 * * Labels are used to transfer attributes from input triangle meshes to
+	 * * ArrLabels are used to transfer attributes from input triangle meshes to
 	 * output triangle meshes.
 	 * @param labels labels of the output mesh.
 	 */

@@ -32,6 +32,9 @@
 #
 # ##############################################################################
 
+cmake_policy(SET CMP0074 NEW) # use XXX_ROOT variable in find_package
+cmake_policy(SET CMP0167 OLD) # use BOOST_ROOT in find_package(boost)
+
 if(DEFINED OMC_CONFIGDEP_BOOST AND OMC_CONFIGDEP_BOOST)
 
   # set options for boost
