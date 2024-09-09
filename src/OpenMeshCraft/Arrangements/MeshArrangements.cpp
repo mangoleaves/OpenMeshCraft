@@ -1,3 +1,8 @@
+// Triangle soup
+#include "OpenMeshCraft/Mesh/TriSoup.h"
+// Geometry kernel
+#include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
+
 #include "MeshArrangements.h"
 
 namespace OMC {

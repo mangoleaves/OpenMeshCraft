@@ -23,6 +23,9 @@ inline bool is_valid_idx(index_t idx) { return idx != InvalidIndex; }
 
 /* Other index definition ***************************************************/
 
+/// Indicates an error when a size is returned by a member.
+constexpr size_t UnknownSize = size_t(-1);
+
 /// index pair
 using IPair = std::pair<index_t, index_t>;
 /// unique index pair (expect first <= second)

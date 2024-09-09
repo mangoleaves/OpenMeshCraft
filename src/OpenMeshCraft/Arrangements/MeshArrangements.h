@@ -1,19 +1,8 @@
 #pragma once
 
-#include "OpenMeshCraft/Arrangements/Utils.h"
-
-// Triangle soup
-#include "OpenMeshCraft/Mesh/TriSoup.h"
-// Utils
-#include "OpenMeshCraft/Utils/IndexDef.h"
-#include "OpenMeshCraft/Utils/Macros.h"
-
-#include <memory>
+#include "Utils.h"
 
 namespace OMC {
-
-class ExactIndirectPredicatesApproxConstructions;
-using EIAC = ExactIndirectPredicatesApproxConstructions;
 
 template <typename Traits>
 class MeshArrangements_Impl;
@@ -128,6 +117,11 @@ private:
 
 	class loadMultipleMeshes;
 };
+
+// forward declaration
+class ExactIndirectPredicatesApproxConstructions;
+using EIAC = ExactIndirectPredicatesApproxConstructions;
+class TriSoupTraits;
 
 extern template class MeshArrangements<EIAC, TriSoupTraits>;
 

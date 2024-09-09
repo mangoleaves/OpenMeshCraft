@@ -11,9 +11,6 @@
 #include "DetectClassifyTTIs.h"
 #include "Triangulation.h"
 
-// Geometry kernel
-#include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
-
 namespace OMC {
 
 template <typename Kernel, typename Traits>

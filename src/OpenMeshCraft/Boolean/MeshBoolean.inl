@@ -1,8 +1,6 @@
 #pragma once
 
 #include "MeshBoolean.h"
-// Kernel
-#include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
 // Arrangements
 #include "OpenMeshCraft/Arrangements/FastTriMesh.h"
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"

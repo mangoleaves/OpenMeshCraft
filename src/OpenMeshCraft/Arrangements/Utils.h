@@ -21,6 +21,7 @@
 #include "OpenMeshCraft/Utils/Hashers.h"
 #include "OpenMeshCraft/Utils/IndexDef.h"
 #include "OpenMeshCraft/Utils/Label.h"
+#include "OpenMeshCraft/Utils/Macros.h"
 
 #include <algorithm>
 #include <bitset>

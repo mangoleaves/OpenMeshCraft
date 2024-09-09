@@ -3,6 +3,8 @@
 
 // Kernel
 #include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
+// triangle soup traits
+#include "OpenMeshCraft/Mesh/TriSoup.h"
 // Arrangements
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"
 

@@ -11,9 +11,6 @@
 
 namespace OMC {
 
-/// Indicates an error when a size is returned by a member.
-constexpr size_t UnknownSize = size_t(-1);
-
 class TriSoupTraits
 {
 public:

@@ -2,21 +2,8 @@
 
 // Definitions from mesh arrangements
 #include "OpenMeshCraft/Arrangements/Utils.h"
-// Triangle soup for input and output
-#include "OpenMeshCraft/Mesh/TriSoup.h"
-// Utils
-#include "OpenMeshCraft/Utils/IndexDef.h"
-#include "OpenMeshCraft/Utils/Macros.h"
-
-#include <bitset>
-#include <memory>
-#include <stack>
-#include <vector>
 
 namespace OMC {
-
-class ExactIndirectPredicatesApproxConstructions;
-using EIAC = ExactIndirectPredicatesApproxConstructions;
 
 enum class MeshBooleanOp
 {
@@ -147,6 +134,11 @@ private: /* Auxiliary classes and functions ***********************************/
 
 	void booleanPipeline(MeshBooleanOp op);
 };
+
+// forward declaration
+class ExactIndirectPredicatesApproxConstructions;
+using EIAC = ExactIndirectPredicatesApproxConstructions;
+class TriSoupTraits;
 
 extern template class MeshBoolean<EIAC, TriSoupTraits>;
 
