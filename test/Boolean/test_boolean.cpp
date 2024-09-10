@@ -53,13 +53,13 @@ TEST_F(test_Boolean, TestIfCrash)
 	                         triangles1, io_options);
 	read_mesh(config.get<std::string>("mesh_path_2"), points2,
 	                         triangles2, io_options);
-
+	// run the algorithm
 	Boolean boolean(/*verbose*/ true);
 	boolean.addTriMeshAsInput(points1, triangles1);
 	boolean.addTriMeshAsInput(points2, triangles2);
 	boolean.setTriMeshAsOutput(result_points, result_triangles);
 	boolean.computeLabels();
-
+	// different operations
 	{
 		boolean.Union();
 		write_mesh(outdir + "Union.obj", result_points,

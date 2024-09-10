@@ -56,6 +56,7 @@ TEST_F(test_Arrangements, TestIfCrash)
 
 	read_mesh(dir + filename, input_points, input_triangles, io_options);
 
+	// set config for multi-threads
 	tbb::global_control tbb_gc(
 	  tbb::global_control::max_allowed_parallelism,
 	  config.get<size_t>("thread_num", tbb::this_task_arena::max_concurrency()));
@@ -66,26 +67,27 @@ TEST_F(test_Arrangements, TestIfCrash)
 	arr_config.output_explicit_result = config.get<bool>("num_vf");
 	arr_config.ignore_same_mesh       = false;
 
-	auto start = OMC::Logger::elapse_reset();
-
+	// Run the algorithm
 	Arrangements arrangements;
-
 	arrangements.setConfig(arr_config);
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
-	arrangements.meshArrangements();
 
-	std::cout << std::format("mesh arrangement uses {} s\n",
-	                         OMC::Logger::elapsed(start).count());
+	auto start = OMC::Logger::elapse_reset();
+	arrangements.meshArrangements();
+	double total_time = OMC::Logger::elapsed(start).count();
+
+	// report & log
+	std::cout << std::format("mesh arrangement uses {} s\n", total_time);
 	std::cout << std::format("result vertices {} result faces {}\n",
 	                         result_points.size(), result_triangles.size());
-
+	// write result
 	if (config.get<bool>("write"))
 		write_mesh(outdir + filename, result_points, result_triangles, io_options);
 }
 
 /**
- * @brief Test all boolean operations to check if it will crash.
+ * @brief Test on datasets to check if it will crash.
  */
 TEST_F(test_Arrangements, TestDataSet)
 {
@@ -100,16 +102,19 @@ TEST_F(test_Arrangements, TestDataSet)
 	Points    input_points, result_points;
 	Triangles input_triangles, result_triangles;
 
+	// open file for logging
 	std::string  log_path = outdir + "stats.txt";
 	std::fstream log_file;
 	log_file.open(log_path, std::ios::out | std::ios::app);
 
 	log_file << "filename,pp,tree,ci,tr,time\n";
 
+	// get directory of models
 	std::string             models_dir = config.get<std::string>("models_dir");
 	boost::filesystem::path model_dir_path(models_dir);
 	boost::filesystem::directory_iterator endIter;
 
+	// configure the arrangements
 	bool verbose = config.get<bool>("verbose");
 	bool num_vf  = config.get<bool>("num_vf");
 
@@ -130,6 +135,7 @@ TEST_F(test_Arrangements, TestDataSet)
 		  parameters.get<size_t>("tree_split_size_thres");
 	}
 
+	// configure the multi-threads
 	tbb::global_control tbb_gc(
 	  tbb::global_control::max_allowed_parallelism,
 	  config.get<size_t>("thread_num", tbb::this_task_arena::max_concurrency()));
@@ -151,21 +157,20 @@ TEST_F(test_Arrangements, TestDataSet)
 
 			std::cout << "processing " << iter->path().filename().string()
 			          << std::endl;
+			// read mesh
 			read_mesh(iter->path().string(), input_points, input_triangles,
 			          io_options);
-
+			// run the algorithm
 			Arrangements arrangements;
 			arrangements.setConfig(arr_config);
 			arrangements.addTriMeshAsInput(input_points, input_triangles);
 			arrangements.setTriMeshAsOutput(result_points, result_triangles);
-
 			OMC::MeshArrangements_Stats &stats = arrangements.stats();
 
 			auto start = OMC::Logger::elapse_reset();
-
 			arrangements.meshArrangements();
-
 			double total_time = OMC::Logger::elapsed(start).count();
+			// report & log
 			std::cout << total_time << " s\n";
 
 			log_file << std::fixed;

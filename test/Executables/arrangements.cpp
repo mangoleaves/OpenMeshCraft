@@ -1,8 +1,14 @@
+/**
+ * @file arrangements.cpp
+ * @brief An independent executable file to run mesh arrangements.
+ */
 #include <chrono>
 #include <iostream>
 
 // Kernel
 #include "OpenMeshCraft/Geometry/ExactIndirectPredicatesApproxConstructions.h"
+// Traits
+#include "OpenMeshCraft/Mesh/TriSoup.h"
 // Arrangements
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"
 
@@ -25,8 +31,6 @@ int main(int argc, char *argv[])
 {
 	std::string filename;
 	bool        output_stats  = false;
-	bool        output_result = false;
-	bool        verbose       = false;
 
 	ArrangementsConfig arr_config;
 
@@ -51,11 +55,11 @@ int main(int argc, char *argv[])
 	{
 		std::string param(argv[i]);
 		if (param == "-v")
-			verbose = true;
+			arr_config.verbose = true;
 		else if (param == "-s")
 			output_stats = true;
 		else if (param == "-r")
-			output_result = true;
+			arr_config.output_explicit_result = true;
 		else if (OMC::starts_with(param, "-p="))
 		{
 			int                 threads_num = std::stoi(param.substr(3));
@@ -79,7 +83,9 @@ int main(int argc, char *argv[])
 	Points    input_points, result_points;
 	Triangles input_triangles, result_triangles;
 
+	// read mesh
 	read_mesh(filename, input_points, input_triangles, io_options);
+	// prepare to output stats
 	filename = filename.substr(filename.find_last_of("/\\") + 1);
 	std::fstream fout;
 	if (output_stats)
@@ -88,19 +94,18 @@ int main(int argc, char *argv[])
 		fout << filename << ",";
 	}
 
-	Arrangements arrangements(verbose);
+	// set config, input and output
+	Arrangements arrangements;
 	arrangements.setConfig(arr_config);
 	arrangements.addTriMeshAsInput(input_points, input_triangles);
 	arrangements.setTriMeshAsOutput(result_points, result_triangles);
-
+	// get stats
 	OMC::MeshArrangements_Stats &stats = arrangements.stats();
-
+	// run the algorithm
 	auto start = OMC::Logger::elapse_reset();
-
-	arrangements.meshArrangements(false, output_result);
-
+	arrangements.meshArrangements();
 	double time = OMC::Logger::elapsed(start).count();
-
+	// output stats
 	if (output_stats)
 	{
 		fout << std::fixed;
@@ -112,8 +117,8 @@ int main(int argc, char *argv[])
 		          << OMC::getPeakMegabytesUsed() << " MB\n";
 		fout.close();
 	}
-
-	if (output_result)
+	// output result
+	if (arr_config.output_explicit_result)
 		write_mesh(filename, result_points, result_triangles, io_options);
 	return 0;
 }
