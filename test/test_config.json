@@ -5,13 +5,13 @@
       "filename": "CamelBox.stl",
       "thread_num": 16,
       "verbose": true,
-      "num_vf": true,
+      "explicit": true,
       "write": false
     },
     "TestDataSet": {
       "models_dir": "who-knows",
       "verbose": false,
-      "num_vf": false,
+      "explicit": false,
       "skip_step": 0,
       "set_parameter": false,
       "thread_num": 16,
