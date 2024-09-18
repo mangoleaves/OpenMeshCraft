@@ -159,9 +159,9 @@ inline void write_mesh(const std::string &filename, const Points &points,
 	}
 };
 
-#define TEST_OUTPUT_DIRECTORY(TEST_SUIT_NAME, TEST_NAME)                     \
-	std::string outdir = "./data/test_output/" #TEST_SUIT_NAME "/" #TEST_NAME; \
-	make_dir_writable(outdir)
+#define TEST_OUTPUT_DIRECTORY(TEST_SUIT_NAME, TEST_NAME)                   \
+	make_dir_writable("./data/test_output/" #TEST_SUIT_NAME "/" #TEST_NAME); \
+	std::string outdir = "./data/test_output/" #TEST_SUIT_NAME "/" #TEST_NAME "/"
 
 #define TEST_GET_CONFIG(TEST_SUIT_NAME, TEST_NAME) \
 	boost::property_tree::ptree &config =            \
