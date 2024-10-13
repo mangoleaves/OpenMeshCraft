@@ -8,9 +8,7 @@ template <typename Kernel>
 bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const TriangleT &tri,
                                                        const GPointT &pnt) const
 {
-	// I copy intersection_type here, just ignore checking point in segment.
 	const GPointT &t0 = tri.v0(), &t1 = tri.v1(), &t2 = tri.v2();
-
 	return operator()(t0, t1, t2, pnt);
 }
 
@@ -36,7 +34,7 @@ bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const GPointT &t0,
 	o2 = OrientOn2D().on_yz(t1, t2, pnt);
 	o3 = OrientOn2D().on_yz(t2, t0, pnt);
 
-	if (o1 != Sign::ZERO && o2 != Sign::ZERO && o3 != Sign::ZERO)
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
 	{
 		return (o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
 		       (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO);
@@ -46,7 +44,7 @@ bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const GPointT &t0,
 	o2 = OrientOn2D().on_zx(t1, t2, pnt);
 	o3 = OrientOn2D().on_zx(t2, t0, pnt);
 
-	if (o1 != Sign::ZERO && o2 != Sign::ZERO && o3 != Sign::ZERO)
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
 	{
 		return (o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
 		       (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO);
@@ -56,8 +54,13 @@ bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const GPointT &t0,
 	o2 = OrientOn2D().on_xy(t1, t2, pnt);
 	o3 = OrientOn2D().on_xy(t2, t0, pnt);
 
-	return (o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-	       (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO);
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
+	{
+		return (o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
+		       (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO);
+	}
+
+	OMC_ASSERT(false, "Impossible case."); // triangle is possibly degenerate
 }
 
 template <typename Kernel>
@@ -100,7 +103,10 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 	o2 = OrientOn2D().on_xy(t1, t2, p);
 	o3 = OrientOn2D().on_xy(t2, t0, p);
 
-	return check_inout(o1, o2, o3);
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
+		return check_inout(o1, o2, o3);
+
+	OMC_ASSERT(false, "Impossible case."); // triangle is possibly degenerate
 }
 
 template <typename Kernel>
@@ -133,7 +139,10 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 	o2 = OrientOn2D().on_xy(t1, t2, p);
 	o3 = OrientOn2D().on_xy(t2, t0, p);
 
-	return check_inout(o1, o2, o3);
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
+		return check_inout(o1, o2, o3);
+
+	OMC_ASSERT(false, "Impossible case."); // triangle is possibly degenerate
 }
 
 template <typename Kernel>
@@ -143,6 +152,21 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	return intersection_type(tri.v0(), tri.v1(), tri.v2(), pnt);
 }
 
+// clang-format off
+#define CLASSIFY_O123(o1, o2, o3)                                                \
+	if (o1 == Sign::ZERO && o3 == Sign::ZERO) return PointInSimplexType::ON_VERT0; \
+	if (o1 == Sign::ZERO && o2 == Sign::ZERO) return PointInSimplexType::ON_VERT1; \
+	if (o2 == Sign::ZERO && o3 == Sign::ZERO) return PointInSimplexType::ON_VERT2; \
+	if (o1 == Sign::ZERO && o2 == o3) return PointInSimplexType::ON_EDGE0;         \
+	if (o2 == Sign::ZERO && o1 == o3) return PointInSimplexType::ON_EDGE1;         \
+	if (o3 == Sign::ZERO && o1 == o2) return PointInSimplexType::ON_EDGE2;         \
+	if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||              \
+	    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))                \
+		return PointInSimplexType::STRICTLY_INSIDE;                                  \
+	else                                                                           \
+		return PointInSimplexType::STRICTLY_OUTSIDE;                                 \
+// clang-format on
+
 template <typename Kernel>
 PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
   const GPointT &t0, const GPointT &t1, const GPointT &t2,
@@ -151,28 +175,6 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
 
-	// test for point in vert
-	if (LessThan3D().coincident(p, t0))
-		return PointInSimplexType::ON_VERT0;
-	if (LessThan3D().coincident(p, t1))
-		return PointInSimplexType::ON_VERT1;
-	if (LessThan3D().coincident(p, t2))
-		return PointInSimplexType::ON_VERT2;
-
-	// test for point in edge in 3D
-	if (Segment3_Point3_DoInter().intersection_type(t0, t1, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE0;
-	if (Segment3_Point3_DoInter().intersection_type(t1, t2, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE1;
-	if (Segment3_Point3_DoInter().intersection_type(t2, t0, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE2;
-
-	// test for the interior: project t on XYZ and, if the check is never false in
-	// any of the projections, then p must be inside t.
-	// (I copy partial of point_in_triangle_2d here.)
 	Sign o1, o2, o3;
 
 	o1 = OrientOn2D().on_yz(t0, t1, p);
@@ -180,10 +182,8 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	o3 = OrientOn2D().on_yz(t2, t0, p);
 
 	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
-	{
-		if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-		    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-			return PointInSimplexType::STRICTLY_INSIDE;
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
 	}
 
 	o1 = OrientOn2D().on_zx(t0, t1, p);
@@ -191,21 +191,22 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	o3 = OrientOn2D().on_zx(t2, t0, p);
 
 	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
-	{
-		if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-		    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-			return PointInSimplexType::STRICTLY_INSIDE;
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
 	}
+
 
 	o1 = OrientOn2D().on_xy(t0, t1, p);
 	o2 = OrientOn2D().on_xy(t1, t2, p);
 	o3 = OrientOn2D().on_xy(t2, t0, p);
 
-	if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-	    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-		return PointInSimplexType::STRICTLY_INSIDE;
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
+	}
 
-	return PointInSimplexType::STRICTLY_OUTSIDE;
+	OMC_ASSERT(false, "Impossible case."); // triangle is possibly degenerate
+	return PointInSimplexType::STRICTLY_OUTSIDE; // kill the compiler warning
 }
 
 template <typename Kernel>
@@ -215,28 +216,6 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
 
-	// test for point in vert
-	if (vec_equals_3d(p, t0))
-		return PointInSimplexType::ON_VERT0;
-	if (vec_equals_3d(p, t1))
-		return PointInSimplexType::ON_VERT1;
-	if (vec_equals_3d(p, t2))
-		return PointInSimplexType::ON_VERT2;
-
-	// test for point in edge in 3D
-	if (Segment3_Point3_DoInter().intersection_type(t0, t1, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE0;
-	if (Segment3_Point3_DoInter().intersection_type(t1, t2, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE1;
-	if (Segment3_Point3_DoInter().intersection_type(t2, t0, p) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE2;
-
-	// test for the interior: project t on XYZ and, if the check is never false in
-	// any of the projections, then p must be inside t.
-	// (I copy partial of point_in_triangle_2d here.)
 	Sign o1, o2, o3;
 
 	o1 = OrientOn2D().on_yz(t0, t1, p);
@@ -244,12 +223,8 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	o3 = OrientOn2D().on_yz(t2, t0, p);
 
 	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
-	{
-		if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-		    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-			return PointInSimplexType::STRICTLY_INSIDE;
-		else
-			return PointInSimplexType::STRICTLY_OUTSIDE;
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
 	}
 
 	o1 = OrientOn2D().on_zx(t0, t1, p);
@@ -257,12 +232,8 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	o3 = OrientOn2D().on_zx(t2, t0, p);
 
 	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
-	{
-		if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-		    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-			return PointInSimplexType::STRICTLY_INSIDE;
-		else
-			return PointInSimplexType::STRICTLY_OUTSIDE;
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
 	}
 
 	o1 = OrientOn2D().on_xy(t0, t1, p);
@@ -270,13 +241,12 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 	o3 = OrientOn2D().on_xy(t2, t0, p);
 
 	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
-	{
-		if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-		    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-			return PointInSimplexType::STRICTLY_INSIDE;
+	{ // projection is not degenerate
+		CLASSIFY_O123(o1, o2, o3);
 	}
 
-	return PointInSimplexType::STRICTLY_OUTSIDE;
+	OMC_ASSERT(false, "Impossible case."); // triangle is possibly degenerate
+	return PointInSimplexType::STRICTLY_OUTSIDE; // kill the compiler warning
 }
 
 template <typename Kernel>
@@ -291,11 +261,6 @@ bool Triangle3_Point3_Do_Intersect<Kernel>::operator()(const TriangleT &tri,
 
 	if (Orient3D()(t0, t1, t2, pnt) != Sign::ZERO)
 		return false;
-
-	// test for point in vert
-	if (LessThan3D().coincident(pnt, t0) || LessThan3D().coincident(pnt, t1) ||
-	    LessThan3D().coincident(pnt, t2))
-		return true;
 
 	Sign o1 = OrientOn2D()(t0, t1, pnt, n_max);
 	Sign o2 = OrientOn2D()(t1, t2, pnt, n_max);
@@ -319,7 +284,7 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 {
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
-	// I copy intersection_type here, just ignore checking point in segment.
+
 	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
 	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
 	Sign o3 = OrientOn2D()(t2, t0, p, n_max);
@@ -333,9 +298,6 @@ PointInType Triangle3_Point3_Do_Intersect<Kernel>::in_triangle(
 {
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
-	// test for point in vert
-	if (vec_equals_3d(p, t0) || vec_equals_3d(p, t1) || vec_equals_3d(p, t2))
-		return PointInType::ON_BOUNDARY;
 
 	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
 	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
@@ -350,39 +312,18 @@ PointInSimplexType Triangle3_Point3_Do_Intersect<Kernel>::intersection_type(
 {
 	OMC_EXPENSIVE_ASSERT(Orient3D()(t0, t1, t2, p) == Sign::ZERO,
 	                     "point is not on triangle.");
-	// test for point in vert
-	if (vec_equals_3d(p, t0))
-		return PointInSimplexType::ON_VERT0;
-	if (vec_equals_3d(p, t1))
-		return PointInSimplexType::ON_VERT1;
-	if (vec_equals_3d(p, t2))
-		return PointInSimplexType::ON_VERT2;
 
-	// test for point in edge in 3D
-	if (Segment3_Point3_DoInter().intersection_type(t0, t1, p, n_max) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE0;
-	if (Segment3_Point3_DoInter().intersection_type(t1, t2, p, n_max) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE1;
-	if (Segment3_Point3_DoInter().intersection_type(t2, t0, p, n_max) ==
-	    PointInSimplexType::STRICTLY_INSIDE)
-		return PointInSimplexType::ON_EDGE2;
-
-	// test for the interior: project t on XYZ and, if the check is never false in
-	// any of the projections, then p must be inside t
-
-	// test for the interior: project t on XYZ and, if the check is never false in
-	// any of the projections, then p must be inside t.
-	// (I copy partial of point_in_triangle_2d here.)
 	Sign o1 = OrientOn2D()(t0, t1, p, n_max);
 	Sign o2 = OrientOn2D()(t1, t2, p, n_max);
 	Sign o3 = OrientOn2D()(t2, t0, p, n_max);
 
-	if ((o1 >= Sign::ZERO && o2 >= Sign::ZERO && o3 >= Sign::ZERO) ||
-	    (o1 <= Sign::ZERO && o2 <= Sign::ZERO && o3 <= Sign::ZERO))
-		return PointInSimplexType::STRICTLY_INSIDE;
-	return PointInSimplexType::STRICTLY_OUTSIDE;
+	if (o1 != Sign::ZERO || o2 != Sign::ZERO || o3 != Sign::ZERO)
+	{
+		CLASSIFY_O123(o1, o2, o3);
+	}
+
+	OMC_ASSERT(false, "Impossible case.");       // the triangle is degenerate
+	return PointInSimplexType::STRICTLY_OUTSIDE; // kill the compiler warning
 }
 
 template <typename Kernel>
