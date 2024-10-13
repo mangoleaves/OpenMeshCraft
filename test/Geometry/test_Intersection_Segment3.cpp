@@ -40,37 +40,37 @@ inline double randomUnitDouble() { return ((double)rand()) / RAND_MAX; }
 
 TEST_F(test_Intersection_Segment3, pointSegment)
 {
-	size_t       num_all_groups    = 1000000;
-	const double perc_degn         = 0.1;
+	size_t       num_all_groups    = 100000;
+	const double perc_degn         = 0.5;
 	const size_t num_random_groups = (size_t)(num_all_groups * (1.0 - perc_degn));
 	const size_t num_degn_groups   = (size_t)(num_all_groups * perc_degn);
 	num_all_groups                 = num_random_groups + num_degn_groups;
+	// reset random seed for this test everytime
 	srand(0);
 
-	// Create vector of all the point tets
+	// Create vector of all segment and point
 	double *atp = new double[(num_random_groups + num_degn_groups) * 9];
 
-	// Create vector of random 3D point tets
+	// Create vector of random segment and point
 	double *random_groups = atp;
 	for (size_t i = 0; i < num_random_groups * 9; i++)
 		random_groups[i] = randomUnitDouble();
 
-	// Create vector of 3D point aligned tets
+	// Create vector of random segment and (not strictly) colinear point
 	double  group[9];
 	double *degn_groups = atp + num_random_groups * 9;
 	for (size_t i = 0; i < num_degn_groups; i++)
 	{
-		group[0] = randomUnitDouble();
-		group[1] = randomUnitDouble();
-		group[2] = randomUnitDouble();
-		group[3] = randomUnitDouble();
-		group[4] = randomUnitDouble();
-		group[5] = randomUnitDouble();
-
+		// clang-format off
+		// random segment
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		// random colinear point
 		double delta = randomUnitDouble();
 		group[6]     = group[0] + (group[3] - group[0]) * delta * 2.0;
 		group[7]     = group[1] + (group[4] - group[1]) * delta * 2.0;
 		group[8]     = group[2] + (group[5] - group[2]) * delta * 2.0;
+		// clang-format on
 		for (size_t j = 0; j < 9; j++)
 			degn_groups[i * 9 + j] = group[j];
 	}
@@ -134,40 +134,71 @@ TEST_F(test_Intersection_Segment3, pointSegment)
 
 TEST_F(test_Intersection_Segment3, segmentSegment)
 {
-	size_t       num_all_groups    = 1000000;
-	const double perc_degn         = 0.1;
+	size_t       num_all_groups    = 100000;
+	const double perc_degn         = 0.5;
 	const size_t num_random_groups = (size_t)(num_all_groups * (1.0 - perc_degn));
 	const size_t num_degn_groups   = (size_t)(num_all_groups * perc_degn);
 	num_all_groups                 = num_random_groups + num_degn_groups;
+	// reset random seed for this test everytime
 	srand(0);
 
-	// Create vector of all the point tets
+	// Create vector of all segments
 	double *atp = new double[(num_random_groups + num_degn_groups) * 12];
 
-	// Create vector of random 3D point tets
+	// Create two random segments
 	double *random_groups = atp;
 	for (size_t i = 0; i < num_random_groups * 12; i++)
 		random_groups[i] = randomUnitDouble();
 
-	// Create vector of 3D point aligned tets
+	// Create two random and coplanar segments
 	double  group[12];
 	double *degn_groups = atp + num_random_groups * 12;
-	for (size_t i = 0; i < num_degn_groups; i++)
+	for (size_t i = 0; i < size_t(num_degn_groups * 0.5); i++)
 	{
 		// clang-format off
-		group[0] = randomUnitDouble();
-		group[1] = randomUnitDouble();
-		group[2] = randomUnitDouble();
-		group[3] = randomUnitDouble();
-		group[4] = randomUnitDouble();
-		group[5] = randomUnitDouble();
-		group[6] = randomUnitDouble();
-		group[7] = randomUnitDouble();
-		group[8] = randomUnitDouble();
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		group[6] = randomUnitDouble(); group[7] = randomUnitDouble(); group[8] = randomUnitDouble();
 		const double delta = randomUnitDouble();
 		group[9]  = group[6] + (group[3] - group[6]) * delta + (group[0] - group[6]) * delta;
 		group[10] = group[7] + (group[4] - group[7]) * delta + (group[1] - group[7]) * delta;
 		group[11] = group[8] + (group[5] - group[8]) * delta + (group[2] - group[8]) * delta;
+		// clang-format on
+
+		for (size_t j = 0; j < 12; j++)
+			degn_groups[i * 12 + j] = group[j];
+	}
+	// Create two random segments originating from the same point
+	for (size_t i = size_t(num_degn_groups * 0.5);
+	     i < size_t(num_degn_groups * 0.75); i++)
+	{
+		// clang-format off
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		group[6] = group[0];           group[7] = group[1];           group[8] = group[2];
+		const double delta = randomUnitDouble() + 1e-6;
+		group[9]  = group[6] + (group[3] - group[6]) * delta + (group[0] - group[6]) * delta;
+		group[10] = group[7] + (group[4] - group[7]) * delta + (group[1] - group[7]) * delta;
+		group[11] = group[8] + (group[5] - group[8]) * delta + (group[2] - group[8]) * delta;
+		// clang-format on
+
+		for (size_t j = 0; j < 12; j++)
+			degn_groups[i * 12 + j] = group[j];
+	}
+	// Create two random and (not strictly) colinear segments
+	for (size_t i = size_t(num_degn_groups * 0.75); i < num_degn_groups; i++)
+	{
+		// clang-format off
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		double delta = randomUnitDouble() + 1e-6;
+		group[6] = group[0] + (group[3] - group[0]) * delta;
+		group[7] = group[1] + (group[4] - group[1]) * delta;
+		group[8] = group[2] + (group[5] - group[2]) * delta;
+		delta = randomUnitDouble() + 1e-6;
+		group[9]  = group[6] + (group[3] - group[0]) * delta;
+		group[10] = group[7] + (group[4] - group[1]) * delta;
+		group[11] = group[8] + (group[5] - group[2]) * delta;
 		// clang-format on
 
 		for (size_t j = 0; j < 12; j++)

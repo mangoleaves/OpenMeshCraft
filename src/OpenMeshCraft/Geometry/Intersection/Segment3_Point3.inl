@@ -213,7 +213,7 @@ bool Segment3_Point3_Do_Intersect<Kernel>::operator()(const SegmentT &seg,
 	const GPointT &s0 = seg.start();
 	const GPointT &s1 = seg.end();
 
-	if (OrientOn2D().on_xy(s0, s1, pnt, n_max) != Sign::ZERO)
+	if (OrientOn2D()(s0, s1, pnt, n_max) != Sign::ZERO)
 		return false; // strictly outside;
 
 	Sign seq_x = LessThan3D().on_x(s0, s1);

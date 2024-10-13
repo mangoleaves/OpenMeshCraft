@@ -132,7 +132,10 @@ public:
 	 * @brief Get the intersection type between two segments.
 	 * @param AB two points form the first segment.
 	 * @param PQ two points form the second segment.
-	 * @param n1_max max normal component of segment PQ.
+	 * @param n1_max max normal component of the triangle that segment PQ belongs
+	 * to. It indicates a plane where the segments are projected to, and the
+	 * projection won't be degenerate if the segments are not degenerate
+	 * originally.
 	 * @note Assume that two segments are coplanar.
 	 */
 	SimplexIntersectionType intersection_type(const NT *A, const NT *B,
