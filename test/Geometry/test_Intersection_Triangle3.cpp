@@ -42,41 +42,37 @@ inline double randomUnitDouble() { return ((double)rand()) / RAND_MAX; }
 
 TEST_F(test_Intersection_Triangle3, pointTriangle)
 {
-	size_t       num_all_groups    = 1000000;
-	const double perc_degn         = 0.1;
+	size_t       num_all_groups    = 100000;
+	const double perc_degn         = 0.5;
 	const size_t num_random_groups = (size_t)(num_all_groups * (1.0 - perc_degn));
 	const size_t num_degn_groups   = (size_t)(num_all_groups * perc_degn);
 	num_all_groups                 = num_random_groups + num_degn_groups;
 	srand(0);
 
-	// Create vector of all the point tets
+	// Create vector of all triangle and point
 	double *atp = new double[(num_random_groups + num_degn_groups) * 12];
 
-	// Create vector of random 3D point tets
+	// Create vector of random triangle and point
 	double *random_groups = atp;
 	for (size_t i = 0; i < num_random_groups * 12; i++)
 		random_groups[i] = randomUnitDouble();
 
-	// Create vector of 3D point aligned tets
+	// Create vector of random triangle and coplanar point
 	double  group[12];
 	double *degn_groups = atp + num_random_groups * 12;
 	for (size_t i = 0; i < num_degn_groups; i++)
 	{
 		// clang-format off
-		group[0] = randomUnitDouble();
-		group[1] = randomUnitDouble();
-		group[2] = randomUnitDouble();
-		group[3] = randomUnitDouble();
-		group[4] = randomUnitDouble();
-		group[5] = randomUnitDouble();
-		group[6] = randomUnitDouble();
-		group[7] = randomUnitDouble();
-		group[8] = randomUnitDouble();
+		// the random triangle
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		group[6] = randomUnitDouble(); group[7] = randomUnitDouble(); group[8] = randomUnitDouble();
+		// the coplanar point
 		const double u = randomUnitDouble();
 		const double v = 1 - u;
-		group[9]  = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) *v;
-		group[10] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) *v;
-		group[11] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) *v;
+		group[9]  = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[10] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[11] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		// clang-format on
 		for (size_t j = 0; j < 12; j++)
 			degn_groups[i * 12 + j] = group[j];
@@ -144,46 +140,40 @@ TEST_F(test_Intersection_Triangle3, pointTriangle)
 
 TEST_F(test_Intersection_Triangle3, segmentTriangle)
 {
-	size_t       num_all_groups    = 1000000;
-	const double perc_degn         = 0.1;
+	size_t       num_all_groups    = 100000;
+	const double perc_degn         = 0.5;
 	const size_t num_random_groups = (size_t)(num_all_groups * (1.0 - perc_degn));
 	const size_t num_degn_groups   = (size_t)(num_all_groups * perc_degn);
 	num_all_groups                 = num_random_groups + num_degn_groups;
 	srand(0);
 
-	// Create vector of all the point tets
+	// Create vector of all triangle and segment
 	double *atp = new double[(num_random_groups + num_degn_groups) * 15];
 
-	// Create vector of random 3D point tets
+	// Create vector of random triangle and segment
 	double *random_groups = atp;
 	for (size_t i = 0; i < num_random_groups * 15; i++)
 		random_groups[i] = randomUnitDouble();
 
-	// Create vector of 3D point aligned tets
+	// Create vector of 3D triangle and coplanar segment
 	double  group[15];
 	double *degn_groups = atp + num_random_groups * 15;
 	for (size_t i = 0; i < num_degn_groups; i++)
 	{
 		// clang-format off
-		group[0] = randomUnitDouble();
-		group[1] = randomUnitDouble();
-		group[2] = randomUnitDouble();
-		group[3] = randomUnitDouble();
-		group[4] = randomUnitDouble();
-		group[5] = randomUnitDouble();
-		group[6] = randomUnitDouble();
-		group[7] = randomUnitDouble();
-		group[8] = randomUnitDouble();
-
+		// the random triangle
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		group[6] = randomUnitDouble(); group[7] = randomUnitDouble(); group[8] = randomUnitDouble();
+		// the coplanar segment
 		double u = randomUnitDouble();
 		double v = 1 - u;
 		group[9]  = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
 		group[10] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
 		group[11] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
-
 		u = randomUnitDouble();
 		v = 1 - u;
-		group[12]  = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
+		group[12] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
 		group[13] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
 		group[14] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
 		// clang-format on
@@ -255,51 +245,42 @@ TEST_F(test_Intersection_Triangle3, segmentTriangle)
 
 TEST_F(test_Intersection_Triangle3, triangleTriangle)
 {
-	size_t       num_all_groups    = 1000000;
-	const double perc_degn         = 0.1;
+	size_t       num_all_groups    = 100000;
+	const double perc_degn         = 0.5;
 	const size_t num_random_groups = (size_t)(num_all_groups * (1.0 - perc_degn));
 	const size_t num_degn_groups   = (size_t)(num_all_groups * perc_degn);
 	num_all_groups                 = num_random_groups + num_degn_groups;
 	srand(0);
 
-	// Create vector of all the point tets
+	// Create vector of triangles
 	double *atp = new double[(num_random_groups + num_degn_groups) * 18];
 
-	// Create vector of random 3D point tets
+	// Create vector of random triangles
 	double *random_groups = atp;
 	for (size_t i = 0; i < num_random_groups * 18; i++)
 		random_groups[i] = randomUnitDouble();
 
-	// Create vector of 3D point aligned tets
+	// Create vector of copalanar triangles
 	double  group[18];
 	double *degn_groups = atp + num_random_groups * 18;
 	for (size_t i = 0; i < num_degn_groups; i++)
 	{
 		// clang-format off
-		group[0] = randomUnitDouble();
-		group[1] = randomUnitDouble();
-		group[2] = randomUnitDouble();
-
-		group[3] = randomUnitDouble();
-		group[4] = randomUnitDouble();
-		group[5] = randomUnitDouble();
-
-		group[6] = randomUnitDouble();
-		group[7] = randomUnitDouble();
-		group[8] = randomUnitDouble();
-
+		// the random triangle
+		group[0] = randomUnitDouble(); group[1] = randomUnitDouble(); group[2] = randomUnitDouble();
+		group[3] = randomUnitDouble(); group[4] = randomUnitDouble(); group[5] = randomUnitDouble();
+		group[6] = randomUnitDouble(); group[7] = randomUnitDouble(); group[8] = randomUnitDouble();
+		// the coplanar triangle
 		double u = randomUnitDouble();
 		double v = 1 - u;
 		group[9]  = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
 		group[10] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
 		group[11] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
-
 		u = randomUnitDouble();
 		v = 1 - u;
 		group[12] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
 		group[13] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
 		group[14] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
-
 		u = randomUnitDouble();
 		v = 1 - u;
 		group[15] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;

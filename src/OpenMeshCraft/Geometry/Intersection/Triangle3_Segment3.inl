@@ -114,16 +114,16 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
   const GPointT &t0, const GPointT &t1, const GPointT &t2, const GPointT &s0,
   const GPointT &s1) const
 {
+	// the triangle is abbreviated as t, and the segment as s
+
 	bool s0_in_vertices =
 	  (LessThan3D().coincident(s0, t0) || LessThan3D().coincident(s0, t1) ||
 	   LessThan3D().coincident(s0, t2));
 	bool s1_in_vertices =
 	  (LessThan3D().coincident(s1, t0) || LessThan3D().coincident(s1, t1) ||
 	   LessThan3D().coincident(s1, t2));
-	if (s0_in_vertices && s1_in_vertices)
-	{
+	if (s0_in_vertices && s1_in_vertices) // s is an edge of t
 		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
-	}
 
 	Sign vol_s0_t, vol_s1_t;
 	vol_s0_t = Orient3D()(t0, t1, t2, s0);
@@ -133,9 +133,10 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 	if (vol_s0_t < Sign::ZERO && vol_s1_t < Sign::ZERO) // s is below t
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
+
 	if (vol_s0_t == Sign::ZERO && vol_s1_t == Sign::ZERO) // s and t are coplanar
 	{
-		// same code as the 2D version, I just copied it here....
+		// Check s and t intersect, similar to 2D version
 		if (Triangle3_Point3_DoInter().intersection_type(t0, t1, t2, s0) !=
 		      PointInSimplexType::STRICTLY_OUTSIDE ||
 		    Triangle3_Point3_DoInter().intersection_type(t0, t1, t2, s1) !=
@@ -149,9 +150,9 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
-			break;
+			break; // continue checking
 		}
 
 		switch (Segment3_Segment3_DoInter().intersection_type(s0, s1, t1, t2))
@@ -161,9 +162,9 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
-			break;
+			break; // continue checking
 		}
 
 		switch (Segment3_Segment3_DoInter().intersection_type(s0, s1, t2, t0))
@@ -173,17 +174,18 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
 			break;
 		}
 
-		// if it is a simplicial complex from any view, then it really is...
+		// segment does not cross the triangle, they do not intersect
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 	}
 
-	// s intersects t (borders included), if the signs of the three tetrahedra
-	// obtained combining s with the three edges of t are all equal
+	// s crosses the plane of t or touches the plane of t by an endpoint.
+	// If the signs of the three tetrahedra obtained combining s with the three
+	// edges of t are all equal, s intersects t (borders included).
 
 	// if one point is coplanar and coincides with a triangle vertex, then they
 	// form a valid complex
@@ -216,16 +218,15 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
   const NT *t0, const NT *t1, const NT *t2, const NT *s0, const NT *s1,
   int &n_max, const NT *t_min, const NT *t_perm) const
 {
+	// the triangle is abbreviated as t, and the segment as s
 	OMC_INTER_PROFILE_INC_TOTAL(IntersectionNames::T3S3);
 
 	bool s0_in_vertices =
 	  (vec_equals_3d(s0, t0) || vec_equals_3d(s0, t1) || vec_equals_3d(s0, t2));
 	bool s1_in_vertices =
 	  (vec_equals_3d(s1, t0) || vec_equals_3d(s1, t1) || vec_equals_3d(s1, t2));
-	if (s0_in_vertices && s1_in_vertices)
-	{
+	if (s0_in_vertices && s1_in_vertices) // s is an edge of t
 		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
-	}
 
 	Sign vol_s0_t, vol_s1_t;
 	if (t_min != nullptr)
@@ -249,14 +250,15 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 1);
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 	}
+
 	if (vol_s0_t == Sign::ZERO && vol_s1_t == Sign::ZERO) // s and t are coplanar
 	{
+		// Check s and t intersect, similar to 2D version
 		if (n_max == -1)
 			n_max = MaxCompInTriNormal()(t0, t1, t2);
 
 		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 2);
 
-		// same code as the 2D version, I just copied it here....
 		if ((Triangle3_Point3_DoInter().in_triangle(t0, t1, t2, s0, n_max) !=
 		       PointInType::STRICTLY_OUTSIDE ||
 		     Triangle3_Point3_DoInter().in_triangle(t0, t1, t2, s1, n_max) !=
@@ -273,7 +275,7 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
 			break;
 		}
@@ -288,7 +290,7 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
 			break;
 		}
@@ -303,20 +305,22 @@ Triangle3_Segment3_Do_Intersect<Kernel>::intersection_type(
 		case SimplexIntersectionType::OVERLAP:
 			return SimplexIntersectionType::INTERSECT;
 		case SimplexIntersectionType::SIMPLICIAL_COMPLEX:
-			break;
+			OMC_ASSERT(false, "Impossible case.");
 		case SimplexIntersectionType::DO_NOT_INTERSECT:
 			break;
 		}
 
 		OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 6);
 
+		// segment does not cross the triangle, they do not intersect
 		return SimplexIntersectionType::DO_NOT_INTERSECT;
 	}
 
 	OMC_INTER_PROFILE_INC_REACH(IntersectionNames::T3S3, 7);
 
-	// s intersects t (borders included), if the signs of the three tetrahedra
-	// obtained combining s with the three edges of t are all equal
+	// s crosses the plane of t or touches the plane of t by an endpoint.
+	// If the signs of the three tetrahedra obtained combining s with the three
+	// edges of t are all equal, s intersects t (borders included).
 
 	// if one point is coplanar and coincides with a triangle vertex, then they
 	// form a valid complex
