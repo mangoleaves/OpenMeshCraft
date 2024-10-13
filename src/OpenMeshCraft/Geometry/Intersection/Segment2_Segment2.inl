@@ -31,75 +31,91 @@ Segment2_Segment2_Do_Intersect<Kernel>::intersection_type(
 	Sign s10_wrt_s0 = Orient2D()(s00, s01, s10);
 	Sign s11_wrt_s0 = Orient2D()(s00, s01, s11);
 
+	// one segment is totally on one side of the other segment
+	if ((s00_wrt_s1 == s01_wrt_s1 && s00_wrt_s1 != Sign::ZERO) ||
+	    (s10_wrt_s0 == s11_wrt_s0 && s10_wrt_s0 != Sign::ZERO))
+	{
+		return SimplexIntersectionType::DO_NOT_INTERSECT;
+	}
+
 	// segments intersect at a single point
 	if (s00_wrt_s1 != s01_wrt_s1 && s10_wrt_s0 != s11_wrt_s0)
 	{
 		// edges share an endpoint
-		if (LessThan2D().coincident(s00, s10) ||
-		    LessThan2D().coincident(s00, s11) ||
-		    LessThan2D().coincident(s01, s10) || LessThan2D().coincident(s01, s11))
+		if ((LessThan2D().coincident(s00, s10) ||
+		     LessThan2D().coincident(s00, s11)) ||
+		    (LessThan2D().coincident(s01, s10) ||
+		     LessThan2D().coincident(s01, s11)))
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
-		// at least one segment endpoint is involved in the intersection
+		// - one segment endpoint is involved in the intersection
+		// - two segments cross each other.
 		return SimplexIntersectionType::INTERSECT;
 	}
 
-	// degenerate case: collinear segments
-	if (s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO &&
-	    s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO)
-	{
-		// coincident segments
-		if ((LessThan2D().coincident(s00, s10) &&
-		     LessThan2D().coincident(s01, s11)) ||
-		    (LessThan2D().coincident(s00, s11) &&
-		     LessThan2D().coincident(s01, s10)))
-			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
+	// at this point, the only remaining case:
+	// two segment are colinear, i.e., all orientation signs are zero.
 
-		Sign Xmin_s0 = LessThan2D().on_x(s00, s01);
-		Sign Ymin_s0 = LessThan2D().on_y(s00, s01);
+	OMC_EXPENSIVE_ASSERT(s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO &&
+	                       s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO,
+	                     "Impossible case.");
 
-		Sign Xmin_s1 = LessThan2D().on_x(s10, s11);
-		Sign Ymin_s1 = LessThan2D().on_y(s10, s11);
+	// chech if segments are coincident
+	if ((LessThan2D().coincident(s00, s10) &&
+	     LessThan2D().coincident(s01, s11)) ||
+	    (LessThan2D().coincident(s00, s11) && LessThan2D().coincident(s01, s10)))
+		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
-		// clang-format off
-		// test s00 against s1 range
-		if (Xmin_s1 != Sign::ZERO &&
-		    (Xmin_s1 == Sign::NEGATIVE && LessThan2D().on_x(s10, s00) == Sign::NEGATIVE && LessThan2D().on_x(s00, s11) == Sign::NEGATIVE ||
-		     Xmin_s1 == Sign::POSITIVE && LessThan2D().on_x(s11, s00) == Sign::NEGATIVE && LessThan2D().on_x(s00, s10) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		if (Ymin_s1 != Sign::ZERO &&
-		    (Ymin_s1 == Sign::NEGATIVE && LessThan2D().on_y(s10, s00) == Sign::NEGATIVE && LessThan2D().on_y(s00, s11) == Sign::NEGATIVE ||
-		     Ymin_s1 == Sign::POSITIVE && LessThan2D().on_y(s11, s00) == Sign::NEGATIVE && LessThan2D().on_y(s00, s10) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		// test s01 against s1 range
-		if (Xmin_s1 != Sign::ZERO &&
-		    (Xmin_s1 == Sign::NEGATIVE && LessThan2D().on_x(s10, s01) == Sign::NEGATIVE && LessThan2D().on_x(s01, s11) == Sign::NEGATIVE ||
-		     Xmin_s1 == Sign::POSITIVE && LessThan2D().on_x(s11, s01) == Sign::NEGATIVE && LessThan2D().on_x(s01, s10) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		if (Ymin_s1 != Sign::ZERO &&
-		    (Ymin_s1 == Sign::NEGATIVE && LessThan2D().on_y(s10, s01) == Sign::NEGATIVE && LessThan2D().on_y(s01, s11) == Sign::NEGATIVE ||
-		     Ymin_s1 == Sign::POSITIVE && LessThan2D().on_y(s11, s01) == Sign::NEGATIVE && LessThan2D().on_y(s01, s10) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		// test s10 against s0 range
-		if (Xmin_s0 != Sign::ZERO &&
-		    (Xmin_s0 == Sign::NEGATIVE && LessThan2D().on_x(s00, s10) == Sign::NEGATIVE && LessThan2D().on_x(s10, s01) == Sign::NEGATIVE ||
-		     Xmin_s0 == Sign::POSITIVE && LessThan2D().on_x(s01, s10) == Sign::NEGATIVE && LessThan2D().on_x(s10, s00) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		if (Ymin_s0 != Sign::ZERO &&
-		    (Ymin_s0 == Sign::NEGATIVE && LessThan2D().on_y(s00, s10) == Sign::NEGATIVE && LessThan2D().on_y(s10, s01) == Sign::NEGATIVE ||
-		     Ymin_s0 == Sign::POSITIVE && LessThan2D().on_y(s01, s10) == Sign::NEGATIVE && LessThan2D().on_y(s10, s00) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		// test s11 against s0 range
-		if (Xmin_s0 != Sign::ZERO &&
-		    (Xmin_s0 == Sign::NEGATIVE && LessThan2D().on_x(s00, s11) == Sign::NEGATIVE && LessThan2D().on_x(s11, s01) == Sign::NEGATIVE ||
-		     Xmin_s0 == Sign::POSITIVE && LessThan2D().on_x(s01, s11) == Sign::NEGATIVE && LessThan2D().on_x(s11, s00) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		if (Ymin_s0 != Sign::ZERO &&
-		    (Ymin_s0 == Sign::NEGATIVE && LessThan2D().on_y(s00, s11) == Sign::NEGATIVE && LessThan2D().on_y(s11, s01) == Sign::NEGATIVE ||
-		     Ymin_s0 == Sign::POSITIVE && LessThan2D().on_y(s01, s11) == Sign::NEGATIVE && LessThan2D().on_y(s11, s00) == Sign::NEGATIVE))
-			return SimplexIntersectionType::OVERLAP;
-		// clang-format on
-	}
+	// check if segments are overlap
+	Sign Xmin_s0 = LessThan2D().on_x(s00, s01);
+	Sign Ymin_s0 = LessThan2D().on_y(s00, s01);
+
+	Sign Xmin_s1 = LessThan2D().on_x(s10, s11);
+	Sign Ymin_s1 = LessThan2D().on_y(s10, s11);
+
+	// clang-format off
+  // test s00 against s1 range
+  if (Xmin_s1 != Sign::ZERO &&
+      (Xmin_s1 == Sign::NEGATIVE && LessThan2D().on_x(s10, s00) == Sign::NEGATIVE && LessThan2D().on_x(s00, s11) == Sign::NEGATIVE ||
+       Xmin_s1 == Sign::POSITIVE && LessThan2D().on_x(s11, s00) == Sign::NEGATIVE && LessThan2D().on_x(s00, s10) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  if (Ymin_s1 != Sign::ZERO &&
+      (Ymin_s1 == Sign::NEGATIVE && LessThan2D().on_y(s10, s00) == Sign::NEGATIVE && LessThan2D().on_y(s00, s11) == Sign::NEGATIVE ||
+       Ymin_s1 == Sign::POSITIVE && LessThan2D().on_y(s11, s00) == Sign::NEGATIVE && LessThan2D().on_y(s00, s10) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  // test s01 against s1 range
+  if (Xmin_s1 != Sign::ZERO &&
+      (Xmin_s1 == Sign::NEGATIVE && LessThan2D().on_x(s10, s01) == Sign::NEGATIVE && LessThan2D().on_x(s01, s11) == Sign::NEGATIVE ||
+       Xmin_s1 == Sign::POSITIVE && LessThan2D().on_x(s11, s01) == Sign::NEGATIVE && LessThan2D().on_x(s01, s10) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  if (Ymin_s1 != Sign::ZERO &&
+      (Ymin_s1 == Sign::NEGATIVE && LessThan2D().on_y(s10, s01) == Sign::NEGATIVE && LessThan2D().on_y(s01, s11) == Sign::NEGATIVE ||
+       Ymin_s1 == Sign::POSITIVE && LessThan2D().on_y(s11, s01) == Sign::NEGATIVE && LessThan2D().on_y(s01, s10) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  // test s10 against s0 range
+  if (Xmin_s0 != Sign::ZERO &&
+      (Xmin_s0 == Sign::NEGATIVE && LessThan2D().on_x(s00, s10) == Sign::NEGATIVE && LessThan2D().on_x(s10, s01) == Sign::NEGATIVE ||
+       Xmin_s0 == Sign::POSITIVE && LessThan2D().on_x(s01, s10) == Sign::NEGATIVE && LessThan2D().on_x(s10, s00) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  if (Ymin_s0 != Sign::ZERO &&
+      (Ymin_s0 == Sign::NEGATIVE && LessThan2D().on_y(s00, s10) == Sign::NEGATIVE && LessThan2D().on_y(s10, s01) == Sign::NEGATIVE ||
+       Ymin_s0 == Sign::POSITIVE && LessThan2D().on_y(s01, s10) == Sign::NEGATIVE && LessThan2D().on_y(s10, s00) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  // test s11 against s0 range
+  if (Xmin_s0 != Sign::ZERO &&
+      (Xmin_s0 == Sign::NEGATIVE && LessThan2D().on_x(s00, s11) == Sign::NEGATIVE && LessThan2D().on_x(s11, s01) == Sign::NEGATIVE ||
+       Xmin_s0 == Sign::POSITIVE && LessThan2D().on_x(s01, s11) == Sign::NEGATIVE && LessThan2D().on_x(s11, s00) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+  if (Ymin_s0 != Sign::ZERO &&
+      (Ymin_s0 == Sign::NEGATIVE && LessThan2D().on_y(s00, s11) == Sign::NEGATIVE && LessThan2D().on_y(s11, s01) == Sign::NEGATIVE ||
+       Ymin_s0 == Sign::POSITIVE && LessThan2D().on_y(s01, s11) == Sign::NEGATIVE && LessThan2D().on_y(s11, s00) == Sign::NEGATIVE))
+    return SimplexIntersectionType::OVERLAP;
+	// clang-format on
+
+	// OPT: Identify an axis where the segments are far away from degeneration,
+	// and then check for overlap along this axis.
+
+	// segments do not overlap
 	return SimplexIntersectionType::DO_NOT_INTERSECT;
 }
 
@@ -115,6 +131,13 @@ Segment2_Segment2_Do_Intersect<Kernel>::intersection_type(const NT *s00,
 	Sign s10_wrt_s0 = Orient2D()(s00, s01, s10);
 	Sign s11_wrt_s0 = Orient2D()(s00, s01, s11);
 
+	// one segment is totally on one side of the other segment
+	if ((s00_wrt_s1 == s01_wrt_s1 && s00_wrt_s1 != Sign::ZERO) ||
+	    (s10_wrt_s0 == s11_wrt_s0 && s10_wrt_s0 != Sign::ZERO))
+	{
+		return SimplexIntersectionType::DO_NOT_INTERSECT;
+	}
+
 	// segments intersect at a single point
 	if (s00_wrt_s1 != s01_wrt_s1 && s10_wrt_s0 != s11_wrt_s0)
 	{
@@ -123,42 +146,51 @@ Segment2_Segment2_Do_Intersect<Kernel>::intersection_type(const NT *s00,
 		    vec_equals_2d(s01, s10) || vec_equals_2d(s01, s11))
 			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
 
-		// at least one segment endpoint is involved in the intersection
+		// - one segment endpoint is involved in the intersection
+		// - two segments cross each other.
 		return SimplexIntersectionType::INTERSECT;
 	}
 
-	// degenerate case: collinear segments
-	if (s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO &&
-	    s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO)
+	// at this point, the only remaining case:
+	// two segment are colinear, i.e., all orientation signs are zero.
+
+	OMC_EXPENSIVE_ASSERT(s00_wrt_s1 == Sign::ZERO && s01_wrt_s1 == Sign::ZERO &&
+	                       s10_wrt_s0 == Sign::ZERO && s11_wrt_s0 == Sign::ZERO,
+	                     "Impossible case.");
+
+	// chech if segments are coincident
+	if ((vec_equals_2d(s00, s10) && vec_equals_2d(s01, s11)) ||
+	    (vec_equals_2d(s00, s11) && vec_equals_2d(s01, s10)))
+		return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
+
+	// check if segments are overlap
+	NT Xmin_s1 = s10[0] < s11[0] ? s10[0] : s11[0];
+	NT Xmax_s1 = s10[0] < s11[0] ? s11[0] : s10[0];
+	NT Ymin_s1 = s10[1] < s11[1] ? s10[1] : s11[1];
+	NT Ymax_s1 = s10[1] < s11[1] ? s11[1] : s10[1];
+	NT Xmin_s0 = s00[0] < s01[0] ? s00[0] : s01[0];
+	NT Xmax_s0 = s00[0] < s01[0] ? s01[0] : s00[0];
+	NT Ymin_s0 = s00[1] < s01[1] ? s00[1] : s01[1];
+	NT Ymax_s0 = s00[1] < s01[1] ? s01[1] : s00[1];
+
+	if ( // test s0 endpoints against s1 range
+	  (s00[0] > Xmin_s1 && s00[0] < Xmax_s1) ||
+	  (s00[1] > Ymin_s1 && s00[1] < Ymax_s1) ||
+	  (s01[0] > Xmin_s1 && s01[0] < Xmax_s1) ||
+	  (s01[1] > Ymin_s1 && s01[1] < Ymax_s1) ||
+	  // test s1 endpoints against s0 range
+	  (s10[0] > Xmin_s0 && s10[0] < Xmax_s0) ||
+	  (s10[1] > Ymin_s0 && s10[1] < Ymax_s0) ||
+	  (s11[0] > Xmin_s0 && s11[0] < Xmax_s0) ||
+	  (s11[1] > Ymin_s0 && s11[1] < Ymax_s0))
 	{
-		// coincident segments
-		if ((vec_equals_2d(s00, s10) && vec_equals_2d(s01, s11)) ||
-		    (vec_equals_2d(s00, s11) && vec_equals_2d(s01, s10)))
-			return SimplexIntersectionType::SIMPLICIAL_COMPLEX;
-
-		NT Xmin_s1 = s10[0] < s11[0] ? s10[0] : s11[0];
-		NT Xmax_s1 = s10[0] < s11[0] ? s11[0] : s10[0];
-		NT Ymin_s1 = s10[1] < s11[1] ? s10[1] : s11[1];
-		NT Ymax_s1 = s10[1] < s11[1] ? s11[1] : s10[1];
-		NT Xmin_s0 = s00[0] < s01[0] ? s00[0] : s01[0];
-		NT Xmax_s0 = s00[0] < s01[0] ? s01[0] : s00[0];
-		NT Ymin_s0 = s00[1] < s01[1] ? s00[1] : s01[1];
-		NT Ymax_s0 = s00[1] < s01[1] ? s01[1] : s00[1];
-
-		if ( // test s0 endpoints against s1 range
-		  (s00[0] > Xmin_s1 && s00[0] < Xmax_s1) ||
-		  (s00[1] > Ymin_s1 && s00[1] < Ymax_s1) ||
-		  (s01[0] > Xmin_s1 && s01[0] < Xmax_s1) ||
-		  (s01[1] > Ymin_s1 && s01[1] < Ymax_s1) ||
-		  // test s1 endpoints against s0 range
-		  (s10[0] > Xmin_s0 && s10[0] < Xmax_s0) ||
-		  (s10[1] > Ymin_s0 && s10[1] < Ymax_s0) ||
-		  (s11[0] > Xmin_s0 && s11[0] < Xmax_s0) ||
-		  (s11[1] > Ymin_s0 && s11[1] < Ymax_s0))
-		{
-			return SimplexIntersectionType::OVERLAP;
-		}
+		return SimplexIntersectionType::OVERLAP;
 	}
+
+	// OPT: Identify an axis where the segments are far away from degeneration,
+	// and then check for overlap along this axis.
+
+	// segments do not overlap
 	return SimplexIntersectionType::DO_NOT_INTERSECT;
 }
 
