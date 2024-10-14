@@ -24,6 +24,7 @@
 #include "Primitives/Ray3T.h"
 #include "Primitives/Segment3T.h"
 #include "Primitives/Sphere3T.h"
+#include "Primitives/Tetrahedron3T.h"
 #include "Primitives/Triangle3T.h"
 
 // Predicates
@@ -121,15 +122,16 @@ public:
 	using Segment2  = Segment2T<NT, EPoint2>;
 	using Triangle2 = Triangle2T<NT, EPoint2>;
 
-	using Segment3       = Segment3T<NT, EPoint3>;
-	using Triangle3      = Triangle3T<NT, EPoint3>;
-	using Ray3           = Ray3T<NT, Vec3, EPoint3>;
-	using Line3          = Line3T<NT, Vec3, EPoint3>;
 	using BoundedLine3   = BoundedLine3T<NT, EPoint3>;
-	using Plane3         = Plane3T<NT, Vec3, EPoint3>;
-	using Sphere3        = Sphere3T<NT, EPoint3>;
-	using NormalCone3    = NormalCone3T<NT, Vec3>;
 	using ImplicitPlane3 = ImplicitPlane3T<NT, Vec3, EPoint3>;
+	using Line3          = Line3T<NT, Vec3, EPoint3>;
+	using NormalCone3    = NormalCone3T<NT, Vec3>;
+	using Plane3         = Plane3T<NT, Vec3, EPoint3>;
+	using Ray3           = Ray3T<NT, Vec3, EPoint3>;
+	using Segment3       = Segment3T<NT, EPoint3>;
+	using Sphere3        = Sphere3T<NT, EPoint3>;
+	using Tetrahedron3   = Tetrahedron3T<NT, EPoint3>;
+	using Triangle3      = Triangle3T<NT, EPoint3>;
 	/// @}
 
 	/********************************************/
@@ -188,10 +190,13 @@ public:
 
 	using Segment3_Point3_DoIntersect   = Segment3_Point3_Do_Intersect<Kernel>;
 	using Segment3_Segment3_DoIntersect = Segment3_Segment3_Do_Intersect<Kernel>;
-	using Triangle3_Point3_DoIntersect  = Triangle3_Point3_Do_Intersect<Kernel>;
 
+	using Triangle3_Point3_DoIntersect    = Triangle3_Point3_Do_Intersect<Kernel>;
 	using Triangle3_Segment3_DoIntersect  = Triangle3_Segment3_Do_Intersect<Kernel>;
 	using Triangle3_Triangle3_DoIntersect = Triangle3_Triangle3_Do_Intersect<Kernel>;
+
+	using Tetrahedron3_Point3_DoIntersect    = Tetrahedron3_Point3_Do_Intersect<Kernel>;
+	using Tetrahedron3_Segment3_DoIntersect  = Tetrahedron3_Segment3_Do_Intersect<Kernel>;
 	// clang-format on
 
 	using DoIntersect = DoIntersectK<Kernel>;

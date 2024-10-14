@@ -19,9 +19,10 @@
 #include "Triangle3_Segment3.h"
 #include "Triangle3_Triangle3.h"
 
+#include "Tetrahedron3_Point3.h"
+#include "Tetrahedron3_Segment3.h"
+
 namespace OMC {
-
-
 
 template <typename Kernel>
 class DoIntersectK
@@ -33,18 +34,19 @@ public:
 	using EPoint2      = typename K::EPoint2;
 	using BoundingBox2 = typename K::BoundingBox2;
 	using Segment2     = typename K::Segment2;
-	using Triangle2    = typename K::Triangle2;
 	using Sphere2      = typename K::Sphere2;
+	using Triangle2    = typename K::Triangle2;
 
 	using GPoint3      = typename K::GPoint3;
 	using EPoint3      = typename K::EPoint3;
-	using Segment3     = typename K::Segment3;
-	using Ray3         = typename K::Ray3;
-	using Line3        = typename K::Line3;
 	using BoundedLine3 = typename K::BoundedLine3;
-	using Triangle3    = typename K::Triangle3;
-	using Sphere3      = typename K::Sphere3;
 	using BoundingBox3 = typename K::BoundingBox3;
+	using Line3        = typename K::Line3;
+	using Ray3         = typename K::Ray3;
+	using Segment3     = typename K::Segment3;
+	using Sphere3      = typename K::Sphere3;
+	using Tetrahedron3 = typename K::Tetrahedron3;
+	using Triangle3    = typename K::Triangle3;
 
 public:
 	// clang-format off
@@ -77,9 +79,12 @@ public:
 	bool operator()(const Triangle3 &tri,  const EPoint3   &point) const { return Triangle3_Point3_Do_Intersect<K>()(tri, point); }
 	bool operator()(const Triangle3 &tri,  const Segment3  &seg)   const { return Triangle3_Segment3_Do_Intersect<K>()(tri, seg); }
 	bool operator()(const Triangle3 &tri1, const Triangle3 &tri2)  const { return Triangle3_Triangle3_Do_Intersect<K>()(tri1, tri2); }
+
+	template <typename GPT, typename = std::enable_if_t<std::is_same_v<GPT, GPoint3> && !std::is_same_v<GPT, EPoint3>>>
+	bool operator()(const Tetrahedron3 &tet,  const GPT       &point) const { return Tetrahedron3_Point3_Do_Intersect<K>()(tet, point); }
+	bool operator()(const Tetrahedron3 &tet,  const EPoint3   &point) const { return Tetrahedron3_Point3_Do_Intersect<K>()(tet, point); }
+	bool operator()(const Tetrahedron3 &tet,  const Segment3  &seg)   const { return Tetrahedron3_Segment3_Do_Intersect<K>()(tet, seg); }
 	// clang-format on
 };
-
-
 
 } // namespace OMC
