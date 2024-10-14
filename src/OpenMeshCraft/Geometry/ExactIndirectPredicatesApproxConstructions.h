@@ -210,6 +210,7 @@ public:
 
 	using Tetrahedron3_Point3_DoIntersect    = Tetrahedron3_Point3_Do_Intersect<Kernel>;
 	using Tetrahedron3_Segment3_DoIntersect  = Tetrahedron3_Segment3_Do_Intersect<Kernel>;
+	using Tetrahedron3_Triangle3_DoIntersect = Tetrahedron3_Triangle3_Do_Intersect<Kernel>;
 	// clang-format on
 
 	using DoIntersect = DoIntersectK<Kernel>;

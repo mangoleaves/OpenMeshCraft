@@ -21,6 +21,7 @@
 
 #include "Tetrahedron3_Point3.h"
 #include "Tetrahedron3_Segment3.h"
+#include "Tetrahedron3_Triangle3.h"
 
 namespace OMC {
 
@@ -84,6 +85,7 @@ public:
 	bool operator()(const Tetrahedron3 &tet,  const GPT       &point) const { return Tetrahedron3_Point3_Do_Intersect<K>()(tet, point); }
 	bool operator()(const Tetrahedron3 &tet,  const EPoint3   &point) const { return Tetrahedron3_Point3_Do_Intersect<K>()(tet, point); }
 	bool operator()(const Tetrahedron3 &tet,  const Segment3  &seg)   const { return Tetrahedron3_Segment3_Do_Intersect<K>()(tet, seg); }
+	bool operator()(const Tetrahedron3 &tet,  const Triangle3 &tri)   const { return Tetrahedron3_Triangle3_Do_Intersect<K>()(tet, tri); }
 	// clang-format on
 };
 

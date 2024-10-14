@@ -168,14 +168,14 @@ TEST_F(test_Intersection_Triangle3, segmentTriangle)
 		// the coplanar segment
 		double u = randomUnitDouble();
 		double v = 1 - u;
-		group[9]  = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
-		group[10] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
-		group[11] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
+		group[9]  = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[10] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[11] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		u = randomUnitDouble();
 		v = 1 - u;
-		group[12] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
-		group[13] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
-		group[14] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
+		group[12] = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[13] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[14] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		// clang-format on
 		for (size_t j = 0; j < 15; j++)
 			degn_groups[i * 15 + j] = group[j];
@@ -273,19 +273,19 @@ TEST_F(test_Intersection_Triangle3, triangleTriangle)
 		// the coplanar triangle
 		double u = randomUnitDouble();
 		double v = 1 - u;
-		group[9]  = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
-		group[10] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
-		group[11] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
+		group[9]  = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[10] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[11] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		u = randomUnitDouble();
 		v = 1 - u;
-		group[12] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
-		group[13] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
-		group[14] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
+		group[12] = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[13] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[14] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		u = randomUnitDouble();
 		v = 1 - u;
-		group[15] = group[0] + (group[3] - group[0]) * u + (group[3] - group[0]) * v;
-		group[16] = group[1] + (group[4] - group[1]) * u + (group[4] - group[1]) * v;
-		group[17] = group[2] + (group[5] - group[2]) * u + (group[5] - group[2]) * v;
+		group[15] = group[0] + (group[3] - group[0]) * u + (group[6] - group[0]) * v;
+		group[16] = group[1] + (group[4] - group[1]) * u + (group[7] - group[1]) * v;
+		group[17] = group[2] + (group[5] - group[2]) * u + (group[8] - group[2]) * v;
 		// clang-format on
 		for (size_t j = 0; j < 18; j++)
 			degn_groups[i * 18 + j] = group[j];
