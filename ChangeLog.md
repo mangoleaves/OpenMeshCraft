@@ -1,5 +1,28 @@
 # ChangeLog
 
+## 1.0.3 (2024.10.15)
+
+New Features:
+
+- Intersection tests between:
+  - Tetrahedron and point
+  - Tetrahedron and segment
+  - Tetrahedron and triangle
+- Vector4T template class
+
+Refactor:
+
+- Arrangements & Boolean
+  - Extract general and usefule utilities and routines to common files
+- Replace boost::filesystem with std::filesystem
+
+Bug Fix:
+
+- Arrangements
+- Intersection tests
+
+See details in commit message.
+
 ## 1.0.2 (2024.09.02)
 
 Algorithm Improvements:
