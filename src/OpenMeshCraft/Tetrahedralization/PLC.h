@@ -138,6 +138,7 @@ public: /* Auxiliary data structures ****************************************/
     // clang-format off
     bool operator==(index_t eid) const { return range.orig_eid == eid; }
     bool operator==(const BoundingEdge &rhs) const { return range.orig_eid == rhs.range.orig_eid; }
+    bool operator!=(const BoundingEdge &rhs) const { return !(*this == rhs); }
     bool operator<(index_t eid) const { return range.orig_eid < eid; }
     bool operator<(const BoundingEdge &rhs) const { return range.orig_eid < rhs.range.orig_eid; }
     // clang-format on

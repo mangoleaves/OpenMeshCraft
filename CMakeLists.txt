@@ -39,6 +39,20 @@ option(OMC_CMAKE_INTER_PROFILE "Enable profiling intersection in OpenMeshCraft."
 option(OMC_CMAKE_ARR_PROFILE "Enable profiling arrangements in OpenMeshCraft." OFF)
 
 option(OMC_BUILD_TEST "Build test project of OpenMeshCraft" ${OMC_MASTER_PROJECT})
+if(MSVC)
+  option(OMC_USE_STD_FORMAT "Use C++20 std::format instead of fmt" ON)
+else()
+  option(OMC_USE_STD_FORMAT "Use C++20 std::format instead of fmt" OFF)
+endif()
+
+set(_OMC_BUILD_PREDICATES_GENERATOR_DEFAULT ON)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+   CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  set(_OMC_BUILD_PREDICATES_GENERATOR_DEFAULT OFF)
+endif()
+option(OMC_BUILD_PREDICATES_GENERATOR
+       "Build PredicatesGenerator targets"
+       ${_OMC_BUILD_PREDICATES_GENERATOR_DEFAULT})
 # cmake-format: on
 
 # ##############################################################################

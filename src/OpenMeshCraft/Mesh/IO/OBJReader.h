@@ -4,6 +4,7 @@
 #include "OpenMeshCraft/Mesh/TriSoup.h"
 
 #include <string>
+#include <sstream>
 #include <type_traits>
 #include <vector>
 

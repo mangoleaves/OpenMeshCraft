@@ -6,8 +6,10 @@
 #include "OpenMeshCraft/Utils/EnableWarnings.h"
 // clang-format on
 
+#include "OpenMeshCraft/Utils/FormatCompat.h"
 #include "OpenMeshCraft/Utils/IndexDef.h"
 #include "OpenMeshCraft/Utils/Label.h"
+#include "OpenMeshCraft/Utils/Logger.h"
 
 #include <algorithm>
 #include <deque>
@@ -280,7 +282,7 @@ inline void ArrProfile::print()
 
   for (size_t i = 0; i < (size_t)ArrFuncNames::CNT; i++)
   {
-    std::cout << std::format("{}:\n", func_names[i]);
+    std::cout << OMC::format("{}:\n", func_names[i]);
     int last_branch_flag = 0;
     // find the last non-zero branch flag
     for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
@@ -295,7 +297,7 @@ inline void ArrProfile::print()
     for (int j = 0; j <= last_branch_flag; j++)
     {
       double reach_raio = (double)reach_count[i][j] / (double)total_count[i];
-      std::cout << std::format("  line {}, branch {}: {:.2f}%, {}\n",
+      std::cout << OMC::format("  line {}, branch {}: {:.2f}%, {}\n",
                                reach_line[i][j].load(), j, reach_raio * 100.,
                                reach_count[i][j].load());
     }
@@ -337,7 +339,7 @@ inline void ArrProfile::print()
     stats->dst_name = OMC::Logger::elapsed(name).count();                \
   if (config.verbose)                                                    \
   {                                                                      \
-    OMC::Logger::info(std::format("[OpenMeshCraft Arrangements] " dscrpt \
+    OMC::Logger::info(OMC::format("[OpenMeshCraft Arrangements] " dscrpt \
                                   " time : {} s",                        \
                                   OMC::Logger::elapsed(name).count()));  \
   }

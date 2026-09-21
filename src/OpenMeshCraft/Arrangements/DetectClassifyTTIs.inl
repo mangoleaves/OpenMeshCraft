@@ -4,6 +4,7 @@
 #include "DetectClassifyTTIs.h"
 
 #include "OpenMeshCraft/Utils/Exception.h"
+#include "OpenMeshCraft/Utils/FormatCompat.h"
 
 #if defined(OMC_ARR_PROFILE) && 0
   #define COLLECT_INTERSECTING_TRIANGLE                                       \
@@ -19,7 +20,7 @@
 
   #define REPORT_INTERSECTING_TRIANGLE                                \
     remove_duplicates(intersecting_triangle_pairs);                   \
-    OMC::Logger::info(std::format(                                    \
+    OMC::Logger::info(OMC::format(                                    \
       "[OpenMeshCraft Arrangements] intersecting triangle pairs: {}", \
       intersecting_triangle_pairs.size()));
 #else
@@ -246,8 +247,8 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 #ifdef OMC_ARR_DC_TTI_PARA
     tbb::parallel_for(size_t(0), num_threads, on_large_node);
 #else
-    std::ranges::for_each(std::ranges::iota_view(size_t(0), num_threads),
-                          on_large_node);
+    for (size_t thread_id = 0; thread_id < num_threads; ++thread_id)
+      on_large_node(thread_id);
 #endif
   }
 }

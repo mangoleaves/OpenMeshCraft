@@ -14,6 +14,7 @@
 #include <cfloat>
 
 #include <fstream>
+#include <sstream>
 
 namespace OMC {
 

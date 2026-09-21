@@ -4,8 +4,7 @@
 
 #include "tbb/tbb.h"
 
-#include <execution>
-#include <numeric>
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
 
 namespace OMC {
 
@@ -251,7 +250,7 @@ void SAABBTree<Traits>::update_boxes(bool parallel)
 {
   m_prim_boxes.resize(m_primitives.size());
   if (parallel)
-    std::transform(std::execution::par_unseq, m_primitives.begin(),
+    std::transform(OMC_IF_EXEC(std::execution::par_unseq) m_primitives.begin(),
                    m_primitives.end(), m_prim_boxes.begin(), CalcBbox());
   else
     std::transform(m_primitives.begin(), m_primitives.end(),
@@ -290,11 +289,18 @@ auto SAABBTree<Traits>::expand(index_t node_id, IndicesIter first,
   };
   BboxT init_box = bbox(*first);
 
+#if defined(__cpp_lib_parallel_algorithm) && \
+  __cpp_lib_parallel_algorithm >= 201603L
   if (parallel)
-    cur_node.bbox() = std::reduce(std::execution::par_unseq, first + 1, beyond,
-                                  init_box, ReduceOp(this));
+    cur_node.bbox() =
+      std::reduce(OMC_IF_EXEC(std::execution::par_unseq) first + 1, beyond,
+                  init_box, ReduceOp(this));
   else
     cur_node.bbox() = std::reduce(first + 1, beyond, init_box, ReduceOp(this));
+#else
+  cur_node.bbox() =
+    std::accumulate(first + 1, beyond, init_box, ReduceOp(this));
+#endif
 
   // Split primitives to two groups.
   IndicesIter middle;
@@ -351,8 +357,8 @@ size_t SAABBTree<Traits>::split_primitives(IndicesIter  first,
 
   middle = first + (beyond - first) / 2;
   if (parallel)
-    std::nth_element(std::execution::par_unseq, first, middle, beyond,
-                     wrap_pred);
+    std::nth_element(OMC_IF_EXEC(std::execution::par_unseq) first, middle,
+                     beyond, wrap_pred);
   else
     std::nth_element(first, middle, beyond, wrap_pred);
   return split_axis;

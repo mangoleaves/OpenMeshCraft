@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OpenMeshCraft/Utils/FormatCompat.h"
+
 #include <deque>
 #include <queue>
 
@@ -91,7 +93,7 @@ private:
     stats->dst_name = OMC::Logger::elapsed(name).count();               \
   if (config.verbose)                                                   \
   {                                                                     \
-    OMC::Logger::info(std::format("[OpenMeshCraft CDT] " dscrpt         \
+    OMC::Logger::info(OMC::format("[OpenMeshCraft CDT] " dscrpt         \
                                   " time : {} s",                       \
                                   OMC::Logger::elapsed(name).count())); \
   }

@@ -1,7 +1,7 @@
 #include "IndirectDefinitions.h"
 
 #ifdef OMC_PRED_PROFILE
-  #include <format>
+  #include "OpenMeshCraft/Utils/FormatCompat.h"
   #include <iostream>
   #include <string>
   #include <vector>
@@ -227,7 +227,7 @@ void PredicatesProfile::print()
   #ifdef OMC_PRED_PROFILE_FILTER
   for (size_t i = 0; i <= (size_t)PredicateNames::_orient3D_IEEE; i++)
   {
-    std::cout << std::format("{}:\n", pred_names[i]);
+    std::cout << OMC::format("{}:\n", pred_names[i]);
     for (size_t j = 0; j < ARR_CNT; j++)
     {
       if (filter_count[i][j].load() != 0)
@@ -241,7 +241,7 @@ void PredicatesProfile::print()
           (double)d_fail_count[i][j].load() / (double)filter_count[i][j].load();
         double real_zero = (double)real_zero_count[i][j].load() /
                            (double)filter_count[i][j].load();
-        std::cout << std::format("  {}: {:.2f}% {:.2f}% {:.2f}% {:.2f}% {}\n",
+        std::cout << OMC::format("  {}: {:.2f}% {:.2f}% {:.2f}% {:.2f}% {}\n",
                                  arr_names[j], ss_succeed * 100.,
                                  d_succeed * 100., e_succeed * 100.,
                                  real_zero * 100., filter_count[i][j].load());
@@ -254,7 +254,7 @@ void PredicatesProfile::print()
   for (size_t i = (size_t)PredicateNames::_ssi_filter;
        i <= (size_t)PredicateNames::_tpi_expansion; i++)
   {
-    std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
+    std::cout << OMC::format("{}: {}\n", pred_names[i], total_count[i].load());
   }
   #endif
 
@@ -262,7 +262,7 @@ void PredicatesProfile::print()
   for (size_t i = (size_t)PredicateNames::_orientOn2D_III;
        i <= (size_t)PredicateNames::_orientOn2D_III; i++)
   {
-    std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
+    std::cout << OMC::format("{}: {}\n", pred_names[i], total_count[i].load());
     int last_branch_flag = 0;
     // find the last non-zero branch flag
     for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
@@ -277,7 +277,7 @@ void PredicatesProfile::print()
     for (int j = 0; j <= last_branch_flag; j++)
     {
       double reach_raio = (double)branch_count[i][j] / (double)total_count[i];
-      std::cout << std::format("  branch {} : {:.2f}%, {}\n", j,
+      std::cout << OMC::format("  branch {} : {:.2f}%, {}\n", j,
                                reach_raio * 100., branch_count[i][j].load());
     }
   }
@@ -287,7 +287,7 @@ void PredicatesProfile::print()
   for (size_t i = (size_t)PredicateNames::_expan_reducable_len;
        i <= (size_t)PredicateNames::_expan_reduced_len; i++)
   {
-    std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
+    std::cout << OMC::format("{}: {}\n", pred_names[i], total_count[i].load());
     int last_branch_flag = 0;
     // find the last non-zero branch flag
     for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
@@ -302,7 +302,7 @@ void PredicatesProfile::print()
     for (int j = 0; j <= last_branch_flag; j++)
     {
       double reach_raio = (double)branch_count[i][j] / (double)total_count[i];
-      std::cout << std::format("  branch {} : {:.2f}%, {}\n", j,
+      std::cout << OMC::format("  branch {} : {:.2f}%, {}\n", j,
                                reach_raio * 100., branch_count[i][j].load());
     }
   }
@@ -312,7 +312,7 @@ void PredicatesProfile::print()
   for (size_t i = (size_t)PredicateNames::_malloc;
        i <= (size_t)PredicateNames::_malloc; i++)
   {
-    std::cout << std::format("{}: {}\n", pred_names[i], total_count[i].load());
+    std::cout << OMC::format("{}: {}\n", pred_names[i], total_count[i].load());
     int last_branch_flag = 0;
     // find the last non-zero branch flag
     for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
@@ -327,7 +327,7 @@ void PredicatesProfile::print()
     for (int j = 0; j <= last_branch_flag; j++)
     {
       double reach_raio = (double)branch_count[i][j] / (double)total_count[i];
-      std::cout << std::format("  branch {} : {:.2f}%, {}\n", j,
+      std::cout << OMC::format("  branch {} : {:.2f}%, {}\n", j,
                                reach_raio * 100., branch_count[i][j].load());
     }
   }

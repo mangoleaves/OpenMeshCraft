@@ -43,7 +43,7 @@ DEFINE_ERROR_TYPE(UnderflowError   ,std::underflow_error)
 
   #define OMC_THROW(exception, message, ...)                     \
     {                                                            \
-      std::string fmt_msg = std::format(message, ##__VA_ARGS__); \
+      std::string fmt_msg = OMC::format(message, ##__VA_ARGS__); \
       OMC::Logger::fatal(fmt_msg);                               \
       throw OMC::exception(fmt_msg);                             \
     }
@@ -51,7 +51,7 @@ DEFINE_ERROR_TYPE(UnderflowError   ,std::underflow_error)
   #define OMC_THROW_IF(condition, exception, message, ...)       \
     if (condition)                                               \
     {                                                            \
-      std::string fmt_msg = std::format(message, ##__VA_ARGS__); \
+      std::string fmt_msg = OMC::format(message, ##__VA_ARGS__); \
       OMC::Logger::fatal(fmt_msg);                               \
       throw OMC::exception(fmt_msg);                             \
     }
@@ -135,7 +135,7 @@ namespace OMC {
   /// Exit program
   #define OMC_EXIT(message, ...)                                         \
     {                                                                    \
-      OMC::Logger::fatal(std::format("[{}] [{}] " message, __FILENAME__, \
+      OMC::Logger::fatal(OMC::format("[{}] [{}] " message, __FILENAME__, \
                                      __LINE__, ##__VA_ARGS__));          \
       std::exit(1);                                                      \
     }

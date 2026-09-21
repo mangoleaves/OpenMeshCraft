@@ -3,6 +3,7 @@
 #include "DelaunayRefine.h"
 
 #ifdef OMC_DELAUNAY_REFINE_PROFILE
+  #include "OpenMeshCraft/Utils/FormatCompat.h"
   #include "OpenMeshCraft/Utils/Logger.h"
 
   #include <iostream>
@@ -548,9 +549,9 @@ void DelaunayRefine<T, D>::insertAllBalls()
 
 #ifdef OMC_DELAUNAY_REFINE_PROFILE
   Logger::info("\nDelaunayRefine FeaturePreserving profile:");
-  Logger::info(std::format("  Inserted points: {}", num_inserted_point));
-  Logger::info(std::format("  Hidden points: {}", num_hidden_point));
-  Logger::info(std::format("  Coincident vertices: {}", num_coincident_vertex));
+  Logger::info(OMC::format("  Inserted points: {}", num_inserted_point));
+  Logger::info(OMC::format("  Hidden points: {}", num_hidden_point));
+  Logger::info(OMC::format("  Coincident vertices: {}", num_coincident_vertex));
 #endif
 }
 
@@ -740,7 +741,7 @@ void DelaunayRefine<T, D>::refineFaces()
     case FaceConflictStatus::OK:
       num_inserted_point += 1;
       if (num_inserted_point % 100 == 0)
-        std::cout << std::format("\rInserted points {}         ",
+        std::cout << OMC::format("\rInserted points {}         ",
                                  num_inserted_point);
       break;
     }
@@ -749,10 +750,10 @@ void DelaunayRefine<T, D>::refineFaces()
 
 #ifdef OMC_DELAUNAY_REFINE_PROFILE
   Logger::info("\nDelaunayRefine FaceRefine profile:");
-  Logger::info(std::format("  Inserted points: {}", num_inserted_point));
-  Logger::info(std::format("  Coincident vertex: {}", num_coincident_vertex));
-  Logger::info(std::format("  Hidden point: {}", num_hidden_point));
-  Logger::info(std::format("  Face not conflict: {}", num_face_not_conflict));
+  Logger::info(OMC::format("  Inserted points: {}", num_inserted_point));
+  Logger::info(OMC::format("  Coincident vertex: {}", num_coincident_vertex));
+  Logger::info(OMC::format("  Hidden point: {}", num_hidden_point));
+  Logger::info(OMC::format("  Face not conflict: {}", num_face_not_conflict));
 #endif
 
   tet_mesh.removeDeletedTets();
@@ -997,7 +998,7 @@ void DelaunayRefine<T, D>::refineCells()
     case CellConflictStatus::OK:
       num_inserted_point += 1;
       if (num_inserted_point % 100 == 0)
-        std::cout << std::format("\rInserted points {}         ",
+        std::cout << OMC::format("\rInserted points {}         ",
                                  num_inserted_point);
       break;
     }
@@ -1006,9 +1007,9 @@ void DelaunayRefine<T, D>::refineCells()
 
 #ifdef OMC_DELAUNAY_REFINE_PROFILE
   Logger::info("\nDelaunayRefine CellRefine profile:");
-  Logger::info(std::format("  Inserted points: {}", num_inserted_point));
-  Logger::info(std::format("  Coincident vertex: {}", num_coincident_vertex));
-  Logger::info(std::format("  Hidden point: {}", num_hidden_point));
+  Logger::info(OMC::format("  Inserted points: {}", num_inserted_point));
+  Logger::info(OMC::format("  Coincident vertex: {}", num_coincident_vertex));
+  Logger::info(OMC::format("  Hidden point: {}", num_hidden_point));
 #endif
 
   tet_mesh.removeDeletedTets();

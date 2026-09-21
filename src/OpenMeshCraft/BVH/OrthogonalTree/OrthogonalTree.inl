@@ -4,12 +4,12 @@
 
 #include "OpenMeshCraft/BVH/Utils.h"
 #include "OpenMeshCraft/Utils/ExtendedTypeTraits.h"
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
 
 #include "tbb/tbb.h"
 
 #include <algorithm>
 #include <deque>
-#include <execution>
 #include <queue>
 
 namespace OMC {
@@ -94,7 +94,8 @@ void OrthogonalTree<Traits>::construct(bool compact_box, NT enlarge_ratio,
   root_node().box() = m_bbox;
   root_node().boxes().resize(m_boxes.size());
   root_node().size() = m_boxes.size();
-  std::transform(std::execution::par_unseq, m_boxes.begin(), m_boxes.end(),
+  std::transform(OMC_IF_EXEC(std::execution::par_unseq) m_boxes.begin(),
+                 m_boxes.end(),
                  root_node().boxes().begin(), [](OrBbox &box) { return &box; });
 
   std::deque<index_t> nodes_to_split;

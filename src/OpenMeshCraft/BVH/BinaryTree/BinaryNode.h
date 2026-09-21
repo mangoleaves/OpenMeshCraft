@@ -3,8 +3,12 @@
 #include "BinaryTraits.h"
 
 #include "OpenMeshCraft/Utils/Exception.h"
-
-#include <ranges>
+#if __has_include(<ranges>)
+  #include <ranges>
+#endif
+#if !defined(__cpp_lib_ranges) || __cpp_lib_ranges < 201911L
+  #include <boost/range/irange.hpp>
+#endif
 
 namespace OMC {
 
@@ -51,10 +55,10 @@ public:
   using Children = index_t;
 
 public:
-#if 0
-  using BboxesContainer = IotaView<index_t>;
-#else
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911L
   using BboxesContainer = std::ranges::iota_view<index_t, index_t>;
+#else
+  using BboxesContainer = boost::integer_range<index_t>;
 #endif
 
 public: /* Constructors (Copy, Move, Assign) and Destructor */
