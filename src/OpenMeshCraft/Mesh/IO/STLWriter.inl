@@ -2,9 +2,9 @@
 
 #include "STLWriter.h"
 
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
 #include "OpenMeshCraft/Utils/Macros.h"
 
-#include <execution>
 #include <fstream>
 
 namespace OMC {
@@ -183,7 +183,7 @@ bool STLWriter<Traits>::write(const std::string &filename, IOOptions &opt,
     if (m_normals.empty() || m_normals.size() != m_triangles.size())
     {
       m_normals.resize(m_triangles.size());
-      std::transform(std::execution::par_unseq, m_triangles.begin(),
+      std::transform(OMC_IF_EXEC(std::execution::par_unseq) m_triangles.begin(),
                      m_triangles.end(), m_normals.begin(),
                      [this](const Triangle &t) { return calc_normal(t); });
     }

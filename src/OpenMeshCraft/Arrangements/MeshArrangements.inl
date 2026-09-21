@@ -11,6 +11,8 @@
 #include "DetectClassifyTTIs.h"
 #include "Triangulation.h"
 
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
+
 namespace OMC {
 
 template <typename Kernel, typename Traits>
@@ -241,7 +243,7 @@ void MeshArrangements_Impl<Traits>::exitAfterTriangulation()
 {
   // initialize merged triangle soup and auxiliary structure
   arr_out_verts.resize(tri_soup.numVerts());
-  std::copy(std::execution::par_unseq, tri_soup.vertices.begin(),
+  std::copy(OMC_IF_EXEC(std::execution::par_unseq) tri_soup.vertices.begin(),
             tri_soup.vertices.end(), arr_out_verts.begin());
 
   arr_out_labels.inside.resize(arr_out_tris.size() / 3);
@@ -610,8 +612,8 @@ private:
 
     size_t l_off = labels.size();
     labels.resize(labels.size() + triangles.size());
-    std::fill(std::execution::par_unseq, labels.begin() + l_off, labels.end(),
-              label);
+    std::fill(OMC_IF_EXEC(std::execution::par_unseq) labels.begin() + l_off,
+              labels.end(), label);
   }
 };
 

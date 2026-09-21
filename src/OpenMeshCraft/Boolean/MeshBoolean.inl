@@ -4,6 +4,7 @@
 // Arrangements
 #include "OpenMeshCraft/Arrangements/FastTriMesh.h"
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
 #include "OpenMeshCraft/Utils/FormatCompat.h"
 
 // clang-format off
@@ -1315,8 +1316,8 @@ private:
 
     size_t l_off = labels.size();
     labels.resize(labels.size() + triangles.size());
-    std::fill(std::execution::par_unseq, labels.begin() + l_off, labels.end(),
-              label);
+    std::fill(OMC_IF_EXEC(std::execution::par_unseq) labels.begin() + l_off,
+              labels.end(), label);
   }
 };
 

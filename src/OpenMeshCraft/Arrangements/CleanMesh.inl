@@ -3,14 +3,13 @@
 #include "CleanMesh.h"
 
 #include "OpenMeshCraft/Utils/Hashers.h"
+#include "OpenMeshCraft/Utils/ExecutionCompat.h"
 
 // clang-format off
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
 #include "parallel_hashmap/phmap.h"
 #include "OpenMeshCraft/Utils/EnableWarnings.h"
 // clang-format on
-
-#include <execution>
 
 namespace OMC {
 template <typename Traits>
@@ -86,12 +85,12 @@ void ArrCleanMesh<Traits>::mergeDuplicatedVertices()
   // update vertex indices in triangles.
   out_tris.resize(in_tris.size());
   if (parallel)
-    std::transform(std::execution::par_unseq, in_tris.begin(), in_tris.end(),
-                   out_tris.begin(),
+    std::transform(OMC_IF_EXEC(std::execution::par_unseq) in_tris.begin(),
+                   in_tris.end(), out_tris.begin(),
                    [&lookup](index_t idx) { return lookup[idx]; });
   else
-    std::transform(std::execution::seq, in_tris.begin(), in_tris.end(),
-                   out_tris.begin(),
+    std::transform(OMC_IF_EXEC(std::execution::seq) in_tris.begin(),
+                   in_tris.end(), out_tris.begin(),
                    [&lookup](index_t idx) { return lookup[idx]; });
 }
 
