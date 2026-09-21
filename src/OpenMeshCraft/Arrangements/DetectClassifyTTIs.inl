@@ -247,8 +247,8 @@ void DetectClassifyTTIs<Traits>::parallelOnLargeNodes(
 #ifdef OMC_ARR_DC_TTI_PARA
     tbb::parallel_for(size_t(0), num_threads, on_large_node);
 #else
-    std::ranges::for_each(std::ranges::iota_view(size_t(0), num_threads),
-                          on_large_node);
+    for (size_t thread_id = 0; thread_id < num_threads; ++thread_id)
+      on_large_node(thread_id);
 #endif
   }
 }
