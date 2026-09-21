@@ -11,6 +11,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(OpenMeshCraft)
 
-if(OMC_MASTER_PROJECT)
+if(OMC_MASTER_PROJECT AND OMC_BUILD_PREDICATES_GENERATOR)
   add_subdirectory(PredicatesGenerator)
 endif()
