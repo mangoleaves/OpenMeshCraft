@@ -64,6 +64,8 @@ target_compile_definitions(
   PUBLIC $<BUILD_INTERFACE:OMC_HAS_IMPL>
   PUBLIC $<INSTALL_INTERFACE:OMC_HAS_IMPL>)
 
+include(OpenMeshCraft_ConfigureFmt)
+
 include(OpenMeshCraft_ConfigureMacros)
 
 include(OpenMeshCraft_ConfigureCompiler)

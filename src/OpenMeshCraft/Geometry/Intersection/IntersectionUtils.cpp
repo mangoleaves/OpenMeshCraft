@@ -1,7 +1,7 @@
 #include "IntersectionUtils.h"
 
 #ifdef OMC_INTER_PROFILE
-  #include <format>
+  #include "OpenMeshCraft/Utils/FormatCompat.h"
   #include <iostream>
   #include <string>
   #include <vector>
@@ -53,7 +53,7 @@ void IntersectionProfile::print()
 
   for (size_t i = 0; i < (size_t)IntersectionNames::CNT; i++)
   {
-    std::cout << std::format("{}:\n", func_names[i]);
+    std::cout << OMC::format("{}:\n", func_names[i]);
     int last_branch_flag = 0;
     // find the last non-zero branch flag
     for (int j = (int)BRANCH_CNT - 1; j >= 0; j--)
@@ -69,7 +69,7 @@ void IntersectionProfile::print()
     {
       double reach_raio =
         (double)reach_count[i][j].load() / (double)total_count[i].load();
-      std::cout << std::format("  line {}: {:.2f}%\n", reach_line[i][j].load(),
+      std::cout << OMC::format("  line {}: {:.2f}%\n", reach_line[i][j].load(),
                                reach_raio * 100.);
     }
   }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FormatCompat.h"
 #include "Macros.h"
 
 #include <cstdio>

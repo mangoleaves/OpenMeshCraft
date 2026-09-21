@@ -4,6 +4,7 @@
 // Arrangements
 #include "OpenMeshCraft/Arrangements/FastTriMesh.h"
 #include "OpenMeshCraft/Arrangements/MeshArrangements.h"
+#include "OpenMeshCraft/Utils/FormatCompat.h"
 
 // clang-format off
 #include "OpenMeshCraft/Utils/DisableWarnings.h"
@@ -290,7 +291,7 @@ void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
   tm = FTriMesh(arr_out_verts, arr_out_tris);
 
   if (verbose)
-    Logger::info(std::format("[OpenMeshCraft Boolean] Init Mesh time: {} s.",
+    Logger::info(OMC::format("[OpenMeshCraft Boolean] Init Mesh time: {} s.",
                              OMC::Logger::elapsed(start_init).count()));
 
   auto start_patch = OMC::Logger::elapse_reset();
@@ -299,7 +300,7 @@ void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
 
   if (verbose)
     Logger::info(
-      std::format("[OpenMeshCraft Boolean] Compute patches time: {} s.",
+      OMC::format("[OpenMeshCraft Boolean] Compute patches time: {} s.",
                   OMC::Logger::elapsed(start_patch).count()));
 
   auto start_dupl = OMC::Logger::elapse_reset();
@@ -310,7 +311,7 @@ void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
 
   if (verbose)
     Logger::info(
-      std::format("[OpenMeshCraft Boolean] Add duplicate triangles time: {} s.",
+      OMC::format("[OpenMeshCraft Boolean] Add duplicate triangles time: {} s.",
                   OMC::Logger::elapsed(start_dupl).count()));
 
   auto start_inout = OMC::Logger::elapse_reset();
@@ -322,7 +323,7 @@ void MeshBoolean_Impl<Traits>::computeLabelsPipeline()
 
   if (verbose)
     Logger::info(
-      std::format("[OpenMeshCraft Boolean] Compute Inside Outside time: {} s.",
+      OMC::format("[OpenMeshCraft Boolean] Compute Inside Outside time: {} s.",
                   OMC::Logger::elapsed(start_inout).count()));
 }
 

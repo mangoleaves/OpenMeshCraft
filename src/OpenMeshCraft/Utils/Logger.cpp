@@ -1,6 +1,5 @@
 #include "Logger.h"
 
-#include <format>
 #include <iostream>
 
 namespace OMC {
@@ -8,7 +7,7 @@ namespace OMC {
 void Logger::trace(OMC_UNUSED const std::string &msg)
 {
 #ifdef OMC_LOG_TRACE
-  std::cout << std::format("[trace]: {}\n", msg);
+  std::cout << OMC::format("[trace]: {}\n", msg);
 #endif
 }
 
@@ -16,21 +15,21 @@ void Logger::debug(OMC_UNUSED const std::string &msg)
 {
 #ifdef OMC_LOG_DEBUG
   if (console_level <= Level::DEBUG)
-    std::cout << std::format("[debug]: {}\n", msg);
+    std::cout << OMC::format("[debug]: {}\n", msg);
 #endif
 }
 
 void Logger::info(OMC_UNUSED const std::string &msg)
 {
 #if defined(OMC_LOG_DEBUG) || defined(OMC_LOG_INFO)
-  std::cout << std::format("[info]: {}\n", msg);
+  std::cout << OMC::format("[info]: {}\n", msg);
 #endif
 }
 
 void Logger::warn(OMC_UNUSED const std::string &msg)
 {
 #if defined(OMC_LOG_DEBUG) || defined(OMC_LOG_INFO) || defined(OMC_LOG_WARN)
-  std::cout << std::format("[warn]: {}\n", msg);
+  std::cout << OMC::format("[warn]: {}\n", msg);
 #endif
 }
 
@@ -38,7 +37,7 @@ void Logger::fatal(OMC_UNUSED const std::string &msg)
 {
 #if defined(OMC_LOG_DEBUG) || defined(OMC_LOG_INFO) || \
   defined(OMC_LOG_WARN) || defined(OMC_LOG_FATAL)
-  std::cout << std::format("[fatal]: {}\n", msg);
+  std::cout << OMC::format("[fatal]: {}\n", msg);
 #endif
 }
 
