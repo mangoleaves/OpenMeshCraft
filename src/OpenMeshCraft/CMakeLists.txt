@@ -66,6 +66,12 @@ target_compile_definitions(
 
 include(OpenMeshCraft_ConfigureFmt)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+   CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  target_compile_definitions(${PROJECT_NAME}
+                             PUBLIC "OMC_UNUSED=__attribute__((unused))")
+endif()
+
 include(OpenMeshCraft_ConfigureMacros)
 
 include(OpenMeshCraft_ConfigureCompiler)
